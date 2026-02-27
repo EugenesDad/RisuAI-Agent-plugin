@@ -191,19 +191,49 @@ Insert below system prompt:
 
 ---
 
-## 📊 Performance Philosophy
+## ❓ Q&A
 
-Traditional preset approach:
+### Q1: What should I do if the output gets censored or fails to generate?
 
-> Single model handles everything.
+**A:**
+Switch to a different, less-censored model.
 
-AI agent orchestration:
+Since the system splits data into smaller chunks, the NSFW density will be higher, potentially triggering filtering in some models more often. 
 
-> Structured distributed cognition layer
-> Main model focuses on narrative output
-> Auxiliary model handles meta-reasoning
+Or, you may try strengthening the prefill prompt, but note:
 
-This separation significantly improves logical durability in long-running sessions.
+* Weaker models may experience performance degradation.
+* Overly strong prompt injection can reduce task-solving quality.
+
+
+---
+
+### Q2: What does the “The requested model is not supported” error mean?
+
+**A:**
+It might mean the selected model does not support Prefill functionality.
+
+To fix this:
+
+Go to:
+
+```
+Global Prompt → Prefill Response Field (default: "Ready.")
+```
+
+Clear that field completely, then try again.
+
+---
+
+### Q3: Can I modify the summarization system or system notes?
+
+**A:**
+Yes, but you must follow these rules:
+
+* Keep the same JSON template structure.
+* Lorebook entry names act as backend classification tags, so each entry must retain the same tag name.
+
+If tags are not matched, the backend retrieval system will fail to correctly classify entries.
 
 ---
 
