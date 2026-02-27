@@ -1,30 +1,39 @@
 //@name 👤 RisuAI Agent
-//@display-name 👤 RisuAI Agent v1.4
+//@display-name 👤 RisuAI Agent v1.4.1
 //@author penguineugene@protonmail.com
 //@link https://github.com/EugenesDad/RisuAI-Agent-plugin
 //@api 3.0
-//@version 1.4
+//@version 1.4.1
 
 (async () => {
+  function _mapLangCode(raw) {
+    const dl = String(raw || "").toLowerCase().trim();
+    if (!dl) return "";
+    if (dl === "ko" || dl.startsWith("ko-")) return "ko";
+    if (dl === "cn" || dl === "tc" || dl === "zh-tw" || dl === "zh-hant" || dl.startsWith("zh-tw") || dl.startsWith("zh-hk")) return "tc";
+    if (dl.startsWith("zh")) return "tc";
+    if (dl.startsWith("en")) return "en";
+    return "";
+  }
+
   async function _detectLang() {
     try {
       const db = await Risuai.getDatabase();
-      const dl = String(db?.language || "").toLowerCase().trim();
-      if (dl === "ko" || dl.startsWith("ko-")) return "ko";
-      if (dl === "cn" || dl === "tc" || dl === "zh-tw" || dl === "zh-hant" || dl.startsWith("zh-tw") || dl.startsWith("zh-hk")) return "tc";
-      if (dl.startsWith("zh")) return "tc";
-      if (dl.startsWith("ko")) return "ko";
-      if (dl.startsWith("en")) return "en";
+      const fromDb = _mapLangCode(db?.language);
+      if (fromDb) return fromDb;
     } catch { }
     try {
       const rootDoc = await Risuai.getRootDocument();
+      const nav = rootDoc?.defaultView?.navigator;
+      const fromNavigator = _mapLangCode(nav?.language) || _mapLangCode(Array.isArray(nav?.languages) ? nav.languages[0] : "");
+      if (fromNavigator) return fromNavigator;
       const settingsRoot = await (rootDoc?.querySelector?.(".rs-setting-cont") || null);
       const settingsText = String(await (settingsRoot?.textContent?.() || "")).trim();
       if (settingsText) {
-        if (/[가-힣]/.test(settingsText) || settingsText.includes("플러그인") || settingsText.includes("한국어")) return "ko";
         if (settingsText.includes("外掛程式") || settingsText.includes("介面語言") || settingsText.includes("中文(繁體)")) return "tc";
         if (settingsText.includes("插件") || settingsText.includes("界面语言")) return "tc";
         if (settingsText.includes("Plugin") || settingsText.includes("UI Language")) return "en";
+        if (/[가-힣]/.test(settingsText) || settingsText.includes("플러그인") || settingsText.includes("한국어")) return "ko";
       }
     } catch { }
     return "en";
@@ -366,7 +375,7 @@
   let _T = _I18N.en;
 
   const PLUGIN_NAME = "👤 RisuAI Agent";
-  const PLUGIN_VER = "1.4";
+  const PLUGIN_VER = "1.4.1";
   const LOG = "[RisuAIAgent]";
   const SYSTEM_INJECT_TAG = "PLUGIN_PARALLEL_STATUS";
   const SYSTEM_REWRITE_TAG = "PLUGIN_PARALLEL_REWRITE";
@@ -629,6 +638,7 @@ RULES:
     { value: "openai", label: "openai" },
     { value: "anthropic", label: "anthropic" },
     { value: "google_cloud", label: "google cloud" },
+    { value: "vertex_ai", label: "vertex ai" },
     { value: "grok", label: "grok (xAI)" },
     { value: "github_copilot", label: "github copilot" },
     { value: "openrouter", label: "openrouter" },
@@ -639,8 +649,9 @@ RULES:
     openai: "https://api.openai.com/v1/chat/completions",
     anthropic: "https://api.anthropic.com/v1/messages",
     google_cloud: "https://generativelanguage.googleapis.com/v1beta/models",
+    vertex_ai: "https://us-central1-aiplatform.googleapis.com/v1/projects/YOUR_PROJECT_ID/locations/us-central1/publishers/google/models",
     grok: "https://api.x.ai/v1/chat/completions",
-    github_copilot: "https://api.githubcopilot.com/v1/messages",
+    github_copilot: "https://api.githubcopilot.com/chat/completions",
     openrouter: "https://openrouter.ai/api/v1/chat/completions",
     custom_api: "",
   };
@@ -697,6 +708,7 @@ RULES:
   const API_FORMAT_OPTIONS = [
     { value: "openai", label: "OpenAI Compatible" },
     { value: "google", label: "Google Gemini" },
+    { value: "vertex", label: "Google Vertex AI" },
     { value: "claude", label: "Anthropic Claude" },
   ];
 
@@ -706,7 +718,7 @@ RULES:
   ];
 
   const PROVIDER_FORMAT_MAP = {
-    openai: "openai", anthropic: "claude", google_cloud: "google", voyageai: "openai",
+    openai: "openai", anthropic: "claude", google_cloud: "google", vertex_ai: "vertex", voyageai: "openai",
     grok: "openai", github_copilot: "openai", openrouter: "openai", custom_api: "openai",
   };
 
@@ -823,14 +835,15 @@ RULES:
     for (const via of orders) {
       if (remainingMs() <= 1) break;
       if (via === "nativeFetch") {
-        const controller = new AbortController();
-        const tid = setTimeout(() => controller.abort(), remainingMs());
         try {
-          const res = await Risuai.nativeFetch(url, { ...options, signal: controller.signal });
-          clearTimeout(tid);
+          // Avoid passing AbortSignal across plugin boundary (structured clone issue).
+          const res = await withTimeout(
+            Risuai.nativeFetch(url, options),
+            remainingMs(),
+            `${timeoutMessagePrefix || "Request"} timeout after ${timeoutMs}ms`
+          );
           return { res, via, fallbackError: firstError ? String(firstError?.message || firstError || "") : "" };
         } catch (err) {
-          clearTimeout(tid);
           if (!firstError) firstError = err;
         }
       } else {
@@ -886,6 +899,9 @@ RULES:
   function normalizeUrl(baseUrl) {
     const clean = safeTrim(baseUrl).replace(/\/+$/, "");
     if (!clean) return "";
+    if (/\/v1\/messages$/i.test(clean) && isCopilotUrl(clean)) {
+      return clean.replace(/\/v1\/messages$/i, "/chat/completions");
+    }
     if (clean.endsWith("/chat/completions")) return clean;
     return `${clean}/chat/completions`;
   }
@@ -894,7 +910,7 @@ RULES:
     const clean = safeTrim(baseUrl).replace(/\/+$/, "");
     const f = safeTrim(format || "openai").toLowerCase();
     if (!clean) return "";
-    if (f === "google") return clean;
+    if (f === "google" || f === "vertex") return clean;
     if (f === "claude") {
       if (clean.endsWith("/messages")) return clean;
       return `${clean}/messages`;
@@ -2201,6 +2217,20 @@ RULES:
     return url;
   }
 
+  function normalizeVertexGenerateUrl(baseUrl, model) {
+    const raw = safeTrim(baseUrl || "");
+    const id = safeTrim(model || "");
+    if (!raw || !id) return "";
+    let url = raw.replace(/\/+$/, "");
+    if (!/:generateContent(\?|$)/.test(url)) {
+      if (/\/chat\/completions$/i.test(url)) url = url.replace(/\/chat\/completions$/i, "");
+      if (/\/models$/i.test(url)) url = `${url}/${id}:generateContent`;
+      else if (/\/models\/[^/]+$/i.test(url)) url = `${url}:generateContent`;
+      else url = `${url}/models/${id}:generateContent`;
+    }
+    return url;
+  }
+
   function buildGoogleMessages(messages) {
     const normalized = Array.isArray(messages) ? messages : [];
     const systemTexts = normalized.filter((m) => m?.role === "system").map((m) => normalizeMessageContent(m?.content)).filter(Boolean);
@@ -2237,6 +2267,33 @@ RULES:
     return { parsed: parsePossiblyWrappedJson(content), raw: content };
   }
 
+  async function callVertexGenerative({ url, apiKey, model, messages, timeoutMs, temperature }) {
+    const finalUrl = normalizeVertexGenerateUrl(url, model);
+    if (!finalUrl) throw new Error("Vertex AI URL/model is missing.");
+    const headers = { "Content-Type": "application/json" };
+    if (apiKey) headers.Authorization = `Bearer ${apiKey}`;
+    const built = buildGoogleMessages(messages);
+    const body = {
+      contents: built.contents, ...(built.systemInstruction ? { systemInstruction: built.systemInstruction } : {}),
+      generationConfig: { ...(Number.isFinite(Number(temperature)) ? { temperature: Math.max(0, Math.min(2, Number(temperature))) } : {}) },
+      safetySettings: [
+        { category: "HARM_CATEGORY_SEXUALLY_EXPLICIT", threshold: "BLOCK_NONE" },
+        { category: "HARM_CATEGORY_HATE_SPEECH", threshold: "BLOCK_NONE" },
+        { category: "HARM_CATEGORY_HARASSMENT", threshold: "BLOCK_NONE" },
+        { category: "HARM_CATEGORY_DANGEROUS_CONTENT", threshold: "BLOCK_NONE" },
+      ],
+    };
+    const { res } = await fetchWithFallback(finalUrl, { method: "POST", headers, body: JSON.stringify(body) }, timeoutMs, "Vertex extractor", false);
+    if (!isResponseLike(res) || !res.ok) {
+      const errText = await readResponseErrorText(res);
+      throw new Error(`HTTP ${isResponseLike(res) ? res.status : 0}: ${String(errText || "").slice(0, 500)}`);
+    }
+    const data = await readResponseJson(res);
+    const content = (data?.candidates?.[0]?.content?.parts || []).map((p) => safeTrim(p?.text)).filter(Boolean).join("\n").trim();
+    if (!content) throw new Error("Vertex extractor returned empty content.");
+    return { parsed: parsePossiblyWrappedJson(content), raw: content };
+  }
+
   async function callClaudeCompat({ url, apiKey, model, messages, timeoutMs, temperature }) {
     const finalUrl = safeTrim(url || "").replace(/\/+$/, "");
     if (!finalUrl || !safeTrim(model)) throw new Error("Claude URL/model is missing.");
@@ -2268,6 +2325,7 @@ RULES:
     const runner = async () => {
       const f = safeTrim(format || "openai").toLowerCase();
       const result = f === "google" ? await callGoogleGenerative({ url, apiKey, model, messages, timeoutMs, temperature })
+        : f === "vertex" ? await callVertexGenerative({ url, apiKey, model, messages, timeoutMs, temperature })
         : f === "claude" ? await callClaudeCompat({ url, apiKey, model, messages, timeoutMs, temperature })
           : await callOpenAICompat({ url, apiKey, model, messages, timeoutMs, temperature });
       if (!safeTrim(result?.raw)) throw new Error(`Extractor ${mode} returned empty content.`);
@@ -3041,6 +3099,7 @@ RULES:
   function getModelsByProvider(provider) {
     const p = safeTrim(provider);
     if (p === "google_cloud") return EXTRACTOR_MODEL_OPTIONS.filter((m) => m.value.startsWith("gemini-"));
+    if (p === "vertex_ai") return EXTRACTOR_MODEL_OPTIONS.filter((m) => m.value.startsWith("gemini-"));
     if (p === "anthropic") return EXTRACTOR_MODEL_OPTIONS.filter((m) => m.value.startsWith("claude-"));
     if (p === "openai") return EXTRACTOR_MODEL_OPTIONS.filter((m) => m.value.startsWith("gpt-") || m.value.startsWith("chatgpt-") || m.value.startsWith("o"));
     if (p === "grok") return EXTRACTOR_MODEL_OPTIONS.filter((m) => m.value.startsWith("grok-"));
@@ -3496,7 +3555,7 @@ RULES:
     document.body.innerHTML = `
       <div class="pse-body">
         <div class="pse-card">
-          <h1 class="pse-title">👤 RisuAI Agent v1.4</h1>
+          <h1 class="pse-title">👤 RisuAI Agent v1.4.1</h1>
           <div id="pse-status" class="pse-status"></div>
           ${renderModelDatalists()}
 
@@ -3587,7 +3646,7 @@ RULES:
             <div class="pse-section">
               <div class="pse-section-title">${_T.sec_lore_calls}</div>
               <div style="margin-bottom:6px;padding:7px 10px;border-radius:6px;background:rgba(180,140,0,0.1);border:1px solid rgba(180,140,0,0.25);font-size:var(--pse-font-size-small);color:var(--pse-muted);">
-                ${_T.lore_warn}
+                ⚠️ Do not manually edit the current chat's Local Lorebook while the Agent is running, as it may be automatically overwritten by the system.
               </div>
               <div id="model_call_list" class="pse-entry-list"></div>
               <button id="add_model_call" class="pse-add-entry" type="button">${_T.btn_add_call}</button>
