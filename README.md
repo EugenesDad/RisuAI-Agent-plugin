@@ -191,6 +191,13 @@ Insert below system prompt:
 
 ---
 
+## 🚨 Known Issue
+
+### Curly Braced Syntax (CBS, e.g. {{ }}) is not supported. 
+That means some bots may not run smoothly with this plugin.
+
+---
+
 ## ❓ Q&A
 
 ### Q1: What should I do if the output gets censored or fails to generate?
@@ -204,7 +211,6 @@ Or, you may try strengthening the prefill prompt, but note:
 
 * Weaker models may experience performance degradation.
 * Overly strong prompt injection can reduce task-solving quality.
-
 
 ---
 
