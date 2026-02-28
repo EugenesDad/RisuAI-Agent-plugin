@@ -1,9 +1,9 @@
 //@name 👤 RisuAI Agent
-//@display-name 👤 RisuAI Agent v1.6
+//@display-name 👤 RisuAI Agent v1.6.1
 //@author penguineugene@protonmail.com
 //@link https://github.com/EugenesDad/RisuAI-Agent-plugin
 //@api 3.0
-//@version 1.6
+//@version 1.6.1
 
 (async () => {
   function _mapLangCode(raw) {
@@ -391,7 +391,7 @@
   let _langInitialized = false;
 
   const PLUGIN_NAME = "👤 RisuAI Agent";
-  const PLUGIN_VER = "1.6";
+  const PLUGIN_VER = "1.6.1";
   const LOG = "[RisuAIAgent]";
   const SYSTEM_INJECT_TAG = "PLUGIN_PARALLEL_STATUS";
   const SYSTEM_REWRITE_TAG = "PLUGIN_PARALLEL_REWRITE";
@@ -3970,7 +3970,7 @@ Example: [{"id": "chk_0", "category": "information"}, {"id": "chk_1", "category"
     document.body.innerHTML = `
       <div class="pse-body">
         <div class="pse-card">
-          <h1 class="pse-title">👤 RisuAI Agent v1.6</h1>
+          <h1 class="pse-title">👤 RisuAI Agent v1.6.1</h1>
           <div id="pse-status" class="pse-status"></div>
           ${renderModelDatalists()}
 
@@ -4061,7 +4061,7 @@ Example: [{"id": "chk_0", "category": "information"}, {"id": "chk_1", "category"
             <div class="pse-section">
               <div class="pse-section-title">${_T.sec_lore_calls}</div>
               <div style="margin-bottom:6px;padding:7px 10px;border-radius:6px;background:rgba(180,140,0,0.1);border:1px solid rgba(180,140,0,0.25);font-size:var(--pse-font-size-small);color:var(--pse-muted);">
-                ⚠️ Do not manually edit the current chat's Local Lorebook while the Agent is running, as it may be automatically overwritten by the system.
+                ${escapeHtml(_T.lore_warn)}
               </div>
               <div id="model_call_list" class="pse-entry-list"></div>
               <button id="add_model_call" class="pse-add-entry" type="button">${_T.btn_add_call}</button>
@@ -4816,6 +4816,13 @@ Example: [{"id": "chk_0", "category": "information"}, {"id": "chk_1", "category"
         await applyRetentionCleanup(displayUserMsgCount);
         return messages;
       }
+      // Only process the primary chat response flow.
+      // Secondary calls (e.g. Lua status/image generation) should not trigger prompt rewrite/extraction.
+      if (type !== "model") {
+        try { await Risuai.safeLocalStorage.setItem("last_extractor_mode", `skipped_non_model:${String(type ?? "")}`); } catch { }
+        return messages;
+      }
+
 
       await Risuai.safeLocalStorage.setItem("last_extractor_mode", "replacer_started");
 
