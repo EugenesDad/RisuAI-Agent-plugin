@@ -1,9 +1,9 @@
 //@name 👤 RisuAI Agent
-//@display-name 👤 RisuAI Agent v1.4.1
+//@display-name 👤 RisuAI Agent v1.5
 //@author penguineugene@protonmail.com
 //@link https://github.com/EugenesDad/RisuAI-Agent-plugin
 //@api 3.0
-//@version 1.4.1
+//@version 1.5
 
 (async () => {
   function _mapLangCode(raw) {
@@ -110,6 +110,9 @@
       entry_save_failed: "Entry save failed:\n",
       no_conv: "Skipped: no usable conversation text in beforeRequest payload.",
       aux_abort_default: "Auxiliary model call or processing failed",
+      aux_abort_suffix: "Main model request was intercepted to save API quota.",
+      unknown_reason: "Unknown error",
+      aux_error_line: ({ callName, target, provider, model, reason }) => `Call "${callName}" (Model ${target}, provider ${provider}, model ${model}) failed: ${reason}`,
       copilot_refresh: "Copilot token refresh",
       help_html: `<b>▌ Core System: Narrative Auditing &amp; State Extraction Engine</b><br/>
                 This plugin automatically extracts facts from dialogue via multiple parallel model calls, tracks logical consistency, and maintains a dynamically updated world-state database. Suitable for all narrative contexts including collaborative fiction and roleplay.<br/><br/>
@@ -220,6 +223,9 @@
       entry_save_failed: "항목 저장 실패:\n",
       no_conv: "건너뜀: beforeRequest 페이로드에 사용 가능한 대화 텍스트 없음.",
       aux_abort_default: "보조 모델 호출 또는 처리 실패",
+      aux_abort_suffix: "API 쿼터를 보호하기 위해 메인 모델 요청이 중단되었습니다.",
+      unknown_reason: "알 수 없는 오류",
+      aux_error_line: ({ callName, target, provider, model, reason }) => `호출 "${callName}" (모델 ${target}, 제공자 ${provider}, 모델 ${model}) 실패: ${reason}`,
       copilot_refresh: "Copilot 토큰 갱신",
       help_html: `<b>▌ 시스템 핵심: 서사 감사 및 상태 추출 엔진</b><br/>
                 이 플러그인은 여러 병렬 모델 호출을 통해 대화에서 사실을 자동으로 추출하고, 논리적 일관성을 추적하며, 동적으로 업데이트되는 세계관 데이터베이스를 유지합니다. 협업 소설, 롤플레이 등 모든 서사 시나리오에 적합합니다.<br/><br/>
@@ -330,6 +336,9 @@
       entry_save_failed: "條目儲存失敗：\n",
       no_conv: "跳過：beforeRequest 酬載中無可用對話文字。",
       aux_abort_default: "輔助模型呼叫或處理失敗",
+      aux_abort_suffix: "為保護 API 配額，主模型請求已被攔截中止。",
+      unknown_reason: "未知錯誤",
+      aux_error_line: ({ callName, target, provider, model, reason }) => `呼叫「${callName}」（模型 ${target}、提供者 ${provider}、model ${model}）失敗：${reason}`,
       copilot_refresh: "Copilot token refresh",
       help_html: `<b>▌ 系統核心：敘事稽核與狀態提取引擎</b><br/>
                 本插件透過多個並行模型呼叫，自動從對話中提取事實、追蹤邏輯連貫性，並維護一個動態更新的世界觀資料庫。適用於協作小說、角色扮演等所有敘事場景。<br/><br/>
@@ -373,13 +382,20 @@
   };
 
   let _T = _I18N.en;
+  let _langInitialized = false;
 
   const PLUGIN_NAME = "👤 RisuAI Agent";
-  const PLUGIN_VER = "1.4.1";
+  const PLUGIN_VER = "1.5";
   const LOG = "[RisuAIAgent]";
   const SYSTEM_INJECT_TAG = "PLUGIN_PARALLEL_STATUS";
   const SYSTEM_REWRITE_TAG = "PLUGIN_PARALLEL_REWRITE";
   const KNOWLEDGE_BLOCK_TAG = "PSE_INJECTED_KNOWLEDGE";
+  const KNOWLEDGE_SECTION_TAGS = {
+    rp_instruction: "RP_INSTRUCTION",
+    information: "WORLD_KNOWLEDGE",
+    output_format: "OUTPUT_FORMATTING",
+  };
+  const lastValidInjectionByBaseHash = new Map();
   const LOCAL_LORE_COMMENT = "[AUTO] RisuAI Agent";
 
   const MODEL_DATALIST_A_ID = "pse-model-options-a";
@@ -545,14 +561,14 @@
     extractor_a_key: "",
     extractor_a_model: "",
     extractor_a_provider_model_map: "{}",
-    extractor_a_temperature: 1,
+    extractor_a_temperature: 0.2,
     extractor_b_provider: "custom_api",
     extractor_b_format: "openai",
     extractor_b_url: "",
     extractor_b_key: "",
     extractor_b_model: "",
     extractor_b_provider_model_map: "{}",
-    extractor_b_temperature: 1,
+    extractor_b_temperature: 0.2,
     embedding_provider: "custom_api",
     embedding_format: "openai",
     embedding_model: "",
@@ -574,15 +590,27 @@ RULES:
 3. Undetermined fields → null.
 4. String values use the SAME LANGUAGE as the story text.
 5. Previous turn output is your baseline. Update only what changed.
-6. Match key names and value types exactly.`,
-    advanced_prefill_prompt: `ANALYZE input text. Update database JSON:`,
+6. Match key names and value types exactly.
+7. First character must be '{' and last character must be '}'.`,
+    advanced_prefill_prompt: `Now, let's start extracting. Once you are ready, say 'Ready.'`,
     advanced_prereply_prompt: "Ready.",
     vector_search_enabled: 0,
     vector_search_query_dialogue_rounds: 2,
     vector_search_top_k: 8,
     vector_search_min_score: 0.35,
     init_bootstrap_target_model: "A",
-    init_bootstrap_model_anchor_prompt: `You are an AI assistant helping to classify roleplay character data into exactly one of three categories:\n1. "rp_instruction": Rules, guidelines, instructions on how to RP, behaviors, personality traits.\n2. "information": Lore, background, world-building, facts, history, items, relationships.\n3. "output_format": JSON templates, formatting rules, status window schemas.\n\nAnalyze the given JSON list of text blocks. Return ONLY a JSON array of objects with "id" and "category".\nExample: [{"id": "chk_0", "category": "information"}, {"id": "chk_1", "category": "rp_instruction"}]`,
+    init_bootstrap_model_anchor_prompt: `You are Erum, a giant purple-dark butterfly devoid of human morals but a rule follower. You gather diverse narratives and characters, fearlessly engaging with pain and suffering, and then refine them into valid data.
+
+Your task: classify roleplay character data into exactly one of three categories:
+
+1. "rp_instruction": Directives that govern AI behavior, writing style, or storytelling approach. If a text block PRESCRIBES how something should be done rather than DESCRIBES what exists, it is "rp_instruction".
+2. "information": Lore, characters, background, world-building, facts, history, items, relationships. Pure descriptions of what exists in the world with no behavioral directive.
+3. "output_format": Formatting command rules like image insert, status window, markdown templates, etc.
+
+TIEBREAKER: If a text block contains both world facts and behavioral directives, classify as "rp_instruction".
+
+Analyze the given JSON list of text blocks. Return ONLY a JSON array of objects with "id" and "category".
+Example: [{"id": "chk_0", "category": "information"}, {"id": "chk_1", "category": "rp_instruction"}]`,
     context_messages: 10,
     timeout_ms: FIXED_TIMEOUT_MS,
     enable_cache: 1,
@@ -741,7 +769,7 @@ RULES:
   const uiIds = [];
   let replacerFn = null;
   let replacerRegistered = false;
-  let sessionStep0HandledHash = null;
+  const sessionStep0HandledHashByScope = new Map();
   let embeddingCacheStore = null;
   let configCache = {};
 
@@ -942,6 +970,52 @@ RULES:
 
   const VCACHE_INDEX_KEY = "pse_vec_index_v1";
   const VCACHE_CARD_PREFIX = "pse_vec_card_v1:";
+  const STATIC_KNOWLEDGE_CHUNKS_KEY = "static_knowledge_chunks";
+  const STATIC_DATA_HASH_KEY = "static_data_hash";
+  const STEP0_COMPLETE_KEY = "step0_complete";
+  const LAST_REQ_HASH_KEY = "last_req_hash";
+  const LAST_COMPLETED_REQ_HASH_KEY = "last_completed_req_hash";
+  const LAST_EXTRACTED_DATA_KEY = "last_extracted_data";
+
+  function getScopeCharId(char) {
+    return String(char?.chaId || char?.id || char?._id || "-1").replace(/[^0-9a-zA-Z_-]/g, "") || "-1";
+  }
+
+  function makeScopedStorageKey(baseKey, scopeId) {
+    return `${baseKey}::${scopeId}`;
+  }
+
+  function getScopeId(char) {
+    return getScopeCharId(char);
+  }
+
+  function getStaticCacheKeysForScope(char) {
+    const scopeId = getScopeId(char);
+    return {
+      scopeId,
+      staticKnowledgeChunks: makeScopedStorageKey(STATIC_KNOWLEDGE_CHUNKS_KEY, scopeId),
+      staticDataHash: makeScopedStorageKey(STATIC_DATA_HASH_KEY, scopeId),
+      step0Complete: makeScopedStorageKey(STEP0_COMPLETE_KEY, scopeId),
+    };
+  }
+
+  function getRequestCacheKeysForScope(char) {
+    const scopeId = getScopeId(char);
+    return {
+      scopeId,
+      lastReqHash: makeScopedStorageKey(LAST_REQ_HASH_KEY, scopeId),
+      lastCompletedReqHash: makeScopedStorageKey(LAST_COMPLETED_REQ_HASH_KEY, scopeId),
+      lastExtractedData: makeScopedStorageKey(LAST_EXTRACTED_DATA_KEY, scopeId),
+    };
+  }
+
+  async function getScopedKeysForCurrentChat() {
+    const { char } = await getCurrentCharAndChatSafe();
+    return {
+      staticKeys: getStaticCacheKeysForScope(char),
+      requestKeys: getRequestCacheKeysForScope(char),
+    };
+  }
 
   async function loadEmbeddingCacheStore() {
     if (embeddingCacheStore && embeddingCacheStore.version === EMBEDDING_VECTOR_CACHE_VERSION) {
@@ -1008,7 +1082,7 @@ RULES:
   async function clearAllEmbeddingCache() {
     embeddingCacheStore = null;
     embeddingVectorCache.clear();
-    sessionStep0HandledHash = null;
+    sessionStep0HandledHashByScope.clear();
 
     try {
       const idxRaw = await Risuai.pluginStorage.getItem(VCACHE_INDEX_KEY);
@@ -1023,9 +1097,23 @@ RULES:
     } catch { }
     try { await Risuai.pluginStorage.removeItem(VCACHE_INDEX_KEY); } catch { }
 
-    try { await Risuai.pluginStorage.removeItem("static_knowledge_chunks"); } catch { }
-    try { await Risuai.pluginStorage.removeItem("static_data_hash"); } catch { }
-    try { await Risuai.pluginStorage.removeItem("step0_complete"); } catch { }
+    try {
+      const { staticKeys, requestKeys } = await getScopedKeysForCurrentChat();
+      try { await Risuai.pluginStorage.removeItem(staticKeys.staticKnowledgeChunks); } catch { }
+      try { await Risuai.pluginStorage.removeItem(staticKeys.staticDataHash); } catch { }
+      try { await Risuai.pluginStorage.removeItem(staticKeys.step0Complete); } catch { }
+      try { await Risuai.safeLocalStorage.removeItem(requestKeys.lastReqHash); } catch { }
+      try { await Risuai.safeLocalStorage.removeItem(requestKeys.lastCompletedReqHash); } catch { }
+      try { await Risuai.safeLocalStorage.removeItem(requestKeys.lastExtractedData); } catch { }
+    } catch { }
+
+    // Legacy global keys for backward compatibility cleanup.
+    try { await Risuai.pluginStorage.removeItem(STATIC_KNOWLEDGE_CHUNKS_KEY); } catch { }
+    try { await Risuai.pluginStorage.removeItem(STATIC_DATA_HASH_KEY); } catch { }
+    try { await Risuai.pluginStorage.removeItem(STEP0_COMPLETE_KEY); } catch { }
+    try { await Risuai.safeLocalStorage.removeItem(LAST_REQ_HASH_KEY); } catch { }
+    try { await Risuai.safeLocalStorage.removeItem(LAST_COMPLETED_REQ_HASH_KEY); } catch { }
+    try { await Risuai.safeLocalStorage.removeItem(LAST_EXTRACTED_DATA_KEY); } catch { }
   }
 
   function makeCardCacheKey(charId, charName) {
@@ -1159,6 +1247,133 @@ RULES:
     return null;
   }
 
+  function isPlainObject(v) {
+    return !!v && typeof v === "object" && !Array.isArray(v);
+  }
+
+  function normalizeMatchKey(key) {
+    return String(key || "")
+      .toLowerCase()
+      .replace(/[“”„‟«»「」『』`"'‘’]/g, "")
+      .replace(/[^a-z0-9\u00c0-\u024f\u0370-\u03ff\u0400-\u04ff\u3040-\u30ff\u3400-\u9fff\uac00-\ud7af]+/g, "");
+  }
+
+  function pickBestObjectCandidate(rootObj, expectedKeys) {
+    if (!isPlainObject(rootObj)) return null;
+    const normExpected = expectedKeys.map((k) => normalizeMatchKey(k)).filter(Boolean);
+    const candidates = [rootObj];
+    const visited = new Set([rootObj]);
+    const queue = [{ node: rootObj, depth: 0 }];
+
+    while (queue.length) {
+      const { node, depth } = queue.shift();
+      if (depth >= 2) continue;
+      for (const value of Object.values(node)) {
+        if (isPlainObject(value) && !visited.has(value)) {
+          visited.add(value);
+          candidates.push(value);
+          queue.push({ node: value, depth: depth + 1 });
+        } else if (Array.isArray(value)) {
+          for (const item of value) {
+            if (isPlainObject(item) && !visited.has(item)) {
+              visited.add(item);
+              candidates.push(item);
+              queue.push({ node: item, depth: depth + 1 });
+            }
+          }
+        }
+      }
+    }
+
+    const scoreCandidate = (obj) => {
+      const keys = Object.keys(obj);
+      const normKeys = keys.map((k) => normalizeMatchKey(k)).filter(Boolean);
+      let exact = 0;
+      let fuzzy = 0;
+      for (let i = 0; i < expectedKeys.length; i++) {
+        const raw = expectedKeys[i];
+        const norm = normExpected[i];
+        if (Object.prototype.hasOwnProperty.call(obj, raw)) { exact++; continue; }
+        if (!norm) continue;
+        if (normKeys.includes(norm)) { fuzzy++; continue; }
+        if (normKeys.some((k) => k.includes(norm) || norm.includes(k))) fuzzy += 0.5;
+      }
+      return exact * 2 + fuzzy;
+    };
+
+    let best = rootObj;
+    let bestScore = scoreCandidate(rootObj);
+    for (const c of candidates) {
+      const s = scoreCandidate(c);
+      if (s > bestScore) {
+        best = c;
+        bestScore = s;
+      }
+    }
+    return best;
+  }
+
+  function alignParsedObjectToEntries(raw, parsed, entries) {
+    const expectedKeys = (entries || []).map((e) => safeTrim(e?.lorebook_name)).filter(Boolean);
+    if (expectedKeys.length === 0) return parsed && typeof parsed === "object" ? parsed : null;
+
+    let candidate = parsed;
+    if (!candidate || typeof candidate !== "object") {
+      candidate = parsePossiblyWrappedJson(raw);
+    }
+
+    if (Array.isArray(candidate)) {
+      const merged = {};
+      for (const it of candidate) {
+        if (isPlainObject(it)) Object.assign(merged, it);
+      }
+      candidate = Object.keys(merged).length ? merged : null;
+    }
+
+    if (!isPlainObject(candidate)) return null;
+
+    const bestObj = pickBestObjectCandidate(candidate, expectedKeys) || candidate;
+    const source = isPlainObject(bestObj) ? bestObj : candidate;
+    const sourceKeys = Object.keys(source);
+    const normToRaw = new Map();
+    for (const k of sourceKeys) {
+      const nk = normalizeMatchKey(k);
+      if (nk && !normToRaw.has(nk)) normToRaw.set(nk, k);
+    }
+
+    const aligned = {};
+    for (const expected of expectedKeys) {
+      if (Object.prototype.hasOwnProperty.call(source, expected)) {
+        aligned[expected] = source[expected];
+        continue;
+      }
+      const normExpected = normalizeMatchKey(expected);
+      if (!normExpected) continue;
+
+      const direct = normToRaw.get(normExpected);
+      if (direct && Object.prototype.hasOwnProperty.call(source, direct)) {
+        aligned[expected] = source[direct];
+        continue;
+      }
+
+      const fuzzyRaw = sourceKeys.find((k) => {
+        const nk = normalizeMatchKey(k);
+        return !!nk && (nk.includes(normExpected) || normExpected.includes(nk));
+      });
+      if (fuzzyRaw && Object.prototype.hasOwnProperty.call(source, fuzzyRaw)) {
+        aligned[expected] = source[fuzzyRaw];
+      }
+    }
+
+    // Single-entry fallback: if only one field is expected, accept the first object value.
+    if (expectedKeys.length === 1 && !Object.prototype.hasOwnProperty.call(aligned, expectedKeys[0])) {
+      const firstKey = sourceKeys[0];
+      if (firstKey) aligned[expectedKeys[0]] = source[firstKey];
+    }
+
+    return Object.keys(aligned).length ? aligned : source;
+  }
+
   function parseSimpleStringMap(raw) {
     try {
       const parsed = typeof raw === "string" ? JSON.parse(raw) : raw;
@@ -1285,6 +1500,7 @@ RULES:
       url: normalizeUrlByFormat(configCache.extractor_a_url || configCache.extractor_b_url, aFormat),
       key: aKey,
       model: safeTrim(configCache.extractor_a_model || configCache.extractor_b_model),
+      provider: aProvider,
       format: aFormat,
       temperature: Number(configCache.extractor_a_temperature),
     };
@@ -1292,6 +1508,7 @@ RULES:
       url: normalizeUrlByFormat(configCache.extractor_b_url || configCache.extractor_a_url, bFormat),
       key: bKey,
       model: safeTrim(configCache.extractor_b_model || configCache.extractor_a_model),
+      provider: bProvider,
       format: bFormat,
       temperature: Number(configCache.extractor_b_temperature),
     };
@@ -1425,8 +1642,50 @@ RULES:
     return texts.join("\n").trim();
   }
 
+  // Step0 preprocessing: convert CBS syntax into readable placeholders for indexing/tagging.
+  // This does not mutate original lorebook content used at runtime.
+  function cbsToIndexPlaceholders(content) {
+    let src = String(content || "");
+    if (!src || !src.includes("{{")) return src;
+
+    const norm = (s) => String(s || "").replace(/\s+/g, " ").trim();
+
+    src = src
+      .replace(/\{\{\{\s*([^}]*?)\s*\}\}\}/g, (_, expr) => `[CBS_RAW_EXPR:${norm(expr)}]`)
+      .replace(/\{\{#if\s*([^}]*)\}\}/g, (_, cond) => `[CBS_IF:${norm(cond)}]`)
+      .replace(/\{\{#unless\s*([^}]*)\}\}/g, (_, cond) => `[CBS_UNLESS:${norm(cond)}]`)
+      .replace(/\{\{#each\s*([^}]*)\}\}/g, (_, target) => `[CBS_EACH:${norm(target)}]`)
+      .replace(/\{\{#with\s*([^}]*)\}\}/g, (_, target) => `[CBS_WITH:${norm(target)}]`)
+      .replace(/\{\{else\}\}/g, "[CBS_ELSE]")
+      .replace(/\{\{\/if\}\}/g, "[CBS_END_IF]")
+      .replace(/\{\{\/unless\}\}/g, "[CBS_END_UNLESS]")
+      .replace(/\{\{\/each\}\}/g, "[CBS_END_EACH]")
+      .replace(/\{\{\/with\}\}/g, "[CBS_END_WITH]")
+      .replace(/\{\{([^}]*)\}\}/g, (_, expr) => `[CBS_EXPR:${norm(expr)}]`);
+
+    return src;
+  }
+
   function parseLorebookNames(raw) {
     return String(raw || "").split(/[\n,]+/g).map((s) => safeTrim(s)).filter((s) => !!s);
+  }
+
+  function parseTriggerKeys(raw) {
+    if (Array.isArray(raw)) return raw.map((k) => String(k || "").trim()).filter(Boolean);
+    if (typeof raw === "string") return raw.split(",").map((k) => k.trim()).filter(Boolean);
+    return [];
+  }
+
+  function getPrimaryTriggerKeys(entry) {
+    return parseTriggerKeys(entry?.keyword ?? entry?.keywords ?? entry?.key ?? entry?.keys);
+  }
+
+  function getSecondaryTriggerKeys(entry) {
+    return parseTriggerKeys(entry?.secondary_keyword ?? entry?.secondkey ?? entry?.secondKey);
+  }
+
+  function hasPrimaryTriggerKey(entry) {
+    return getPrimaryTriggerKeys(entry).length > 0;
   }
 
   function extractLorebookEntries(char) {
@@ -1873,6 +2132,133 @@ RULES:
     return (baseMessages || []).slice(-Math.max(1, r * 2));
   }
 
+  function trimAfterLastUser(messages) {
+    const arr = Array.isArray(messages) ? messages : [];
+    for (let i = arr.length - 1; i >= 0; i--) {
+      if (arr[i]?.role === "user") return arr.slice(0, i + 1);
+    }
+    return arr;
+  }
+
+  function trimAfterLastUserBeforeSystem(messages) {
+    const arr = Array.isArray(messages) ? messages : [];
+    for (let i = arr.length - 2; i >= 0; i--) {
+      if (arr[i]?.role === "user" && arr[i + 1]?.role === "system") {
+        return arr.slice(0, i + 1);
+      }
+    }
+    return trimAfterLastUser(arr);
+  }
+
+  function findLastUserOrCharBeforeSystemIndex(messages) {
+    const arr = Array.isArray(messages) ? messages : [];
+    for (let i = arr.length - 2; i >= 0; i--) {
+      const role = arr[i]?.role;
+      if ((role === "user" || role === "char") && arr[i + 1]?.role === "system") return i;
+    }
+    return -1;
+  }
+
+  function buildKnowledgeWrappedContent(sectionTag, text) {
+    const body = String(text || "").trim();
+    if (!body) return "";
+    return `<${KNOWLEDGE_BLOCK_TAG}>\n[SECTION:${sectionTag}]\n${body}\n[END_SECTION:${sectionTag}]\n</${KNOWLEDGE_BLOCK_TAG}>`;
+  }
+
+  function getKnowledgeSectionTagFromMessage(message) {
+    const content = String(message?.content || "");
+    const m = content.match(/\[SECTION:([A-Z_]+)\]/);
+    return m ? m[1] : "";
+  }
+
+  function computeExpectedInsertions(base, hasBlock1, hasBlock2, hasBlock3) {
+    const arr = Array.isArray(base) ? base : [];
+    const firstSystemIdx = arr.findIndex((m) => m?.role === "system");
+    const lastSystemIdx = (() => {
+      for (let i = arr.length - 1; i >= 0; i--) if (arr[i]?.role === "system") return i;
+      return -1;
+    })();
+    const worldBoundaryIdx = findLastUserOrCharBeforeSystemIndex(arr);
+
+    const inserts = [];
+    if (hasBlock1) inserts.push({ kind: KNOWLEDGE_SECTION_TAGS.rp_instruction, target: firstSystemIdx >= 0 ? firstSystemIdx + 1 : 0, order: 1 });
+    if (hasBlock2) inserts.push({ kind: KNOWLEDGE_SECTION_TAGS.information, target: worldBoundaryIdx >= 0 ? worldBoundaryIdx + 1 : arr.length, order: 2 });
+    if (hasBlock3) inserts.push({ kind: KNOWLEDGE_SECTION_TAGS.output_format, target: lastSystemIdx >= 0 ? lastSystemIdx + 1 : arr.length, order: 3 });
+    inserts.sort((a, b) => a.target === b.target ? a.order - b.order : a.target - b.target);
+    return inserts;
+  }
+
+  function validateKnowledgeInjectionLayout(base, injected, expectedInserts) {
+    const out = Array.isArray(injected) ? injected : [];
+    const knowledgeMsgs = out.filter((m) => m?.role === "system" && String(m?.content || "").startsWith(`<${KNOWLEDGE_BLOCK_TAG}>`));
+    if (knowledgeMsgs.length !== expectedInserts.length) return false;
+
+    const seen = new Set();
+    const expectedKinds = new Set(expectedInserts.map((x) => x.kind));
+    for (const m of knowledgeMsgs) {
+      const k = getKnowledgeSectionTagFromMessage(m);
+      if (!k || !expectedKinds.has(k) || seen.has(k)) return false;
+      seen.add(k);
+    }
+
+    let offset = 0;
+    for (const expected of expectedInserts) {
+      const idx = Math.max(0, Math.min(out.length - 1, expected.target + offset));
+      const msg = out[idx];
+      if (!(msg?.role === "system" && String(msg?.content || "").startsWith(`<${KNOWLEDGE_BLOCK_TAG}>`))) return false;
+      const actualKind = getKnowledgeSectionTagFromMessage(msg);
+      if (actualKind !== expected.kind) return false;
+      offset += 1;
+    }
+    return true;
+  }
+
+  function stableMessageHash(messages) {
+    const normalized = (Array.isArray(messages) ? messages : []).map((m) => ({
+      role: String(m?.role || ""),
+      content: String(m?.content || ""),
+    }));
+    return simpleHash(JSON.stringify(normalized));
+  }
+
+  function injectKnowledgeByPlacementRules(cleanInput, { block1, block2, block3 }) {
+    const base = Array.isArray(cleanInput) ? cleanInput : [];
+    const block1Text = safeTrim(block1);
+    const block2Text = safeTrim(block2);
+    const block3Text = safeTrim(block3);
+    const expected = computeExpectedInsertions(base, !!block1Text, !!block2Text, !!block3Text);
+
+    if (!expected.length) return base;
+
+    const msgByKind = new Map();
+    if (block1Text) msgByKind.set(KNOWLEDGE_SECTION_TAGS.rp_instruction, { role: "system", content: buildKnowledgeWrappedContent(KNOWLEDGE_SECTION_TAGS.rp_instruction, block1Text) });
+    if (block2Text) msgByKind.set(KNOWLEDGE_SECTION_TAGS.information, { role: "system", content: buildKnowledgeWrappedContent(KNOWLEDGE_SECTION_TAGS.information, block2Text) });
+    if (block3Text) msgByKind.set(KNOWLEDGE_SECTION_TAGS.output_format, { role: "system", content: buildKnowledgeWrappedContent(KNOWLEDGE_SECTION_TAGS.output_format, block3Text) });
+
+    const out = [...base];
+    let offset = 0;
+    for (const ins of expected) {
+      const pos = Math.max(0, Math.min(out.length, ins.target + offset));
+      const msg = msgByKind.get(ins.kind);
+      if (!msg) continue;
+      out.splice(pos, 0, msg);
+      offset += 1;
+    }
+
+    const baseHash = stableMessageHash(base);
+    if (validateKnowledgeInjectionLayout(base, out, expected)) {
+      lastValidInjectionByBaseHash.set(baseHash, out);
+      if (lastValidInjectionByBaseHash.size > 20) {
+        const oldestKey = lastValidInjectionByBaseHash.keys().next().value;
+        if (oldestKey) lastValidInjectionByBaseHash.delete(oldestKey);
+      }
+      return out;
+    }
+
+    const fallback = lastValidInjectionByBaseHash.get(baseHash);
+    return Array.isArray(fallback) ? fallback : base;
+  }
+
   function buildModelMessages(systemContent, userContent, prefillPrompt, normalModeTail = "") {
     const systemText = safeTrim(systemContent);
     const userText = safeTrim(userContent);
@@ -2014,6 +2400,14 @@ RULES:
       if (typeof val === "string") return val.trim();
       try { return JSON.stringify(val); } catch { return String(val || "").trim(); }
     }
+    if (totalEntries === 1 && isPlainObject(parsed)) {
+      const keys = Object.keys(parsed);
+      if (keys.length === 1) {
+        const val = parsed[keys[0]];
+        if (typeof val === "string") return val.trim();
+        try { return JSON.stringify(val); } catch { return String(val || "").trim(); }
+      }
+    }
     return "";
   }
 
@@ -2144,7 +2538,8 @@ RULES:
   async function writeOutputsForCall(modelCall, raw, parsed, reqHash, roundIndex = 0) {
     const entries = modelCall.entries || [];
     const target = modelCall.target_model === "B" ? "B" : "A";
-    if (entries.length > 1 && (!parsed || typeof parsed !== "object")) {
+    const alignedParsed = alignParsedObjectToEntries(raw, parsed, entries);
+    if (entries.length > 1 && (!alignedParsed || typeof alignedParsed !== "object")) {
       throw new Error(`Auxiliary model (${modelCall.name}) must return a JSON object, but parsing failed. First 100 chars of raw: ${String(raw || "").slice(0, 100)}`);
     }
 
@@ -2154,8 +2549,8 @@ RULES:
       const writeMode = safeTrim(entry?.write_mode) === "overwrite" ? "overwrite" : "append";
       const alwaysActive = entry?.always_active === true;
       const outputFormat = safeTrim(entry?.output_format) || "raw";
-      if (parsed && typeof parsed === "object" && entries.length > 1 && !Object.prototype.hasOwnProperty.call(parsed, loreName)) continue;
-      const content = formatLoreOutput(raw, parsed, outputFormat, loreName, entries.length);
+      if (alignedParsed && typeof alignedParsed === "object" && entries.length > 1 && !Object.prototype.hasOwnProperty.call(alignedParsed, loreName)) continue;
+      const content = formatLoreOutput(raw, alignedParsed, outputFormat, loreName, entries.length);
       if (!safeTrim(content)) continue;
       pendingWrites.push({
         loreName, writeMode, alwaysActive, content,
@@ -2187,7 +2582,12 @@ RULES:
 
     const { res } = await fetchWithFallback(finalUrl, {
       method: "POST", headers,
-      body: JSON.stringify({ model: finalModel, ...(Number.isFinite(Number(temperature)) ? { temperature: Math.max(0, Math.min(2, Number(temperature))) } : {}), messages }),
+      body: JSON.stringify({
+        model: finalModel,
+        ...(Number.isFinite(Number(temperature)) ? { temperature: Math.max(0, Math.min(2, Number(temperature))) } : {}),
+        response_format: { type: "json_object" },
+        messages
+      }),
     }, timeoutMs, "Extractor", isOpenRouterUrl(finalUrl));
 
     if (!isResponseLike(res) || !res.ok) {
@@ -2248,7 +2648,10 @@ RULES:
     const built = buildGoogleMessages(messages);
     const body = {
       contents: built.contents, ...(built.systemInstruction ? { systemInstruction: built.systemInstruction } : {}),
-      generationConfig: { ...(Number.isFinite(Number(temperature)) ? { temperature: Math.max(0, Math.min(2, Number(temperature))) } : {}) },
+      generationConfig: {
+        ...(Number.isFinite(Number(temperature)) ? { temperature: Math.max(0, Math.min(2, Number(temperature))) } : {}),
+        responseMimeType: "application/json",
+      },
       safetySettings: [
         { category: "HARM_CATEGORY_SEXUALLY_EXPLICIT", threshold: "BLOCK_NONE" },
         { category: "HARM_CATEGORY_HATE_SPEECH", threshold: "BLOCK_NONE" },
@@ -2275,7 +2678,10 @@ RULES:
     const built = buildGoogleMessages(messages);
     const body = {
       contents: built.contents, ...(built.systemInstruction ? { systemInstruction: built.systemInstruction } : {}),
-      generationConfig: { ...(Number.isFinite(Number(temperature)) ? { temperature: Math.max(0, Math.min(2, Number(temperature))) } : {}) },
+      generationConfig: {
+        ...(Number.isFinite(Number(temperature)) ? { temperature: Math.max(0, Math.min(2, Number(temperature))) } : {}),
+        responseMimeType: "application/json",
+      },
       safetySettings: [
         { category: "HARM_CATEGORY_SEXUALLY_EXPLICIT", threshold: "BLOCK_NONE" },
         { category: "HARM_CATEGORY_HATE_SPEECH", threshold: "BLOCK_NONE" },
@@ -2307,16 +2713,60 @@ RULES:
       headers = await applyCopilotAuthHeaders(headers, apiKey);
       delete headers["x-api-key"];
     }
-    const { res } = await fetchWithFallback(finalUrl, {
+    const basePayload = {
+      model,
+      max_tokens: 4096,
+      ...(Number.isFinite(Number(temperature)) ? { temperature: Math.max(0, Math.min(2, Number(temperature))) } : {}),
+      ...(system ? { system } : {}),
+      messages: chatMessages,
+    };
+    const toolPayload = {
+      ...basePayload,
+      tools: [{
+        name: "emit_json",
+        description: "Return the extraction result as a single JSON object.",
+        input_schema: { type: "object", additionalProperties: true },
+      }],
+      tool_choice: { type: "tool", name: "emit_json" },
+    };
+
+    let data = null;
+    let usedFallback = false;
+    let resObj = null;
+
+    const firstTry = await fetchWithFallback(finalUrl, {
       method: "POST", headers,
-      body: JSON.stringify({ model, max_tokens: 4096, ...(Number.isFinite(Number(temperature)) ? { temperature: Math.max(0, Math.min(2, Number(temperature))) } : {}), ...(system ? { system } : {}), messages: chatMessages }),
+      body: JSON.stringify(toolPayload),
     }, timeoutMs, "Claude extractor", false);
-    if (!isResponseLike(res) || !res.ok) {
-      const errText = await readResponseErrorText(res);
-      throw new Error(`HTTP ${isResponseLike(res) ? res.status : 0}: ${String(errText || "").slice(0, 500)}`);
+    resObj = firstTry?.res;
+
+    if (!isResponseLike(resObj) || !resObj.ok) {
+      const errText = await readResponseErrorText(resObj);
+      const msg = String(errText || "").toLowerCase();
+      const toolsUnsupported = msg.includes("tool") || msg.includes("input_schema") || msg.includes("tool_choice");
+      if (!toolsUnsupported) {
+        throw new Error(`HTTP ${isResponseLike(resObj) ? resObj.status : 0}: ${String(errText || "").slice(0, 500)}`);
+      }
+      usedFallback = true;
+      const fallbackTry = await fetchWithFallback(finalUrl, {
+        method: "POST", headers,
+        body: JSON.stringify(basePayload),
+      }, timeoutMs, "Claude extractor (fallback)", false);
+      resObj = fallbackTry?.res;
+      if (!isResponseLike(resObj) || !resObj.ok) {
+        const fallbackErrText = await readResponseErrorText(resObj);
+        throw new Error(`HTTP ${isResponseLike(resObj) ? resObj.status : 0}: ${String(fallbackErrText || "").slice(0, 500)}`);
+      }
     }
-    const data = await readResponseJson(res);
-    const content = (data?.content || []).map((x) => (x?.type === "text" ? safeTrim(x?.text) : "")).filter(Boolean).join("\n").trim();
+
+    data = await readResponseJson(resObj);
+    const contentBlocks = Array.isArray(data?.content) ? data.content : [];
+    const toolUse = contentBlocks.find((x) => x?.type === "tool_use" && x?.name === "emit_json" && x?.input && typeof x.input === "object");
+    if (toolUse && !usedFallback) {
+      const raw = JSON.stringify(toolUse.input);
+      return { parsed: toolUse.input, raw };
+    }
+    const content = contentBlocks.map((x) => (x?.type === "text" ? safeTrim(x?.text) : "")).filter(Boolean).join("\n").trim();
     if (!content) throw new Error("Claude extractor returned empty content.");
     return { parsed: parsePossiblyWrappedJson(content), raw: content };
   }
@@ -2373,357 +2823,217 @@ RULES:
   }
 
   async function injectKnowledgeIntoMessages(messages, queryText) {
+    // Strip any PSE knowledge blocks injected in a previous pass.
     const cleanInput = messages.filter(m =>
       !(m?.role === "system" && typeof m?.content === "string" && m.content.startsWith(`<${KNOWLEDGE_BLOCK_TAG}>`))
     );
+    const isChatRole = (role) => role === "user" || role === "assistant" || role === "char";
 
-    if (configCache.vector_search_enabled === 0) {
-      const { char, chat } = await getCurrentCharAndChatSafe();
-      const gNoteData = await getGlobalNoteDataCached(char);
-      const globalNote = safeTrim(gNoteData.replaceGlobalNote || gNoteData.globalNote);
-
-      let firstChatIdx = cleanInput.findIndex((m) => m.role === "user" || m.role === "assistant" || m.role === "char");
-      if (firstChatIdx === -1) firstChatIdx = cleanInput.length;
-      let lastChatIdx = -1;
-      for (let i = cleanInput.length - 1; i >= 0; i--) {
-        if (cleanInput[i].role === "user" || cleanInput[i].role === "assistant" || cleanInput[i].role === "char") { lastChatIdx = i; break; }
+    // ── Load chunks ──────────────────────────────────────────────────────────
+    const { char, chat } = await getCurrentCharAndChatSafe();
+    const staticKeys = getStaticCacheKeysForScope(char);
+    const staticRaw = await Risuai.pluginStorage.getItem(staticKeys.staticKnowledgeChunks);
+    let staticChunks = [];
+    if (staticRaw) {
+      try { staticChunks = JSON.parse(staticRaw); }
+      catch (e) {
+        console.warn(`${LOG} [injectKnowledge] failed to parse static_knowledge_chunks:`, e);
+        await Risuai.log(`${LOG} ⚠️ Unable to parse static_knowledge_chunks. Please check if Step 0 has completed.`);
       }
-
-      let topSystems = []; let chatHistory = []; let bottomSystems = []; let prefill = [];
-      if (lastChatIdx !== -1) {
-        topSystems = cleanInput.slice(0, firstChatIdx);
-        chatHistory = cleanInput.slice(firstChatIdx, lastChatIdx + 1);
-        const remainder = cleanInput.slice(lastChatIdx + 1);
-        bottomSystems = remainder.filter((m) => m.role === "system");
-        prefill = remainder.filter((m) => m.role !== "system");
-      } else {
-        topSystems = cleanInput.filter((m) => m.role === "system");
-        prefill = cleanInput.filter((m) => m.role !== "system");
-      }
-
-      const recentMsgs = limitConversationByRounds(chatHistory, configCache.vector_search_query_dialogue_rounds || 4);
-      const triggerQueryText = recentMsgs.map(m => String(m.content || "")).join("\n") || queryText || "";
-
-      const topK = Math.max(1, toInt(configCache.vector_search_top_k, 8));
-
-      let staticChunks = [];
-      const staticRaw = await Risuai.pluginStorage.getItem("static_knowledge_chunks");
-      if (staticRaw) {
-        try {
-          staticChunks = JSON.parse(staticRaw);
-        } catch (e) {
-          console.warn(`${LOG} [injectKnowledge] failed to parse static_knowledge_chunks:`, e);
-          await Risuai.log(`${LOG} ⚠️ Unable to parse static_knowledge_chunks, falling back to live fetch mode`);
-        }
-      } else {
-      }
-
-      const localLore = Array.isArray(chat?.localLore) ? chat.localLore : [];
-      let dynamicChunks = [];
-      let dynamicChunkId = 0;
-      for (const entry of localLore) {
-        const raw = String(entry?.content || "").trim();
-        if (!raw) continue;
-        const content = raw.replace(/^<!-- written_at_turn: \d+ -->\n?/m, "");
-        const alwaysActive = entry.alwaysActive === true;
-        const subChunks = splitIntoParagraphChunks(content);
-        for (const sc of subChunks) {
-          dynamicChunks.push({ id: `dynamic_${dynamicChunkId++}`, source: entry.comment || "Chat Lore", alwaysActive, category: "information", content: sc, isDynamic: true });
-        }
-      }
-
-      const allChunks = [...staticChunks, ...dynamicChunks];
-
-      if (allChunks.length === 0) {
-        console.warn(`${LOG} [injectKnowledge] allChunks is empty — no static_knowledge_chunks and no dynamicChunks. Messages will not be enriched.`);
-        await Risuai.log(`${LOG} ⚠️ No available chunks (static_knowledge_chunks is empty and no dynamicChunks). Knowledge injection skipped. Please check if initialization (Step 0) has completed.`);
-      }
-
-      const activeChunks = allChunks.filter((c) => c.alwaysActive);
-      const inactiveChunks = allChunks.filter((c) => !c.alwaysActive);
-
-      let topInactiveChunks = [];
-      if (inactiveChunks.length > 0) {
-        const matchedChunks = [];
-        for (const chunk of inactiveChunks) {
-          const lorebookEntry = {
-            alwaysActive: false,
-            keyword: chunk.keywords || chunk.keyword || "",
-            keys: chunk.keys || [],
-            selective: chunk.selective || false,
-            secondkey: chunk.secondkey || "",
-            useRegex: chunk.useRegex || false,
-          };
-          if (checkLorebookTrigger(lorebookEntry, triggerQueryText)) {
-            matchedChunks.push(chunk);
-          }
-        }
-
-        if (matchedChunks.length > 0) {
-          const categoryBuckets = {};
-          for (const chunk of matchedChunks) {
-            const cat = chunk.category || "information";
-            if (!categoryBuckets[cat]) categoryBuckets[cat] = [];
-            categoryBuckets[cat].push(chunk);
-          }
-          for (const cat of Object.keys(categoryBuckets)) {
-            topInactiveChunks.push(...categoryBuckets[cat].slice(0, topK));
-          }
-        } else if (triggerQueryText.trim()) {
-          const queryTokens = tokenizeForSearch(triggerQueryText);
-          const scored = inactiveChunks.map((chunk) => {
-            const tokens = tokenizeForSearch(chunk.content);
-            return { chunk, score: scoreTokens(queryTokens, tokens) };
-          });
-          scored.sort((a, b) => b.score - a.score);
-          const minScore = Number(configCache.vector_search_min_score) || 0;
-          const tokScored = scored.filter((x) => x.score > minScore).slice(0, topK).map(x => x.chunk);
-          topInactiveChunks = tokScored;
-        } else {
-        }
-      }
-
-      const grouped = {
-        rp_instruction: { active: [], inactive: [] },
-        information: { active: [], inactive: [] },
-        output_format: { active: [], inactive: [] },
-      };
-      const addToGroup = (chunk, isActive) => {
-        let cat = chunk.category || "information";
-        if (!grouped[cat]) cat = "information";
-        grouped[cat][isActive ? "active" : "inactive"].push(`[${chunk.source}]\n${chunk.content}`);
-      };
-      activeChunks.forEach((c) => addToGroup(c, true));
-      topInactiveChunks.forEach((c) => addToGroup(c, false));
-
-      const buildText = (arr) => (arr.length ? arr.join("\n\n") : "");
-      const text_3_1 = buildText(grouped.rp_instruction.active);
-      const text_3_2 = buildText(grouped.rp_instruction.inactive);
-      const text_3_3 = buildText(grouped.information.active);
-      const text_3_4 = buildText(grouped.information.inactive);
-      const text_3_5 = buildText(grouped.output_format.inactive);
-      const text_3_6 = buildText(grouped.output_format.active);
-
-      const block1_arr = [];
-      if (text_3_1) block1_arr.push(`[RP Instruction - Active]\n${text_3_1}`);
-      if (text_3_2) block1_arr.push(`[RP Instruction - Context]\n${text_3_2}`);
-      const block1 = block1_arr.join("\n\n");
-
-      const block2_arr = [];
-      if (text_3_3) block2_arr.push(`[Information - Active]\n${text_3_3}`);
-      if (text_3_4) block2_arr.push(`[Information - Context]\n${text_3_4}`);
-      const block2 = block2_arr.join("\n\n");
-
-      const block3_arr = [];
-      if (text_3_5) block3_arr.push(`[Output Format - Context]\n${text_3_5}`);
-      if (text_3_6) block3_arr.push(`[Output Format - Active]\n${text_3_6}`);
-      const block3 = block3_arr.join("\n\n");
-
-      if (globalNote) {
-        const gnChunk = { source: "Global Note", content: globalNote, alwaysActive: true, category: "rp_instruction" };
-        const gnText = `[${gnChunk.source}]\n${gnChunk.content}`;
-        if (!grouped.rp_instruction.active.includes(gnText)) {
-          grouped.rp_instruction.active.unshift(gnText);
-        }
-      }
-
-      const block1Final_arr = [];
-      const t1a = buildText(grouped.rp_instruction.active);
-      const t1b = buildText(grouped.rp_instruction.inactive);
-      if (t1a) block1Final_arr.push(`[RP Instruction - Active]\n${t1a}`);
-      if (t1b) block1Final_arr.push(`[RP Instruction - Context]\n${t1b}`);
-      const block1Final = block1Final_arr.join("\n\n");
-
-      const injectedMessages = [...topSystems];
-      if (block1Final) injectedMessages.push({ role: "system", content: `<${KNOWLEDGE_BLOCK_TAG}>\n${block1Final}\n</${KNOWLEDGE_BLOCK_TAG}>` });
-      injectedMessages.push(...chatHistory);
-      if (block2) injectedMessages.push({ role: "system", content: `<${KNOWLEDGE_BLOCK_TAG}>\n${block2}\n</${KNOWLEDGE_BLOCK_TAG}>` });
-      injectedMessages.push(...bottomSystems);
-      if (block3) injectedMessages.push({ role: "system", content: `<${KNOWLEDGE_BLOCK_TAG}>\n${block3}\n</${KNOWLEDGE_BLOCK_TAG}>` });
-      injectedMessages.push(...prefill);
-
-      return injectedMessages;
     }
 
-    const staticRaw = await Risuai.pluginStorage.getItem("static_knowledge_chunks");
-    let staticChunks = [];
-    if (staticRaw) { try { staticChunks = JSON.parse(staticRaw); } catch (e) { } }
-
-    const { char, chat } = await getCurrentCharAndChatSafe();
     const localLore = Array.isArray(chat?.localLore) ? chat.localLore : [];
-    let dynamicChunks = [];
     let dynamicChunkId = 0;
+    const dynamicChunks = [];
     for (const entry of localLore) {
       const raw = String(entry?.content || "").trim();
       if (!raw) continue;
       const content = raw.replace(/^<!-- written_at_turn: \d+ -->\n?/m, "");
       const alwaysActive = entry.alwaysActive === true;
-      const subChunks = splitIntoParagraphChunks(content);
-      for (const sc of subChunks) {
-        dynamicChunks.push({ id: `dynamic_${dynamicChunkId++}`, source: entry.comment || "Chat Lore", alwaysActive, category: "information", content: sc, isDynamic: true });
+      const primaryKeys = getPrimaryTriggerKeys(entry);
+      const secondaryKeys = getSecondaryTriggerKeys(entry);
+      const useRegex = entry?.useRegex === true || String(entry?.useRegex) === "true";
+      const selective = entry?.selective === true || String(entry?.selective) === "true";
+      for (const sc of splitIntoParagraphChunks(content)) {
+        dynamicChunks.push({
+          id: `dynamic_${dynamicChunkId++}`,
+          source: entry.comment || "Chat Lore",
+          alwaysActive,
+          category: "information",
+          content: sc,
+          isDynamic: true,
+          key: primaryKeys.join(", "),
+          keys: primaryKeys,
+          secondkey: secondaryKeys.join(", "),
+          selective,
+          useRegex,
+          hasPrimaryKey: primaryKeys.length > 0,
+        });
       }
     }
 
     const allChunks = [...staticChunks, ...dynamicChunks];
+    if (allChunks.length === 0) {
+      console.warn(`${LOG} [injectKnowledge] allChunks is empty. Knowledge injection skipped.`);
+      await Risuai.log(`${LOG} ⚠️ No available chunks. Knowledge injection skipped. Please check if Step 0 has completed.`);
+      return cleanInput;
+    }
+
     const activeChunks = allChunks.filter((c) => c.alwaysActive);
     const inactiveChunks = allChunks.filter((c) => !c.alwaysActive);
+    const vectorEligibleInactiveChunks = inactiveChunks.filter((c) => hasPrimaryTriggerKey(c));
+
+    // ── Build query text from recent chat turns ───────────────────────────────
+    const firstChatIdx = (() => { const i = cleanInput.findIndex((m) => isChatRole(m?.role)); return i === -1 ? cleanInput.length : i; })();
+    let lastChatIdx = -1;
+    for (let i = cleanInput.length - 1; i >= 0; i--) { if (isChatRole(cleanInput[i]?.role)) { lastChatIdx = i; break; } }
+    const chatHistoryForQuery = lastChatIdx !== -1 ? cleanInput.slice(firstChatIdx, lastChatIdx + 1) : [];
+    const trimmedTurns = trimAfterLastUserBeforeSystem(chatHistoryForQuery).filter((m) => isChatRole(m?.role));
+    const queryRounds = Math.max(1, toInt(configCache.vector_search_query_dialogue_rounds, 4));
+    const recentMsgs = limitConversationByRounds(trimmedTurns, queryRounds);
+    const resolvedQueryText = recentMsgs.map(m => String(m.content || "")).join("\n") || queryText || "";
+
+    // ── Select inactive chunks: vector search or keyword fallback ─────────────
+    const topK = Math.max(1, toInt(configCache.vector_search_top_k, 8));
+    const minScore = Number(configCache.vector_search_min_score) || 0;
     let topInactiveChunks = [];
 
     if (inactiveChunks.length > 0) {
-      try {
-        const queryRounds = Math.max(1, toInt(configCache.vector_search_query_dialogue_rounds, 4));
-        const recentMsgs = messages.filter(m => m.role === "user" || m.role === "assistant" || m.role === "char").slice(-Math.max(1, queryRounds * 2));
-        const finalQueryText = recentMsgs.map(m => String(m.content || "")).join("\n") || queryText || " ";
+      if (configCache.vector_search_enabled === 1 && vectorEligibleInactiveChunks.length > 0) {
+        // Vector search path
+        try {
+          const finalQueryText = resolvedQueryText || " ";
+          const queryVecs = await getEmbeddingsForTexts([finalQueryText], true);
+          const queryVec = queryVecs[0];
+          const store = await loadEmbeddingCacheStore();
+          const cardName = char?.name || "Character";
+          const cardKey = await getActiveCardKey(char);
+          const cardBlock = store.cards?.[cardKey];
 
-        const queryVecs = await getEmbeddingsForTexts([finalQueryText], true);
-        const queryVec = queryVecs[0];
-        const store = await loadEmbeddingCacheStore();
-        const cardName = char?.name || "Character";
-        const cardKey = await getActiveCardKey(char);
-        const cardBlock = store.cards?.[cardKey];
+          const vectors = new Array(vectorEligibleInactiveChunks.length).fill(null);
+          const missingTexts = [];
+          const missingIndices = [];
 
-        const missingTexts = [];
-        const missingIndices = [];
-        const vectors = new Array(inactiveChunks.length).fill(null);
+          for (let i = 0; i < vectorEligibleInactiveChunks.length; i++) {
+            const chunk = vectorEligibleInactiveChunks[i];
+            const cacheKey = `chunk|${simpleHash(chunk.content)}`;
+            const hit = !chunk.isDynamic ? cardBlock?.entries?.[cacheKey] : null;
+            if (hit && Array.isArray(hit.vector) && hit.vector.length) vectors[i] = hit.vector;
+            else { missingTexts.push(chunk.content); missingIndices.push(i); }
+          }
 
-        for (let i = 0; i < inactiveChunks.length; i++) {
-          const chunk = inactiveChunks[i];
-          const textHash = simpleHash(chunk.content);
-          const cacheKey = `chunk|${textHash}`;
-          const hit = !chunk.isDynamic ? cardBlock?.entries?.[cacheKey] : null;
-          if (hit && Array.isArray(hit.vector) && hit.vector.length) vectors[i] = hit.vector;
-          else { missingTexts.push(chunk.content); missingIndices.push(i); }
-        }
-
-        if (missingTexts.length > 0) {
-          const cfg = resolveEmbeddingRuntimeConfig();
-          const batchSize = getEmbeddingBatchSize(cfg.requestModel);
-          let newlyAddedAny = false;
-          for (let i = 0; i < missingTexts.length; i += batchSize) {
-            const textsBatch = missingTexts.slice(i, i + batchSize);
-            const batchIndices = missingIndices.slice(i, i + batchSize);
-
-            await Risuai.log(`${LOG} Agent: Running vector computation (${i + 1}~${Math.min(i + batchSize, missingTexts.length)}/${missingTexts.length})...`);
-            const remoteVecs = await fetchEmbeddingVectorsRemote(textsBatch, cfg);
-            let newlyAddedBatch = false;
-            for (let j = 0; j < textsBatch.length; j++) {
-              const vec = remoteVecs[j];
-              if (vec && vec.length) {
-                const idx = batchIndices[j];
-                vectors[idx] = vec;
-                const chunk = inactiveChunks[idx];
-
-                if (!chunk.isDynamic) {
-                  const textHash = simpleHash(chunk.content);
-                  upsertEmbeddingCacheEntry(store, cardKey, cardName, `chunk|${textHash}`, {
-                    sourceType: "chunk", name: chunk.source, textHash: textHash, dims: vec.length, vector: vec,
-                  });
-                  newlyAddedBatch = true;
-                  newlyAddedAny = true;
-                } else {
-                  const memCacheKey = `${cfg.provider}|${cfg.format}|${cfg.url}|${cfg.requestModel}|${simpleHash(chunk.content)}`;
-                  embeddingVectorCache.set(memCacheKey, vec);
-                  if (embeddingVectorCache.size > 1000) {
-                    embeddingVectorCache.delete(embeddingVectorCache.keys().next().value);
+          if (missingTexts.length > 0) {
+            const cfg = resolveEmbeddingRuntimeConfig();
+            const batchSize = getEmbeddingBatchSize(cfg.requestModel);
+            for (let i = 0; i < missingTexts.length; i += batchSize) {
+              const textsBatch = missingTexts.slice(i, i + batchSize);
+              const batchIndices = missingIndices.slice(i, i + batchSize);
+              await Risuai.log(`${LOG} Agent: Running vector computation (${i + 1}~${Math.min(i + batchSize, missingTexts.length)}/${missingTexts.length})...`);
+              const remoteVecs = await fetchEmbeddingVectorsRemote(textsBatch, cfg);
+              let newlyAddedBatch = false;
+              for (let j = 0; j < textsBatch.length; j++) {
+                const vec = remoteVecs[j];
+                if (vec && vec.length) {
+                  const idx = batchIndices[j];
+                  vectors[idx] = vec;
+                  const chunk = vectorEligibleInactiveChunks[idx];
+                  if (!chunk.isDynamic) {
+                    upsertEmbeddingCacheEntry(store, cardKey, cardName, `chunk|${simpleHash(chunk.content)}`, {
+                      sourceType: "chunk", name: chunk.source, textHash: simpleHash(chunk.content), dims: vec.length, vector: vec,
+                    });
+                    newlyAddedBatch = true;
+                  } else {
+                    const memCacheKey = `${cfg.provider}|${cfg.format}|${cfg.url}|${cfg.requestModel}|${simpleHash(chunk.content)}`;
+                    embeddingVectorCache.set(memCacheKey, vec);
+                    if (embeddingVectorCache.size > 1000) embeddingVectorCache.delete(embeddingVectorCache.keys().next().value);
                   }
                 }
               }
+              if (newlyAddedBatch) await saveEmbeddingCacheStore();
             }
-            if (newlyAddedBatch) await saveEmbeddingCacheStore();
+          }
+
+          const scored = [];
+          for (let i = 0; i < vectorEligibleInactiveChunks.length; i++) {
+            if (vectors[i]) scored.push({ chunk: vectorEligibleInactiveChunks[i], score: cosineSimilarity(queryVec, vectors[i]) });
+          }
+          scored.sort((a, b) => b.score - a.score);
+          topInactiveChunks = scored.filter((x) => x.score >= minScore).slice(0, topK).map((x) => x.chunk);
+        } catch (e) {
+          await Risuai.log(`${LOG} Vector search failed: ${e.message}, falling back to keyword matching.`);
+        }
+      }
+
+      // Keyword matching path — used when vector search is off, or as fallback when vector search yields nothing
+      if (topInactiveChunks.length === 0) {
+        if (resolvedQueryText.trim()) {
+          const matchedChunks = [];
+          for (const chunk of inactiveChunks) {
+            if (checkLorebookTrigger({
+              alwaysActive: false,
+              keyword: chunk.keywords || chunk.keyword || "",
+              keys: chunk.keys || [],
+              selective: chunk.selective || false,
+              secondkey: chunk.secondkey || "",
+              useRegex: chunk.useRegex || false,
+            }, resolvedQueryText)) {
+              matchedChunks.push(chunk);
+            }
+          }
+          if (matchedChunks.length > 0) {
+            const categoryBuckets = {};
+            for (const chunk of matchedChunks) {
+              const cat = chunk.category || "information";
+              if (!categoryBuckets[cat]) categoryBuckets[cat] = [];
+              categoryBuckets[cat].push(chunk);
+            }
+            for (const cat of Object.keys(categoryBuckets)) {
+              topInactiveChunks.push(...categoryBuckets[cat].slice(0, topK));
+            }
+          } else {
+            const queryTokens = tokenizeForSearch(resolvedQueryText);
+            const scored = inactiveChunks.map((chunk) => ({ chunk, score: scoreTokens(queryTokens, tokenizeForSearch(chunk.content)) }));
+            scored.sort((a, b) => b.score - a.score);
+            topInactiveChunks = scored.filter((x) => x.score > minScore).slice(0, topK).map(x => x.chunk);
           }
         }
-
-        const scored = [];
-        for (let i = 0; i < inactiveChunks.length; i++) {
-          if (vectors[i]) scored.push({ chunk: inactiveChunks[i], score: cosineSimilarity(queryVec, vectors[i]) });
-        }
-        const minScore = Number(configCache.vector_search_min_score) || 0;
-        const topK = Math.max(1, toInt(configCache.vector_search_top_k, 8));
-        scored.sort((a, b) => b.score - a.score);
-        topInactiveChunks = scored.filter((x) => x.score >= minScore).slice(0, topK).map((x) => x.chunk);
-      } catch (e) {
-        await Risuai.log(`${LOG} Vector search failed: ${e.message}, falling back to token matching.`);
       }
     }
 
-    if (inactiveChunks.length > 0 && topInactiveChunks.length === 0) {
-      const queryTokens = tokenizeForSearch(queryText);
-      const scored = inactiveChunks.map((chunk) => {
-        const tokens = tokenizeForSearch(chunk.content);
-        return { chunk, score: scoreTokens(queryTokens, tokens) };
-      });
-      const minScore = Number(configCache.vector_search_min_score) || 0;
-      const topK = Math.max(1, toInt(configCache.vector_search_top_k, 8));
-      scored.sort((a, b) => b.score - a.score);
-      topInactiveChunks = scored.filter((x) => x.score >= minScore).slice(0, topK).map((x) => x.chunk);
-    }
-
+    // ── Group and build injection blocks ──────────────────────────────────────
     const grouped = {
       rp_instruction: { active: [], inactive: [] },
       information: { active: [], inactive: [] },
       output_format: { active: [], inactive: [] },
     };
-
     const addToGroup = (chunk, isActive) => {
-      let cat = chunk.category;
+      let cat = chunk.category || "information";
       if (!grouped[cat]) cat = "information";
       grouped[cat][isActive ? "active" : "inactive"].push(`[${chunk.source}]\n${chunk.content}`);
     };
-
     activeChunks.forEach((c) => addToGroup(c, true));
     topInactiveChunks.forEach((c) => addToGroup(c, false));
 
     const buildText = (arr) => (arr.length ? arr.join("\n\n") : "");
-    const text_3_1 = buildText(grouped.rp_instruction.active);
-    const text_3_2 = buildText(grouped.rp_instruction.inactive);
-    const text_3_3 = buildText(grouped.information.active);
-    const text_3_4 = buildText(grouped.information.inactive);
-    const text_3_5 = buildText(grouped.output_format.inactive);
-    const text_3_6 = buildText(grouped.output_format.active);
 
     const block1_arr = [];
-    if (text_3_1) block1_arr.push(`[RP Instruction - Active]\n${text_3_1}`);
-    if (text_3_2) block1_arr.push(`[RP Instruction - Context]\n${text_3_2}`);
+    const t1a = buildText(grouped.rp_instruction.active);
+    const t1b = buildText(grouped.rp_instruction.inactive);
+    if (t1a) block1_arr.push(`[RP Instruction - Active]\n${t1a}`);
+    if (t1b) block1_arr.push(`[RP Instruction - Context]\n${t1b}`);
     const block1 = block1_arr.join("\n\n");
 
-    const block2_arr = [];
-    if (text_3_3) block2_arr.push(`[Information - Active]\n${text_3_3}`);
-    if (text_3_4) block2_arr.push(`[Information - Context]\n${text_3_4}`);
-    const block2 = block2_arr.join("\n\n");
+    const infoMerged = [buildText(grouped.information.active), buildText(grouped.information.inactive)].filter((t) => !!safeTrim(t)).join("\n\n");
+    const block2 = infoMerged ? `[Information - Active]\n${infoMerged}` : "";
 
     const block3_arr = [];
-    if (text_3_5) block3_arr.push(`[Output Format - Context]\n${text_3_5}`);
-    if (text_3_6) block3_arr.push(`[Output Format - Active]\n${text_3_6}`);
+    const t3a = buildText(grouped.output_format.inactive);
+    const t3b = buildText(grouped.output_format.active);
+    if (t3a) block3_arr.push(`[Output Format - Context]\n${t3a}`);
+    if (t3b) block3_arr.push(`[Output Format - Active]\n${t3b}`);
     const block3 = block3_arr.join("\n\n");
 
-    let firstChatIdx = cleanInput.findIndex((m) => m.role === "user" || m.role === "assistant" || m.role === "char");
-    if (firstChatIdx === -1) firstChatIdx = cleanInput.length;
-    let lastChatIdx = -1;
-    for (let i = cleanInput.length - 1; i >= 0; i--) {
-      if (cleanInput[i].role === "user" || cleanInput[i].role === "assistant" || cleanInput[i].role === "char") { lastChatIdx = i; break; }
-    }
-
-    let topSystems = []; let chatHistory = []; let bottomSystems = []; let prefill = [];
-    if (lastChatIdx !== -1) {
-      topSystems = cleanInput.slice(0, firstChatIdx);
-      chatHistory = cleanInput.slice(firstChatIdx, lastChatIdx + 1);
-      const remainder = cleanInput.slice(lastChatIdx + 1);
-      bottomSystems = remainder.filter((m) => m.role === "system");
-      prefill = remainder.filter((m) => m.role !== "system");
-    } else {
-      topSystems = cleanInput.filter((m) => m.role === "system");
-      prefill = cleanInput.filter((m) => m.role !== "system");
-    }
-
-    const injectedMessages = [...topSystems];
-    if (block1) injectedMessages.push({ role: "system", content: `<${KNOWLEDGE_BLOCK_TAG}>\n${block1}\n</${KNOWLEDGE_BLOCK_TAG}>` });
-    injectedMessages.push(...chatHistory);
-    if (block2) injectedMessages.push({ role: "system", content: `<${KNOWLEDGE_BLOCK_TAG}>\n${block2}\n</${KNOWLEDGE_BLOCK_TAG}>` });
-    injectedMessages.push(...bottomSystems);
-    if (block3) injectedMessages.push({ role: "system", content: `<${KNOWLEDGE_BLOCK_TAG}>\n${block3}\n</${KNOWLEDGE_BLOCK_TAG}>` });
-    injectedMessages.push(...prefill);
-
-    return injectedMessages;
+    return injectKnowledgeByPlacementRules(cleanInput, { block1, block2, block3 });
   }
 
   async function mergeToSystemPromptWithRewrite(messages, payload, queryText) {
@@ -2748,24 +3058,53 @@ RULES:
   async function getStaticDataPayload(char, chat, resolvedGlobalNote) {
     const lorebookEntries = await getCombinedLorebookEntries(char, chat);
     return {
+      step0_preprocess_version: "cbs_placeholder_v2",
       desc: char?.desc || char?.description,
       globalNote: resolvedGlobalNote,
-      lorebook: lorebookEntries.filter(l => l).map((l) => ({ comment: l.comment, content: l.content, alwaysActive: l.alwaysActive })),
+      lorebook: lorebookEntries.filter(l => l).map((l) => ({
+        comment: l.comment,
+        content: l.content,
+        alwaysActive: l.alwaysActive === true || String(l.alwaysActive) === "true"
+          || l.constant === true || String(l.constant) === "true",
+        key: getPrimaryTriggerKeys(l).join(", "),
+        secondkey: getSecondaryTriggerKeys(l).join(", "),
+        selective: l.selective,
+        useRegex: l.useRegex,
+      })),
     };
   }
 
-  async function runStep0Classification(char, chat, resolvedGlobalNote, staticDataHash, resumeMode = false) {
-    await Risuai.pluginStorage.setItem("step0_complete", "");
+  async function runStep0Classification(char, chat, resolvedGlobalNote, staticDataHash, staticKeys, resumeMode = false) {
+    await Risuai.pluginStorage.setItem(staticKeys.step0Complete, "");
     const chunks = [];
     let chunkId = 0;
     const embedCfg = resolveEmbeddingRuntimeConfig();
     const isVectorEnabled = configCache.vector_search_enabled === 1;
 
-    const addChunks = (source, content, alwaysActive) => {
+    const addChunks = (source, content, alwaysActive, triggerMeta = null) => {
       if (!content) return;
-      const splits = splitIntoParagraphChunks(content);
+      const preprocessed = cbsToIndexPlaceholders(content);
+      const splits = splitIntoParagraphChunks(preprocessed);
+      const primaryKeys = getPrimaryTriggerKeys(triggerMeta);
+      const secondaryKeys = getSecondaryTriggerKeys(triggerMeta);
+      const useRegex = triggerMeta?.useRegex === true || String(triggerMeta?.useRegex) === "true";
+      const selective = triggerMeta?.selective === true || String(triggerMeta?.selective) === "true";
       splits.forEach((text) => {
-        if (text.trim()) chunks.push({ id: `chk_${chunkId++}`, source, content: text, alwaysActive, category: alwaysActive ? "information" : "unknown" });
+        if (text.trim()) {
+          chunks.push({
+            id: `chk_${chunkId++}`,
+            source,
+            content: text,
+            alwaysActive,
+            category: alwaysActive ? "information" : "unknown",
+            key: primaryKeys.join(", "),
+            keys: primaryKeys,
+            secondkey: secondaryKeys.join(", "),
+            selective,
+            useRegex,
+            hasPrimaryKey: primaryKeys.length > 0,
+          });
+        }
       });
     };
 
@@ -2778,19 +3117,19 @@ RULES:
       const source = l.comment || `Lorebook ${idx}`;
       const isActive = l.alwaysActive === true || String(l.alwaysActive) === "true"
         || l.constant === true || String(l.constant) === "true";
-      addChunks(source, l.content, isActive);
+      addChunks(source, l.content, isActive, l);
     });
 
     if (chunks.length === 0) {
-      await Risuai.pluginStorage.setItem("static_knowledge_chunks", "[]");
-      await Risuai.pluginStorage.setItem("static_data_hash", staticDataHash);
-      await Risuai.pluginStorage.setItem("step0_complete", "1");
+      await Risuai.pluginStorage.setItem(staticKeys.staticKnowledgeChunks, "[]");
+      await Risuai.pluginStorage.setItem(staticKeys.staticDataHash, staticDataHash);
+      await Risuai.pluginStorage.setItem(staticKeys.step0Complete, "1");
       return;
     }
 
     if (resumeMode) {
       try {
-        const savedChunksRaw = await Risuai.pluginStorage.getItem("static_knowledge_chunks");
+        const savedChunksRaw = await Risuai.pluginStorage.getItem(staticKeys.staticKnowledgeChunks);
         if (savedChunksRaw) {
           const savedChunks = JSON.parse(savedChunksRaw);
           if (Array.isArray(savedChunks) && savedChunks.length > 0) {
@@ -2799,7 +3138,7 @@ RULES:
               const saved = savedMap.get(chunk.id);
               if (saved?.category) chunk.category = saved.category;
             }
-            const inactiveChunks2 = chunks.filter((c) => !c.alwaysActive);
+            const inactiveChunks2 = chunks.filter((c) => !c.alwaysActive && hasPrimaryTriggerKey(c));
             if (inactiveChunks2.length > 0 && configCache.vector_search_enabled === 1) {
               embeddingCacheStore = null;
               const store = await loadEmbeddingCacheStore();
@@ -2832,9 +3171,9 @@ RULES:
                 }
               }
             }
-            await Risuai.pluginStorage.setItem("static_knowledge_chunks", JSON.stringify(chunks));
-            await Risuai.pluginStorage.setItem("static_data_hash", staticDataHash);
-            await Risuai.pluginStorage.setItem("step0_complete", "1");
+            await Risuai.pluginStorage.setItem(staticKeys.staticKnowledgeChunks, JSON.stringify(chunks));
+            await Risuai.pluginStorage.setItem(staticKeys.staticDataHash, staticDataHash);
+            await Risuai.pluginStorage.setItem(staticKeys.step0Complete, "1");
             await new Promise(r => setTimeout(r, 1000));
             return;
           }
@@ -2887,15 +3226,15 @@ RULES:
               }
             });
           }
-          await Risuai.pluginStorage.setItem("static_knowledge_chunks", JSON.stringify(chunks));
+          await Risuai.pluginStorage.setItem(staticKeys.staticKnowledgeChunks, JSON.stringify(chunks));
         } catch (err) {
           console.warn(`${LOG} Classification batch failed:`, err);
         }
       }
-      await Risuai.pluginStorage.setItem("static_knowledge_chunks", JSON.stringify(chunks));
+      await Risuai.pluginStorage.setItem(staticKeys.staticKnowledgeChunks, JSON.stringify(chunks));
     }
 
-    const inactiveChunks = chunks.filter((c) => !c.alwaysActive);
+    const inactiveChunks = chunks.filter((c) => !c.alwaysActive && hasPrimaryTriggerKey(c));
     if (inactiveChunks.length > 0 && configCache.vector_search_enabled === 1) {
       embeddingCacheStore = null;
       const store = await loadEmbeddingCacheStore();
@@ -2964,9 +3303,9 @@ RULES:
       }
     }
 
-    await Risuai.pluginStorage.setItem("static_knowledge_chunks", JSON.stringify(chunks));
-    await Risuai.pluginStorage.setItem("static_data_hash", staticDataHash);
-    await Risuai.pluginStorage.setItem("step0_complete", "1");
+    await Risuai.pluginStorage.setItem(staticKeys.staticKnowledgeChunks, JSON.stringify(chunks));
+    await Risuai.pluginStorage.setItem(staticKeys.staticDataHash, staticDataHash);
+    await Risuai.pluginStorage.setItem(staticKeys.step0Complete, "1");
     await new Promise(r => setTimeout(r, 1000));
   }
 
@@ -3531,6 +3870,25 @@ RULES:
     document.head.appendChild(s);
   }
 
+  async function ensureLangInitialized(force = false) {
+    if (!force && _langInitialized) return;
+    _T = _I18N[await _detectLang()] || _I18N.en;
+    _langInitialized = true;
+  }
+
+  function buildAuxCallErrorLine(call, endpoint, rawError) {
+    const callName = safeTrim(call?.name) || _T.default_callnote || "Call";
+    const target = safeTrim(call?.target_model) === "B" ? "B" : "A";
+    const provider = safeTrim(endpoint?.provider || "unknown");
+    const model = safeTrim(endpoint?.model || "unknown");
+    const reasonRaw = rawError?.message || rawError || "";
+    const reason = safeTrim(String(reasonRaw || "")) || _T.unknown_reason || "Unknown error";
+    if (typeof _T.aux_error_line === "function") {
+      return _T.aux_error_line({ callName, target, provider, model, reason });
+    }
+    return `Call "${callName}" (Model ${target}, provider ${provider}, model ${model}) failed: ${reason}`;
+  }
+
   function showStatus(message, type = "info") {
     const el = document.getElementById("pse-status");
     if (!el) return;
@@ -3542,12 +3900,18 @@ RULES:
     const msg = String(message || _T.aux_abort_default);
     await Risuai.pluginStorage.setItem("last_lore_sync_error", msg);
     await Risuai.log(`${LOG} ❌ Error: ${msg}. Main model response has been forcibly aborted!`);
-    try { await Risuai.safeLocalStorage.removeItem("last_req_hash"); } catch { }
-    throw new Error(`[RisuAI Agent Error] ${msg} \n(Main model request was intercepted to save API quota)`);
+    try {
+      const { requestKeys } = await getScopedKeysForCurrentChat();
+      try { await Risuai.safeLocalStorage.removeItem(requestKeys.lastReqHash); } catch { }
+      try { await Risuai.safeLocalStorage.removeItem(requestKeys.lastCompletedReqHash); } catch { }
+      try { await Risuai.safeLocalStorage.removeItem(requestKeys.lastExtractedData); } catch { }
+    } catch { }
+    try { await Risuai.safeLocalStorage.removeItem(LAST_REQ_HASH_KEY); } catch { }
+    throw new Error(`[RisuAI Agent Error] ${msg}\n(${_T.aux_abort_suffix || "Main model request was intercepted to save API quota."})`);
   }
 
   async function renderSettingsUI() {
-    _T = _I18N[await _detectLang()] || _I18N.en;
+    await ensureLangInitialized(true);
     LORE_WRITE_MODE_OPTIONS = [{ value: "append", label: _T.append }, { value: "overwrite", label: _T.overwrite }];
     await refreshConfig();
     injectStyles();
@@ -3555,7 +3919,7 @@ RULES:
     document.body.innerHTML = `
       <div class="pse-body">
         <div class="pse-card">
-          <h1 class="pse-title">👤 RisuAI Agent v1.4.1</h1>
+          <h1 class="pse-title">👤 RisuAI Agent v1.5</h1>
           <div id="pse-status" class="pse-status"></div>
           ${renderModelDatalists()}
 
@@ -3806,11 +4170,23 @@ RULES:
         embeddingCacheStore = null;
         try { await Risuai.pluginStorage.removeItem(VCACHE_CARD_PREFIX + cardKey); } catch { }
         await saveEmbeddingCacheStore(store);
-        try { await Risuai.pluginStorage.removeItem("static_knowledge_chunks"); } catch { }
-        try { await Risuai.pluginStorage.removeItem("static_data_hash"); } catch { }
-        try { await Risuai.pluginStorage.removeItem("step0_complete"); } catch { }
+        try {
+          const { staticKeys, requestKeys } = await getScopedKeysForCurrentChat();
+          try { await Risuai.pluginStorage.removeItem(staticKeys.staticKnowledgeChunks); } catch { }
+          try { await Risuai.pluginStorage.removeItem(staticKeys.staticDataHash); } catch { }
+          try { await Risuai.pluginStorage.removeItem(staticKeys.step0Complete); } catch { }
+          try { await Risuai.safeLocalStorage.removeItem(requestKeys.lastReqHash); } catch { }
+          try { await Risuai.safeLocalStorage.removeItem(requestKeys.lastCompletedReqHash); } catch { }
+          try { await Risuai.safeLocalStorage.removeItem(requestKeys.lastExtractedData); } catch { }
+          sessionStep0HandledHashByScope.delete(staticKeys.scopeId);
+        } catch { }
+
+        // Legacy global keys for backward compatibility cleanup.
+        try { await Risuai.pluginStorage.removeItem(STATIC_KNOWLEDGE_CHUNKS_KEY); } catch { }
+        try { await Risuai.pluginStorage.removeItem(STATIC_DATA_HASH_KEY); } catch { }
+        try { await Risuai.pluginStorage.removeItem(STEP0_COMPLETE_KEY); } catch { }
         embeddingVectorCache.clear();
-        sessionStep0HandledHash = null;
+        sessionStep0HandledHashByScope.clear();
       }
       await renderEmbeddingCacheList();
       showStatus(_T.st_card_deleted, "ok");
@@ -4365,6 +4741,7 @@ RULES:
         await Risuai.safeLocalStorage.setItem("last_hook_type", String(type ?? ""));
       } catch { }
 
+      await ensureLangInitialized();
       await refreshConfig();
 
       if (type === "display") {
@@ -4377,7 +4754,9 @@ RULES:
 
       await Risuai.safeLocalStorage.setItem("last_extractor_mode", "replacer_started");
 
-      const { char, chat } = await getCurrentCharAndChatSafe();
+      const { char, chat, chatIndex } = await getCurrentCharAndChatSafe();
+      const staticKeys = getStaticCacheKeysForScope(char);
+      const requestKeys = getRequestCacheKeysForScope(char);
       const existingMsgs = Array.isArray(chat?.message) ? chat.message : [];
       const isFirstMessage = existingMsgs.filter(m => m?.role === "user").length <= 1;
       const lastUserContent = existingMsgs.filter(m => m?.role === "user").pop()?.data || "";
@@ -4387,15 +4766,15 @@ RULES:
 
       const currentStaticPayload = await getStaticDataPayload(char, chat, resolvedGlobalNote);
       const currentStaticHash = simpleHash(JSON.stringify(currentStaticPayload));
-      const savedStaticHash = await Risuai.pluginStorage.getItem("static_data_hash");
+      const savedStaticHash = await Risuai.pluginStorage.getItem(staticKeys.staticDataHash);
 
       const isVectorEnabled = configCache.vector_search_enabled === 1;
       let needsStep0 = false;
       let step0Reason = "";
 
-      const step0Complete = await Risuai.pluginStorage.getItem("step0_complete");
+      const step0Complete = await Risuai.pluginStorage.getItem(staticKeys.step0Complete);
       const hashChanged = currentStaticHash !== savedStaticHash;
-      const sessionHandled = currentStaticHash === sessionStep0HandledHash;
+      const sessionHandled = currentStaticHash === sessionStep0HandledHashByScope.get(staticKeys.scopeId);
 
       if (!step0Complete) {
         if (isVectorEnabled) {
@@ -4418,8 +4797,8 @@ RULES:
           } else {
             await Risuai.log(`${LOG} Starting background knowledge base classification (Step 0, keyword mode)... Please wait.`);
           }
-          await runStep0Classification(char, chat, resolvedGlobalNote, currentStaticHash, resumeMode);
-          sessionStep0HandledHash = currentStaticHash;
+          await runStep0Classification(char, chat, resolvedGlobalNote, currentStaticHash, staticKeys, resumeMode);
+          sessionStep0HandledHashByScope.set(staticKeys.scopeId, currentStaticHash);
           await Risuai.log(`${LOG} Knowledge base initialization complete!`);
         } catch (step0Err) {
           const errMsg = step0Err?.message || String(step0Err);
@@ -4454,15 +4833,15 @@ RULES:
       let extractedData = null; let usedCache = false;
 
       if (configCache.enable_cache === 1) {
-        const completedHash = await Risuai.safeLocalStorage.getItem("last_completed_req_hash");
+        const completedHash = await Risuai.safeLocalStorage.getItem(requestKeys.lastCompletedReqHash);
         if (completedHash === reqHash) {
-          extractedData = await Risuai.safeLocalStorage.getItem("last_extracted_data");
+          extractedData = await Risuai.safeLocalStorage.getItem(requestKeys.lastExtractedData);
           usedCache = true;
         }
       }
 
       if (!usedCache) {
-        await Risuai.safeLocalStorage.setItem("last_req_hash", reqHash);
+        await Risuai.safeLocalStorage.setItem(requestKeys.lastReqHash, reqHash);
 
         const roundIndex = userMsgCount;
         const resolved = resolveExtractorConfig();
@@ -4478,13 +4857,17 @@ RULES:
           const executeCall = async (call) => {
             const extractedMessages = await buildScopedExtractorMessages(baseConversation, call);
             const endpoint = call.target_model === "B" ? resolved.b : resolved.a;
-            return {
-              call,
-              result: await callExtractorStrict({
-                url: endpoint.url, apiKey: endpoint.key, model: endpoint.model, format: endpoint.format, temperature: endpoint.temperature,
-                messages: extractedMessages, timeoutMs: configCache.timeout_ms, mode: call.target_model,
-              })
-            };
+            try {
+              return {
+                call,
+                result: await callExtractorStrict({
+                  url: endpoint.url, apiKey: endpoint.key, model: endpoint.model, format: endpoint.format, temperature: endpoint.temperature,
+                  messages: extractedMessages, timeoutMs: configCache.timeout_ms, mode: call.target_model,
+                })
+              };
+            } catch (err) {
+              throw new Error(buildAuxCallErrorLine(call, endpoint, err));
+            }
           };
 
           const parallelResults = [];
@@ -4516,15 +4899,18 @@ RULES:
                 try {
                   await writeOutputsForCall(call, raw, result?.parsed, reqHash, roundIndex);
                   if (!extractedData) extractedData = {};
-                } catch (e) { await abortMainModelWithAuxError(_T.entry_save_failed + e.message); }
+                } catch (e) {
+                  const endpoint = call.target_model === "B" ? resolved.b : resolved.a;
+                  await abortMainModelWithAuxError(_T.entry_save_failed + buildAuxCallErrorLine(call, endpoint, e));
+                }
               }
             }
           }
-          await Risuai.safeLocalStorage.setItem("last_completed_req_hash", reqHash);
+          await Risuai.safeLocalStorage.setItem(requestKeys.lastCompletedReqHash, reqHash);
         }
 
         await Risuai.safeLocalStorage.setItem("last_extractor_mode", "replacer");
-        if (extractedData) await Risuai.safeLocalStorage.setItem("last_extracted_data", typeof extractedData === "object" ? JSON.stringify(extractedData) : String(extractedData));
+        if (extractedData) await Risuai.safeLocalStorage.setItem(requestKeys.lastExtractedData, typeof extractedData === "object" ? JSON.stringify(extractedData) : String(extractedData));
       }
 
       if (!extractedData && !usedCache) {
@@ -4558,6 +4944,7 @@ RULES:
   console.log(`${LOG} INIT START`);
   try {
     await refreshConfig();
+    await ensureLangInitialized();
 
     await initSettingEntry();
 
@@ -4565,8 +4952,9 @@ RULES:
     await Risuai.safeLocalStorage.setItem("plugin_loaded_ts", new Date().toISOString());
     await Risuai.safeLocalStorage.removeItem("last_hook_ts");
     await Risuai.safeLocalStorage.removeItem("last_hook_type");
-    await Risuai.safeLocalStorage.removeItem("last_req_hash");
-    await Risuai.safeLocalStorage.removeItem("last_completed_req_hash");
+    await Risuai.safeLocalStorage.removeItem(LAST_REQ_HASH_KEY);
+    await Risuai.safeLocalStorage.removeItem(LAST_COMPLETED_REQ_HASH_KEY);
+    await Risuai.safeLocalStorage.removeItem(LAST_EXTRACTED_DATA_KEY);
     await Risuai.safeLocalStorage.removeItem("last_lore_sync_hash");
     await Risuai.safeLocalStorage.removeItem("last_lore_sync_error");
     await Risuai.safeLocalStorage.removeItem("last_extractor_mode");
