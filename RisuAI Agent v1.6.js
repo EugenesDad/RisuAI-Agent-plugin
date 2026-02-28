@@ -1,9 +1,9 @@
 //@name 👤 RisuAI Agent
-//@display-name 👤 RisuAI Agent v1.5
+//@display-name 👤 RisuAI Agent v1.6
 //@author penguineugene@protonmail.com
 //@link https://github.com/EugenesDad/RisuAI-Agent-plugin
 //@api 3.0
-//@version 1.5
+//@version 1.6
 
 (async () => {
   function _mapLangCode(raw) {
@@ -83,6 +83,8 @@
       lbl_lore_entry: "Lorebook Entry", lbl_write_mode: "Write Mode (Overwrite/Append)",
       lbl_always_active: "Always Active", yes: "Yes", no: "No",
       lbl_output_format: "Output Format (JSON Schema)",
+      lbl_read_mod_lorebook: "Read Mod Lorebook",
+      warn_cbs_unsupported: "Attention: Risu plugin v3 currently does not support CBS syntax parsing. If the Mod or character-card Lorebook you use contains many CBS syntaxes, it is recommended not to enable this plugin.",
       ret_after_lbl: "After",
       ret_mid_lbl: "turns, auto-trim and keep only the latest",
       ret_end_lbl: "turns of data",
@@ -196,6 +198,8 @@
       lbl_lore_entry: "로어북 항목", lbl_write_mode: "쓰기 모드 (덮어쓰기/추가)",
       lbl_always_active: "항상 활성화", yes: "예", no: "아니오",
       lbl_output_format: "출력 형식 (JSON Schema)",
+      lbl_read_mod_lorebook: "Mod Lorebook 읽기",
+      warn_cbs_unsupported: "주의: 현재 Risu plugin v3는 CBS 문법 파싱을 지원하지 않습니다. 사용 중인 Mod 또는 캐릭터 카드 Lorebook에 CBS 문법이 많다면 이 plugin을 활성화하지 않는 것을 권장합니다.",
       ret_after_lbl: "경과 후",
       ret_mid_lbl: "턴 후 자동 정리 실행, 최신 데이터만 유지",
       ret_end_lbl: "턴 데이터",
@@ -309,6 +313,8 @@
       lbl_lore_entry: "Lorebook 條目", lbl_write_mode: "寫入模式 (覆蓋/添加)",
       lbl_always_active: "始終啟用", yes: "是", no: "否",
       lbl_output_format: "輸出格式 (JSON Schema)",
+      lbl_read_mod_lorebook: "是否讀取模組 Lorebook",
+      warn_cbs_unsupported: "注意：目前 Risu 外掛 v3 不支援解析 CBS 語法。若你發現使用的模組或角色卡 Lorebook 有許多 CBS 語法，則建議不要啟用本外掛。",
       ret_after_lbl: "於",
       ret_mid_lbl: "回合後執行自動清理，僅保留最新的",
       ret_end_lbl: "回合資料",
@@ -385,7 +391,7 @@
   let _langInitialized = false;
 
   const PLUGIN_NAME = "👤 RisuAI Agent";
-  const PLUGIN_VER = "1.5";
+  const PLUGIN_VER = "1.6";
   const LOG = "[RisuAIAgent]";
   const SYSTEM_INJECT_TAG = "PLUGIN_PARALLEL_STATUS";
   const SYSTEM_REWRITE_TAG = "PLUGIN_PARALLEL_REWRITE";
@@ -435,7 +441,7 @@
           "lorebook_name": "recent_turn_log",
           "write_mode": "append",
           "always_active": true,
-          "output_format": "SCHEMA:\n{\n  \"recent_turn_log\": {\n    \"scene\": \"<location, ≤12 words>\",\n    \"user_action\": \"<player action, ≤12 words>\",\n    \"narrative_event\": \"<story result, ≤15 words>\",\n    \"shift\": \"<tone/stakes change ≤8 words, or null>\",\n    \"user_scene_change\": false\n  }\n}\n\nFIELD RULES:\n- All string values: ≤15 words. Be telegraphic, not descriptive.\n- scene: location + one sensory cue only.\n- user_action: player's latest input only.\n- narrative_event: story output result only.\n- shift: only if something changed. null if unchanged.\n- user_scene_change: true only if player moved to a new location.",
+          "output_format": "SCHEMA:\n{\n  \"recent_turn_log\": {\n    \"scene\": \"<location, ≤12 words>\",\n    \"time_anchor\": \"<explicit in-story time anchor>\",\n    \"elapsed_since_prev\": \"<same moment / +2h / +3d / etc>\",\n    \"user_action\": \"<player action, ≤12 words>\",\n    \"narrative_event\": \"<story result, ≤15 words>\",\n    \"shift\": \"<tone/stakes change ≤8 words, or null>\",\n    \"user_scene_change\": false\n  }\n}\n\nFIELD RULES:\n- Keep concise for this entry: all string values should stay ≤15 words when possible.\n- scene: location + one sensory cue only.\n- time_anchor must explicitly state time position from text (calendar date, day count, morning/night, etc).\n- elapsed_since_prev must describe time progression relative to previous turn; if unknown, use \"unspecified_continuation\".\n- user_action: player's latest input only.\n- narrative_event: story output result only.\n- shift: only if something changed. null if unchanged.\n- user_scene_change: true only if player moved to a new location.",
           "retention_enabled": true,
           "retention_after": 10,
           "retention_keep": 2
@@ -476,7 +482,7 @@
           "lorebook_name": "unsolved_quests",
           "write_mode": "overwrite",
           "always_active": true,
-          "output_format": "SCHEMA:\n{\n  \"unsolved_quests\": {\n    \"active_threads\": [\n      {\n        \"id\": 1,\n        \"desc\": \"<quest or goal description>\",\n        \"weight\": \"medium\",\n        \"status\": \"active\",\n        \"related_npcs\": [],\n        \"notes\": null\n      }\n    ],\n    \"lost_entities\": [\n      {\n        \"name\": \"<character name>\",\n        \"last_seen\": \"<location and circumstance>\",\n        \"relevance\": \"<connection to active threads>\"\n      }\n    ],\n    \"resolved_this_turn\": []\n  }\n}\n\nFIELD RULES:\n- Start from previous turn's data. Copy all active_threads forward as baseline.\n- If this turn shows developments: update status and notes.\n- If no change: keep entry exactly as it was.\n- Completed quest → remove from active_threads, add to resolved_this_turn with explanation.\n- New quest → add with id = highest existing id + 1.\n- weight: critical | high | medium | low.\n- status: active | progressed | stalled | nearly_resolved.\n- lost_entities: characters who disappeared. Track name, last_seen, relevance.\n- [] for any list with no entries."
+          "output_format": "SCHEMA:\n{\n  \"unsolved_quests\": {\n    \"active_threads\": [\n      {\n        \"id\": 1,\n        \"desc\": \"<quest or goal description>\",\n        \"weight\": \"medium\",\n        \"status\": \"active\",\n        \"related_npcs\": [],\n        \"notes\": \"<what changed this turn>\",\n        \"next_step\": \"<most likely next action>\",\n        \"risk_if_ignored\": \"<consequence if postponed, or null>\"\n      }\n    ],\n    \"lost_entities\": [\n      {\n        \"name\": \"<character name>\",\n        \"last_seen\": \"<location and circumstance>\",\n        \"relevance\": \"<connection to active threads>\",\n        \"search_priority\": \"<high/medium/low>\"\n      }\n    ],\n    \"resolved_this_turn\": [\n      {\n        \"id\": 1,\n        \"desc\": \"<resolved thread description>\",\n        \"closure_reason\": \"<why this is considered resolved>\",\n        \"consequence\": \"<lasting change caused by closure>\"\n      }\n    ]\n  }\n}\n\nFIELD RULES:\n- Start from previous turn's data. Copy all active_threads forward as baseline.\n- If this turn shows developments: update status, notes, and next_step.\n- notes must describe concrete progression; avoid vague text.\n- For status progressed/stalled/nearly_resolved, notes cannot be null.\n- Completed quest → remove from active_threads and append an object to resolved_this_turn.\n- New quest → add with id = highest existing id + 1.\n- weight: critical | high | medium | low.\n- status: active | progressed | stalled | nearly_resolved.\n- lost_entities should only include people still unresolved.\n- search_priority: high | medium | low.\n- [] for any list with no entries."
         }
       ]
     },
@@ -519,7 +525,7 @@
           "lorebook_name": "story_turning_points",
           "write_mode": "append",
           "always_active": true,
-          "output_format": "SCHEMA:\n{\n  \"story_turning_points\": [\n    {\n      \"seq\": 1,\n      \"type\": \"<type>\",\n      \"impact\": \"<description of how this moment changed the story>\"\n    }\n  ]\n}\n\nFIELD RULES:\n- A turning point = a moment that fundamentally changed the story's direction.\n- type: one of relationship_shift | power_change | revelation | betrayal | loss | discovery.\n- Read previous story_turning_points. Find highest seq. New entries start at highest seq + 1.\n- Keep all prior entries unchanged. Append new turning points only.\n- Review all turns since the last time this block ran (up to 10 turns).\n- [] if no turning point occurred in the reviewed window.",
+          "output_format": "SCHEMA:\n{\n  \"story_turning_points\": [\n    {\n      \"seq\": 1,\n      \"type\": \"<type>\",\n      \"impact\": \"<what changed and why it matters>\",\n      \"immediate_effect\": \"<same-turn direct effect>\",\n      \"long_term_implication\": \"<future consequence or direction change>\",\n      \"evidence_turns\": [1, 2]\n    }\n  ]\n}\n\nFIELD RULES:\n- A turning point = a moment that fundamentally changed the story's direction (irreversible or highly consequential).\n- type: one of relationship_shift | power_change | revelation | betrayal | loss | discovery.\n- impact must include both subject and direction of change (who/what changed).\n- immediate_effect describes what happened right away; long_term_implication describes what now becomes likely.\n- evidence_turns must contain concrete turn numbers from the reviewed window.\n- Read previous story_turning_points. Find highest seq. New entries start at highest seq + 1.\n- Keep all prior entries unchanged. Append new turning points only.\n- Review all turns since the last time this block ran (up to 10 turns).\n- [] if no turning point occurred in the reviewed window.",
           "retention_enabled": false,
           "retention_after": 0,
           "retention_keep": 0
@@ -528,7 +534,7 @@
           "lorebook_name": "story_arc_summary",
           "write_mode": "append",
           "always_active": true,
-          "output_format": "SCHEMA:\n{\n  \"story_arc_summary\": [\n    {\n      \"arc_name\": \"<name of completed arc>\",\n      \"summary\": \"<what happened across this arc>\",\n      \"permanent_impact\": \"<lasting consequences on world or characters>\"\n    }\n  ]\n}\n\nFIELD RULES:\n- A completed arc = major conflict resolved, character journey concluded, or quest chain fully closed.\n- Check resolved_this_turn in unsolved_quests for evidence.\n- Review all turns since the last time this block ran (up to 10 turns).\n- Keep all prior entries unchanged. Append new arcs only.\n- [] if no arc completed in the reviewed window.",
+          "output_format": "SCHEMA:\n{\n  \"story_arc_summary\": [\n    {\n      \"arc_name\": \"<name of completed arc>\",\n      \"arc_time_span\": \"<start time -> end time in-story>\",\n      \"chronology_position\": \"<where this arc sits in overall timeline>\",\n      \"key_actors\": [\"<actor 1>\", \"<actor 2>\"],\n      \"core_conflict\": \"<what central conflict was resolved>\",\n      \"summary\": \"<2-4 sentences: trigger -> escalation -> outcome>\",\n      \"resolution\": \"<how the conflict was resolved>\",\n      \"permanent_impact\": \"<lasting consequences on world/characters>\",\n      \"unresolved_hooks\": [\"<remaining tension/setup>\"],\n      \"evidence_turns\": [1, 2]\n    }\n  ]\n}\n\nFIELD RULES:\n- A completed arc = major conflict resolved, character journey concluded, or quest chain fully closed.\n- summary must contain trigger, escalation, and outcome; avoid one-line vague summaries.\n- arc_time_span must explicitly state in-story time progression, including jumps (hours/days/date changes) if present.\n- chronology_position should clarify sequence context (e.g., \"after prison break arc\", \"before winter festival\").\n- permanent_impact must state concrete state changes (who/what/where changed), not abstract wording.\n- unresolved_hooks: [] if none.\n- evidence_turns must point to concrete turn numbers that support this arc.\n- Check resolved_this_turn in unsolved_quests for evidence.\n- Review all turns since the last time this block ran (up to 10 turns).\n- Keep all prior entries unchanged. Append new arcs only.\n- [] if no arc completed in the reviewed window.",
           "retention_enabled": false,
           "retention_after": 0,
           "retention_keep": 0
@@ -548,7 +554,7 @@
           "lorebook_name": "world_encyclopedia",
           "write_mode": "overwrite",
           "always_active": true,
-          "output_format": "SCHEMA:\n{\n  \"world_encyclopedia\": {\n    \"geography\": [\n      { \"name\": \"<place>\", \"description\": \"<detail>\" }\n    ],\n    \"npcs\": [\n      { \"name\": \"<name>\", \"role\": \"<role>\", \"status\": \"<alive/dead/unknown + condition>\", \"notes\": \"<key info>\" }\n    ],\n    \"factions\": [\n      { \"name\": \"<name>\", \"description\": \"<purpose/nature>\", \"relations\": \"<stance toward player and other factions>\" }\n    ],\n    \"lore\": [\n      { \"topic\": \"<subject>\", \"detail\": \"<explanation>\" }\n    ]\n  }\n}\n\nFIELD RULES:\n- Start from previous output. Copy as baseline.\n- Merge all recent_world_entries accumulated since the last time this block ran (up to 15 turns) into the correct category.\n- Apply permanent_impact from story_arc_summary to affected entries.\n- Same entity name in old and new data → keep most current version only.\n- Retain all prior entries not contradicted by new information.\n- Output the full updated encyclopedia every time.\n- [] for any category with no entries."
+          "output_format": "SCHEMA:\n{\n  \"world_encyclopedia\": {\n    \"geography\": [\n      { \"name\": \"<place>\", \"description\": \"<detail>\", \"current_relevance\": \"<why this place matters now>\", \"evidence_turns\": [1] }\n    ],\n    \"npcs\": [\n      { \"name\": \"<name>\", \"role\": \"<role>\", \"status\": \"<alive/dead/unknown + condition>\", \"notes\": \"<stable profile + latest change>\", \"relationship_delta\": \"<what changed recently or null>\", \"evidence_turns\": [1] }\n    ],\n    \"factions\": [\n      { \"name\": \"<name>\", \"description\": \"<purpose/nature>\", \"relations\": \"<stance toward player and other factions>\", \"recent_move\": \"<latest meaningful action or null>\", \"evidence_turns\": [1] }\n    ],\n    \"lore\": [\n      { \"topic\": \"<subject>\", \"detail\": \"<explanation>\", \"impact_scope\": \"<local/regional/global>\", \"evidence_turns\": [1] }\n    ]\n  }\n}\n\nFIELD RULES:\n- Start from previous output. Copy as baseline.\n- Merge all recent_world_entries accumulated since the last run (up to 15 turns) into the correct category.\n- Apply permanent_impact from story_arc_summary to affected entries.\n- Same entity name in old and new data → keep most current version only (merge, do not duplicate).\n- Update notes/relations with concrete deltas when changes happened.\n- evidence_turns should reference where the fact was established or updated.\n- Retain all prior entries not contradicted by new information.\n- Output the full updated encyclopedia every time.\n- [] for any category with no entries."
         }
       ]
     }
@@ -586,7 +592,7 @@ TASK: Read the story text. Extract factual narrative data. Return ONLY valid JSO
 
 RULES:
 1. Output valid JSON only. No markdown fences, no explanation, no preamble.
-2. All string values: ≤15 words unless a schema explicitly allows more. Be telegraphic.
+2. Follow field-level length limits only when the schema explicitly defines them.
 3. Undetermined fields → null.
 4. String values use the SAME LANGUAGE as the story text.
 5. Previous turn output is your baseline. Update only what changed.
@@ -594,6 +600,7 @@ RULES:
 7. First character must be '{' and last character must be '}'.`,
     advanced_prefill_prompt: `Now, let's start extracting. Once you are ready, say 'Ready.'`,
     advanced_prereply_prompt: "Ready.",
+    read_mod_lorebook: 1,
     vector_search_enabled: 0,
     vector_search_query_dialogue_rounds: 2,
     vector_search_top_k: 8,
@@ -648,6 +655,7 @@ Example: [{"id": "chk_0", "category": "information"}, {"id": "chk_1", "category"
     advanced_model_anchor_prompt: "pse_advanced_model_anchor_prompt",
     advanced_prefill_prompt: "pse_advanced_prefill_prompt",
     advanced_prereply_prompt: "pse_advanced_prereply_prompt",
+    read_mod_lorebook: "pse_read_mod_lorebook",
     vector_search_enabled: "pse_vector_search_enabled",
     vector_search_query_dialogue_rounds: "pse_vector_search_query_dialogue_rounds",
     vector_search_top_k: "pse_vector_search_top_k",
@@ -838,6 +846,34 @@ Example: [{"id": "chk_0", "category": "information"}, {"id": "chk_1", "category"
   const embeddingVectorCache = new Map();
 
   function safeTrim(v) { return typeof v === "string" ? v.trim() : ""; }
+  // Keep trigger syntax aligned with plugin output blocks.
+  const TURN_BLOCK_SPLIT_REGEX = /(?=###\s*Turn\s*\d+)/i;
+  const TURN_BLOCK_HEADER_REGEX = /^###\s*Turn\s*(\d+)/i;
+  const TURN_MARKER_ANY_REGEX = /###\s*Turn\s*\d+/i;
+
+  function hasTurnMarkers(text) {
+    return TURN_MARKER_ANY_REGEX.test(String(text || ""));
+  }
+
+  function splitTurnBlocks(text) {
+    return String(text || "").split(TURN_BLOCK_SPLIT_REGEX).map((b) => b.trim()).filter(Boolean);
+  }
+
+  function parseTurnNumberFromBlock(block) {
+    const m = String(block || "").trim().match(TURN_BLOCK_HEADER_REGEX);
+    if (!m) return null;
+    const raw = m[1];
+    const n = Number(raw);
+    return Number.isFinite(n) ? Math.floor(n) : null;
+  }
+
+  function hasTurnBlockForRound(content, roundIndex) {
+    const n = Math.floor(Number(roundIndex));
+    if (!Number.isFinite(n) || n < 0) return false;
+    const src = String(content || "");
+    return new RegExp(`###\\s*Turn\\s*${n}(?!\\d)`, "i").test(src);
+  }
+
   function escapeHtml(v) {
     return String(v ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
   }
@@ -976,6 +1012,7 @@ Example: [{"id": "chk_0", "category": "information"}, {"id": "chk_1", "category"
   const LAST_REQ_HASH_KEY = "last_req_hash";
   const LAST_COMPLETED_REQ_HASH_KEY = "last_completed_req_hash";
   const LAST_EXTRACTED_DATA_KEY = "last_extracted_data";
+  const FIRST_MESSAGE_HANDLED_KEY = "first_message_handled";
 
   function getScopeCharId(char) {
     return String(char?.chaId || char?.id || char?._id || "-1").replace(/[^0-9a-zA-Z_-]/g, "") || "-1";
@@ -1009,11 +1046,19 @@ Example: [{"id": "chk_0", "category": "information"}, {"id": "chk_1", "category"
     };
   }
 
+  function getFirstMessageHandledKey(scopeId, chatIndex) {
+    const safeScope = String(scopeId || "-1").replace(/[^0-9a-zA-Z_-]/g, "") || "-1";
+    const safeChat = Number.isFinite(Number(chatIndex)) ? Math.floor(Number(chatIndex)) : -1;
+    return `${FIRST_MESSAGE_HANDLED_KEY}::${safeScope}::chat_${safeChat}`;
+  }
+
   async function getScopedKeysForCurrentChat() {
-    const { char } = await getCurrentCharAndChatSafe();
+    const { char, chatIndex } = await getCurrentCharAndChatSafe();
+    const requestKeys = getRequestCacheKeysForScope(char);
     return {
       staticKeys: getStaticCacheKeysForScope(char),
-      requestKeys: getRequestCacheKeysForScope(char),
+      requestKeys,
+      firstMessageHandledKey: getFirstMessageHandledKey(requestKeys.scopeId, chatIndex),
     };
   }
 
@@ -1098,13 +1143,14 @@ Example: [{"id": "chk_0", "category": "information"}, {"id": "chk_1", "category"
     try { await Risuai.pluginStorage.removeItem(VCACHE_INDEX_KEY); } catch { }
 
     try {
-      const { staticKeys, requestKeys } = await getScopedKeysForCurrentChat();
+      const { staticKeys, requestKeys, firstMessageHandledKey } = await getScopedKeysForCurrentChat();
       try { await Risuai.pluginStorage.removeItem(staticKeys.staticKnowledgeChunks); } catch { }
       try { await Risuai.pluginStorage.removeItem(staticKeys.staticDataHash); } catch { }
       try { await Risuai.pluginStorage.removeItem(staticKeys.step0Complete); } catch { }
       try { await Risuai.safeLocalStorage.removeItem(requestKeys.lastReqHash); } catch { }
       try { await Risuai.safeLocalStorage.removeItem(requestKeys.lastCompletedReqHash); } catch { }
       try { await Risuai.safeLocalStorage.removeItem(requestKeys.lastExtractedData); } catch { }
+      try { await Risuai.safeLocalStorage.removeItem(firstMessageHandledKey); } catch { }
     } catch { }
 
     // Legacy global keys for backward compatibility cleanup.
@@ -1465,6 +1511,7 @@ Example: [{"id": "chk_0", "category": "information"}, {"id": "chk_1", "category"
       );
     }
 
+    next.read_mod_lorebook = toInt(next.read_mod_lorebook, DEFAULTS.read_mod_lorebook) === 1 ? 1 : 0;
     next.vector_search_enabled = toInt(next.vector_search_enabled, DEFAULTS.vector_search_enabled) === 1 ? 1 : 0;
     next.vector_search_query_dialogue_rounds = Math.max(1, toInt(next.vector_search_query_dialogue_rounds, DEFAULTS.vector_search_query_dialogue_rounds));
     next.vector_search_top_k = Math.max(1, toInt(next.vector_search_top_k, DEFAULTS.vector_search_top_k));
@@ -1703,6 +1750,7 @@ Example: [{"id": "chk_0", "category": "information"}, {"id": "chk_1", "category"
 
   async function getModuleLorebookEntries(char, chat) {
     try {
+      if (toInt(configCache?.read_mod_lorebook, DEFAULTS.read_mod_lorebook) !== 1) return [];
       const db = await Risuai.getDatabase(["modules", "enabledModules", "moduleIntergration"]);
       const modules = Array.isArray(db?.modules) ? db.modules : [];
 
@@ -2461,8 +2509,7 @@ Example: [{"id": "chk_0", "category": "information"}, {"id": "chk_1", "category"
             } else {
               const prev = chat.localLore[existingIndex] || {};
               const prevContent = typeof prev.content === "string" ? prev.content.trim() : "";
-              const turnMarker = `### Turn ${roundIndex}`;
-              if (prevContent.includes(turnMarker)) {
+              if (hasTurnBlockForRound(prevContent, roundIndex)) {
                 continue;
               }
               const base = prevContent.startsWith("## ") ? prevContent : `${header}\n${prevContent}`;
@@ -2489,7 +2536,6 @@ Example: [{"id": "chk_0", "category": "information"}, {"id": "chk_1", "category"
     const calls = getModelCalls();
     const retentionEntries = [];
     for (const call of calls) {
-      if (!isModelCallDue(call, userMsgCount)) continue;
       for (const entry of (call.entries || [])) {
         const e = normalizeOutputEntry(entry, call.target_model);
         if (e.write_mode === "append" && e.retention_enabled) {
@@ -2519,7 +2565,7 @@ Example: [{"id": "chk_0", "category": "information"}, {"id": "chk_1", "category"
           const headerLine = headerMatch[0];
           const body = raw.slice(headerLine.length).trim();
 
-          const allBlocks = body.split(/(?=### Turn \d+|\[Turn: \d+\])/g).map(b => b.trim()).filter(Boolean);
+          const allBlocks = splitTurnBlocks(body);
 
           if (e.retention_after === 0 || allBlocks.length > e.retention_after) {
             const kept = e.retention_keep === 0 ? [] : allBlocks.slice(-e.retention_keep);
@@ -2544,26 +2590,32 @@ Example: [{"id": "chk_0", "category": "information"}, {"id": "chk_1", "category"
     }
 
     const pendingWrites = [];
+    const outputIssues = [];
     for (const entry of entries) {
       const loreName = safeTrim(entry?.lorebook_name) || resolveLoreCommentForTarget(target);
       const writeMode = safeTrim(entry?.write_mode) === "overwrite" ? "overwrite" : "append";
       const alwaysActive = entry?.always_active === true;
       const outputFormat = safeTrim(entry?.output_format) || "raw";
-      if (alignedParsed && typeof alignedParsed === "object" && entries.length > 1 && !Object.prototype.hasOwnProperty.call(alignedParsed, loreName)) continue;
+      if (alignedParsed && typeof alignedParsed === "object" && entries.length > 1 && !Object.prototype.hasOwnProperty.call(alignedParsed, loreName)) {
+        outputIssues.push(`${loreName}: missing key`);
+        continue;
+      }
       const content = formatLoreOutput(raw, alignedParsed, outputFormat, loreName, entries.length);
-      if (!safeTrim(content)) continue;
+      if (!safeTrim(content)) {
+        outputIssues.push(`${loreName}: empty content`);
+        continue;
+      }
       pendingWrites.push({
-        loreName, writeMode, alwaysActive, content,
-        retentionEnabled: entry?.retention_enabled === true, retentionAfter: Math.max(0, toInt(entry?.retention_after, 0)),
-        retentionKeep: Math.max(0, toInt(entry?.retention_keep, 5))
+        loreName, writeMode, alwaysActive, content
       });
     }
 
+    if (outputIssues.length > 0) {
+      throw new Error(`Auxiliary model output validation failed (${modelCall.name}): ${outputIssues.join("; ")}. Raw preview: ${String(raw || "").slice(0, 180)}`);
+    }
+
     if (pendingWrites.length === 0) {
-      if (entries.length > 0) {
-        await Risuai.log(`${LOG} Warning: model output does not match expected entry names (${entries.map(e => e.lorebook_name).join(", ")}) or format is invalid, skipping write.`);
-      }
-      return;
+      throw new Error(`Auxiliary model output is unusable (${modelCall.name}). Expected entries: ${entries.map(e => e.lorebook_name).join(", ") || "(none)"}`);
     }
 
     const wrote = await batchUpsertLocalLore(pendingWrites, roundIndex);
@@ -3342,20 +3394,19 @@ Example: [{"id": "chk_0", "category": "information"}, {"id": "chk_1", "category"
       let entry = chat.localLore[i];
       if (!entry || typeof entry.content !== "string") { newLocalLore.push(entry); continue; }
       const originalContent = entry.content;
-      if (!originalContent.includes("[Turn: ") && !originalContent.includes("### Turn ")) { newLocalLore.push(entry); continue; }
+      if (!hasTurnMarkers(originalContent)) { newLocalLore.push(entry); continue; }
 
       const headerMatch = originalContent.match(/^## .*?\n/);
       const header = headerMatch ? headerMatch[0] : "";
       const rest = headerMatch ? originalContent.slice(header.length) : originalContent;
 
-      const blocks = rest.split(/(?=### Turn \d+|\[Turn: \d+\])/g);
+      const blocks = splitTurnBlocks(rest);
       const validBlocks = [];
       let entryChanged = false;
 
       for (const block of blocks) {
-        const m = block.match(/^### Turn (\d+)|^\[Turn: (\d+)\]/);
-        if (m) {
-          const turn = parseInt(m[1] ?? m[2], 10);
+        const turn = parseTurnNumberFromBlock(block);
+        if (turn !== null) {
           if (turn > userMsgCount) { entryChanged = true; continue; }
         }
         if (block.trim()) validBlocks.push(block.trim());
@@ -3919,7 +3970,7 @@ Example: [{"id": "chk_0", "category": "information"}, {"id": "chk_1", "category"
     document.body.innerHTML = `
       <div class="pse-body">
         <div class="pse-card">
-          <h1 class="pse-title">👤 RisuAI Agent v1.5</h1>
+          <h1 class="pse-title">👤 RisuAI Agent v1.6</h1>
           <div id="pse-status" class="pse-status"></div>
           ${renderModelDatalists()}
 
@@ -4088,8 +4139,18 @@ Example: [{"id": "chk_0", "category": "information"}, {"id": "chk_1", "category"
 
           <div class="pse-page" data-page="7">
             <div class="pse-section">
-              <div class="pse-row" style="margin-bottom:8px;">
+              <div style="margin-bottom:10px;padding:10px 12px;border-radius:8px;border:1px solid rgba(220,38,38,0.45);background:rgba(220,38,38,0.12);color:#ffd7d7;font-weight:700;line-height:1.45;">
+                ${escapeHtml(_T.warn_cbs_unsupported)}
+              </div>
+              <div class="pse-row" style="margin-bottom:8px;align-items:center;justify-content:space-between;gap:12px;">
                 <button id="pse-reset-agent-defaults" class="pse-btn cache" type="button" style="flex:0 0 auto;">${_T.btn_reset}</button>
+                <div style="display:flex;align-items:center;gap:8px;flex:0 0 auto;">
+                  <label class="pse-label" for="read_mod_lorebook" style="margin:0;">${_T.lbl_read_mod_lorebook}</label>
+                  <select id="read_mod_lorebook" class="pse-input" style="min-width:96px;">
+                    <option value="1" ${Number(configCache.read_mod_lorebook) === 1 ? "selected" : ""}>${_T.yes}</option>
+                    <option value="0" ${Number(configCache.read_mod_lorebook) === 1 ? "" : "selected"}>${_T.no}</option>
+                  </select>
+                </div>
               </div>
               <div class="pse-assembly">
                 ${_T.help_html}
@@ -4171,13 +4232,14 @@ Example: [{"id": "chk_0", "category": "information"}, {"id": "chk_1", "category"
         try { await Risuai.pluginStorage.removeItem(VCACHE_CARD_PREFIX + cardKey); } catch { }
         await saveEmbeddingCacheStore(store);
         try {
-          const { staticKeys, requestKeys } = await getScopedKeysForCurrentChat();
+          const { staticKeys, requestKeys, firstMessageHandledKey } = await getScopedKeysForCurrentChat();
           try { await Risuai.pluginStorage.removeItem(staticKeys.staticKnowledgeChunks); } catch { }
           try { await Risuai.pluginStorage.removeItem(staticKeys.staticDataHash); } catch { }
           try { await Risuai.pluginStorage.removeItem(staticKeys.step0Complete); } catch { }
           try { await Risuai.safeLocalStorage.removeItem(requestKeys.lastReqHash); } catch { }
           try { await Risuai.safeLocalStorage.removeItem(requestKeys.lastCompletedReqHash); } catch { }
           try { await Risuai.safeLocalStorage.removeItem(requestKeys.lastExtractedData); } catch { }
+          try { await Risuai.safeLocalStorage.removeItem(firstMessageHandledKey); } catch { }
           sessionStep0HandledHashByScope.delete(staticKeys.scopeId);
         } catch { }
 
@@ -4420,6 +4482,7 @@ Example: [{"id": "chk_0", "category": "information"}, {"id": "chk_1", "category"
           advanced_prefill_prompt: DEFAULTS.advanced_prefill_prompt, advanced_prereply_prompt: DEFAULTS.advanced_prereply_prompt,
           vector_search_query_dialogue_rounds: DEFAULTS.vector_search_query_dialogue_rounds, vector_search_top_k: DEFAULTS.vector_search_top_k,
           vector_search_min_score: DEFAULTS.vector_search_min_score, vector_search_enabled: DEFAULTS.vector_search_enabled,
+          read_mod_lorebook: DEFAULTS.read_mod_lorebook,
           init_bootstrap_target_model: DEFAULTS.init_bootstrap_target_model, init_bootstrap_model_anchor_prompt: DEFAULTS.init_bootstrap_model_anchor_prompt,
           extractor_a_provider_model_map: DEFAULTS.extractor_a_provider_model_map, extractor_b_provider_model_map: DEFAULTS.extractor_b_provider_model_map,
           embedding_provider_model_map: DEFAULTS.embedding_provider_model_map,
@@ -4444,6 +4507,7 @@ Example: [{"id": "chk_0", "category": "information"}, {"id": "chk_1", "category"
         setVal("vector_search_query_dialogue_rounds", configCache.vector_search_query_dialogue_rounds);
         setVal("vector_search_top_k", configCache.vector_search_top_k);
         setVal("vector_search_min_score", configCache.vector_search_min_score);
+        setVal("read_mod_lorebook", configCache.read_mod_lorebook);
         setVal("init_bootstrap_target_model", configCache.init_bootstrap_target_model);
         setVal("init_bootstrap_model_anchor_prompt", configCache.init_bootstrap_model_anchor_prompt);
         showStatus(_T.st_reset, "ok");
@@ -4681,6 +4745,7 @@ Example: [{"id": "chk_0", "category": "information"}, {"id": "chk_1", "category"
           advanced_model_anchor_prompt: document.getElementById("advanced_model_anchor_prompt")?.value ?? "",
           advanced_prefill_prompt: document.getElementById("advanced_prefill_prompt")?.value ?? "",
           advanced_prereply_prompt: document.getElementById("advanced_prereply_prompt")?.value ?? "",
+          read_mod_lorebook: toInt(document.getElementById("read_mod_lorebook")?.value, DEFAULTS.read_mod_lorebook) === 1 ? 1 : 0,
           vector_search_enabled: toInt(document.getElementById("vector_search_enabled")?.value, 0) === 1 ? 1 : 0,
           vector_search_query_dialogue_rounds: Math.max(1, toInt(document.getElementById("vector_search_query_dialogue_rounds")?.value, DEFAULTS.vector_search_query_dialogue_rounds)),
           vector_search_top_k: Math.max(1, toInt(document.getElementById("vector_search_top_k")?.value, DEFAULTS.vector_search_top_k)),
@@ -4758,8 +4823,19 @@ Example: [{"id": "chk_0", "category": "information"}, {"id": "chk_1", "category"
       const staticKeys = getStaticCacheKeysForScope(char);
       const requestKeys = getRequestCacheKeysForScope(char);
       const existingMsgs = Array.isArray(chat?.message) ? chat.message : [];
-      const isFirstMessage = existingMsgs.filter(m => m?.role === "user").length <= 1;
+      const userMsgCount = existingMsgs.filter(m => m?.role === "user").length;
+      const isFirstMessage = userMsgCount <= 1;
       const lastUserContent = existingMsgs.filter(m => m?.role === "user").pop()?.data || "";
+      const firstMessageHandledKey = getFirstMessageHandledKey(requestKeys.scopeId, chatIndex);
+      const firstMessageMarker = simpleHash(String(lastUserContent || ""));
+      let firstMessageHandled = false;
+      try {
+        firstMessageHandled = String(await Risuai.safeLocalStorage.getItem(firstMessageHandledKey) || "") === firstMessageMarker;
+      } catch { }
+      if (userMsgCount > 1) {
+        // Reset stale marker after first turn to avoid cross-chat false matches on recycled chat index.
+        try { await Risuai.safeLocalStorage.removeItem(firstMessageHandledKey); } catch { }
+      }
 
       const gNoteData = await getGlobalNoteDataCached(char);
       const resolvedGlobalNote = safeTrim(gNoteData.replaceGlobalNote || gNoteData.globalNote);
@@ -4812,10 +4888,10 @@ Example: [{"id": "chk_0", "category": "information"}, {"id": "chk_1", "category"
         }
       }
 
-      const userMsgCount = existingMsgs.filter(m => m?.role === "user").length;
       await performChatCleanup(userMsgCount);
 
-      if (isFirstMessage) {
+      if (isFirstMessage && !firstMessageHandled) {
+        try { await Risuai.safeLocalStorage.setItem(firstMessageHandledKey, firstMessageMarker); } catch { }
         await Risuai.safeLocalStorage.setItem("last_extractor_mode", "skipped_first_message");
         await Risuai.log(`${LOG} beforeRequest: skipping extraction on first message.`);
         return await mergeToSystemPromptWithRewrite(messages, null, lastUserContent);
@@ -4915,8 +4991,13 @@ Example: [{"id": "chk_0", "category": "information"}, {"id": "chk_1", "category"
 
       if (!extractedData && !usedCache) {
         const due = getModelCalls().filter((c) => isModelCallDue(c, userMsgCount));
-        if (due.length > 0) await Risuai.log(`${LOG} Warning: auxiliary model returned no usable content or format could not be parsed.`);
+        if (due.length > 0) {
+          await abortMainModelWithAuxError(`${_T.aux_failed || "Auxiliary model execution failed:\n"}No usable extraction result was produced by due calls.`);
+        }
       }
+
+      // Enforce retention in model flow as well; relying on display hook alone is not stable.
+      await applyRetentionCleanup(userMsgCount);
 
       const injectedMessages = await mergeToSystemPromptWithRewrite(messages, null, lastUserContent);
 
