@@ -1,9 +1,9 @@
 //@name 👤 RisuAI Agent
-//@display-name 👤 RisuAI Agent v1.6.1
+//@display-name 👤 RisuAI Agent v1.7
 //@author penguineugene@protonmail.com
 //@link https://github.com/EugenesDad/RisuAI-Agent-plugin
 //@api 3.0
-//@version 1.6.1
+//@version 1.7
 
 (async () => {
   function _mapLangCode(raw) {
@@ -42,9 +42,10 @@
   const _I18N = {
     en: {
       append: "Append", overwrite: "Overwrite",
-      tab_help: "Help", tab_model: "Model Settings", tab_vector: "Vector Search",
-      tab_prompt: "Global Prompt", tab_lore: "Lorebook Calls", tab_cache: "Cache Manager",
-      sec_a: "Main Model (Model A)", sec_b: "Auxiliary Model (Model B)",
+      tab_help: "Instructions", tab_model: "Pre-Model Settings", tab_vector: "Vector Search",
+      tab_entry: "Information Extraction", tab_cache: "Cache Warehouse", tab_enable: "Enable Settings",
+      tab_common: "Common Prompts",
+      sec_a: "Main Model", sec_b: "Auxiliary Model",
       sec_embed_title: "Embedding Model",
       embed_warn: "⚠️ Vectors from different embedding models are completely incompatible. If you change the model, clear the cache data below first.",
       lbl_provider: "Provider", lbl_format: "Request Format", lbl_url: "Request URL",
@@ -53,7 +54,7 @@
       opt_concurrent: "Concurrent (allow multiple simultaneous requests)",
       opt_sequential: "Sequential (single-threaded requests only)",
       sec_lore_calls: "Lorebook Write Call Settings",
-      lore_warn: "⚠️ Do not manually edit the current chat's Local Lorebook while Agent is running, as it may be automatically overwritten.",
+      lore_warn: "⚠️ Do not manually edit the Lorebook while Agent is running, as it may be automatically overwritten.",
       btn_add_call: "Add Call Task",
       lbl_anchor: "System Anchor Prompt", lbl_prefill: "Assistant Prefill", lbl_prereply: "Assistant Pre-Reply Prompt",
       aria_expand: "Expand Edit",
@@ -64,19 +65,35 @@
       lbl_topk: "Top K (number of entries to return)",
       lbl_minscore: "Minimum similarity score threshold (0~1)",
       sec_classify: "Classification Model Settings", lbl_use_model: "Use Model",
-      opt_main_model: "Main Model (A)", opt_aux_model: "Auxiliary Model (B)",
+      opt_main_model: "Main Model", opt_aux_model: "Auxiliary Model",
       lbl_classify_anchor: "Classification Anchor Prompt",
-      sec_cache: "Cache Manager",
+      lbl_classify_model: "Classification Model",
+      lbl_read_mod_lorebook_short: "Read Mod Lorebook",
+      sec_card_settings: "Bot Enable Settings",
+      lbl_card_name: "Bot",
+      lbl_memory_extract: "Enable Info Extraction",
+      lbl_vector_search_card: "Enable Vector Search",
+      lbl_card_disabled: "Disable this plugin",
+      opt_off: "Off",
+      opt_preset1: "Preset 1",
+      opt_preset2: "Preset 2",
+      no_cards: "No bots found in database.",
+      sec_cache: "Cache Hub",
       btn_refresh_cache: "Refresh Cache List", btn_clear_cache: "Clear All Caches",
       btn_reset: "Reset to Defaults",
-      lbl_card: "Card", lbl_entries: "Entries", lbl_filesize: "File Size",
+      lbl_card: "", lbl_entries: "Entries", lbl_filesize: "File Size",
       btn_delete: "Delete",
+      lbl_classify_only: "Classification only",
+      lbl_chunks: "Entries",
+      tag_vector: "Vector",
+      tag_classify: "Classification",
       btn_save: "Save Settings", btn_close: "Close",
+      preset1: "Preset 1", preset2: "Preset 2",
       no_cache: "No vector cache data available.",
-      confirm_clear: `Are you sure you want to clear all vector caches?\nThis will delete all card cache data. The cache will be rebuilt on the next send.`,
+      confirm_clear: `Are you sure you want to clear all vector caches?\nThis will delete all bot cache data. The cache will be rebuilt on the next send.`,
       st_cache_refreshed: "Vector cache list refreshed.",
       st_cache_cleared: "All vector caches cleared. Cache will be rebuilt on next send.",
-      st_card_deleted: "Card vector cache deleted.",
+      st_card_deleted: "Bot vector cache deleted.",
       st_saved: "Settings saved.", st_save_fail: "Save failed: ",
       st_reset: "Reset to Agent defaults.", st_reset_fail: "Reset failed: ",
       editor_cancel: "Cancel", editor_apply: "Apply", aria_close: "Close",
@@ -84,15 +101,13 @@
       lbl_always_active: "Always Active", yes: "Yes", no: "No",
       lbl_output_format: "Output Format (JSON Schema)",
       lbl_read_mod_lorebook: "Read Mod Lorebook",
-      warn_cbs_unsupported: "Attention: Risu plugin v3 currently does not support CBS syntax parsing. If the Mod or character-card Lorebook you use contains many CBS syntaxes, it is recommended not to enable this plugin.",
+      warn_cbs_unsupported: "Attention: Risu plugin v3 currently does not support CBS syntax parsing. If the Mod or character-bot Lorebook you use contains many CBS syntaxes, it is recommended not to enable this plugin.",
       ret_after_lbl: "After",
       ret_mid_lbl: "turns, auto-trim and keep only the latest",
       ret_end_lbl: "turns of data",
       ret_enabled_title: "When enabled, automatically trims old data from this entry after reaching the specified turn count, keeping only the most recent turns",
       ret_after_title: "Pruning starts after accumulating more than this many turns (0 = immediately)",
       ret_keep_title: "Number of most recent turn blocks to keep after trimming (0 = clear all)",
-      lbl_parallel: "Parallel Execution",
-      parallel_title: "When enabled, this task will execute concurrently with other parallel tasks to reduce wait time.",
       lbl_call_note: "Call Note",
       lbl_call_model: "Model", opt_main: "Main Model", opt_aux: "Auxiliary Model",
       lbl_freq: "Trigger Frequency (turns)",
@@ -108,6 +123,9 @@
       expand_classify: "Classification Anchor Prompt - Expanded Edit",
       expand_generic: "Edit Prompt Content",
       expand_format: "Output Format (JSON Schema) - Expanded Edit",
+      lbl_thinking: "Thinking Tokens", lbl_thinking_level: "Thinking Level",
+      thinking_title: "Enable extended thinking for this model",
+      opt_thinking_auto: "Auto (adaptive)", opt_thinking_low: "Low", opt_thinking_medium: "Medium", opt_thinking_high: "High",
       aux_failed: "Auxiliary model execution failed:\n",
       entry_save_failed: "Entry save failed:\n",
       no_conv: "Skipped: no usable conversation text in beforeRequest payload.",
@@ -115,60 +133,66 @@
       aux_abort_suffix: "Main model request was intercepted to save API quota.",
       unknown_reason: "Unknown error",
       aux_error_line: ({ callName, target, provider, model, reason }) => `Call "${callName}" (Model ${target}, provider ${provider}, model ${model}) failed: ${reason}`,
+      err_json_expected: (name) => `Auxiliary model (${name}) must return a JSON object, but parsing failed.`,
+      err_validation_failed: (name, issues) => `Auxiliary model output validation failed (${name}): ${issues}.`,
+      err_unusable_output: (name) => `Auxiliary model output is unusable (${name}).`,
+      err_extractor_empty: (mode) => `Extractor ${mode} returned empty content.`,
+      warn_parse_failed: "⚠️ Unable to parse static_knowledge_chunks. Please check if Step 0 has completed.",
+      warn_no_chunks: "⚠️ No available chunks. Knowledge injection skipped. Please check if Step 0 has completed.",
       copilot_refresh: "Copilot token refresh",
-      help_html: `<b>▌ Core System: Narrative Auditing &amp; State Extraction Engine</b><br/>
-                This plugin automatically extracts facts from dialogue via multiple parallel model calls, tracks logical consistency, and maintains a dynamically updated world-state database. Suitable for all narrative contexts including collaborative fiction and roleplay.<br/><br/>
-                <b>▌ Step 0 (Database Construction)</b><br/><br/>
-                <b>On the first conversation, all bot content is chunked and tagged (initial / main model / embedding model)</b><br/>
-                This may take a while — please wait patiently.<br/>
-                &bull; <code>Purpose</code>: Optimizes subsequent bot reading efficiency.<br/>
-                &bull; <code>Vector Search</code>: If enabled, a vector database will also be built.<br/>
-                &bull; <code>Cache Manager</code>: Built databases are stored here and do not need to be rebuilt every time the plugin is reloaded.<br/><br/>
-                <b>▌ Pipeline Architecture (5 Parallel Task Groups)</b><br/><br/>
-                <b>Part 1 — Narrative Snapshot &amp; Character Status (every turn / auxiliary model)</b><br/>
-                Maintains the story's real-time "working memory":<br/>
-                &bull; <code>recent_turn_log</code>: Precisely records current scene changes, player actions, and narrative results.<br/>
-                &bull; <code>recent_character_states</code>: Tracks the outward states and hidden motives of NPCs in the scene to ensure behavioral consistency.<br/>
-                &bull; <code>system_director</code>: Detects narrative stagnation and triggers external events when necessary to break conversational deadlocks.<br/><br/>
-                <b>Part 2 — Logic Audit &amp; Story Thread Management (every turn / auxiliary model)</b><br/>
-                Ensures story logic is tight and prevents setting conflicts:<br/>
-                &bull; <code>known_contradictions</code>: Detects unreasonable actions (e.g., violating injury conditions, using unpossessed items, or breaking world rules).<br/>
-                &bull; <code>unsolved_quests</code>: Tracks and manages all unresolved conflicts, long-term goals, and quest thread progress.<br/><br/>
-                <b>Part 3 — Narrative Quality Guard &amp; New Lore Recording (every 3 turns / auxiliary model)</b><br/>
-                Improves writing quality and captures newly introduced lore:<br/>
-                &bull; <code>repetition_guard</code>: Filters repetitive narrative tropes, banned phrases, or overused verbal patterns.<br/>
-                &bull; <code>recent_world_entries</code>: Automatically records newly mentioned locations, rule details, or character traits.<br/><br/>
-                <b>Part 4 — Long-Term Memory Summarization &amp; Milestones (every 10 turns / main model)</b><br/>
-                The main model distills story highlights and updates long-term memory:<br/>
-                &bull; <code>story_turning_points</code>: Records key turning point moments that changed the story's direction.<br/>
-                &bull; <code>story_arc_summary</code>: Summarizes completed arcs and records permanent impacts on the world or relationships.<br/><br/>
-                <b>Part 5 — Persistent World Encyclopedia (every 15 turns / main model)</b><br/>
-                Integrates fragmented information into a structured knowledge base:<br/>
-                &bull; <code>world_encyclopedia</code>: Consolidates geography, NPCs, factions, and lore, providing a stable consistency foundation for long stories.<br/><br/>
-                <b>▌ Knowledge Injection Placement Rules</b><br/>
-                &bull; <b>Instructions</b>: Injected below the system prompt to guide AI behavior.<br/>
-                &bull; <b>Information</b>: Injected below the chat history to provide background context.<br/>
-                &bull; <b>Format</b>: Injected at the very bottom of the prompt to ensure JSON or specific format output.<br/>
-                &bull; <b>Vector Search</b>: If enabled, a vector search is performed each turn to extract the most contextually relevant Lorebook entries.<br/><br/>
-                <b>▌ Notes</b><br/>
-                &bull; <b>Manual Editing</b>: Do not manually edit the current chat's Local Lorebook while the Agent is running, as it may be automatically overwritten.<br/>
-                &bull; <b>Vector Search</b>: When vector search is enabled, the system automatically selects the most relevant entries to inject based on semantic relevance.<br/>
-                &bull; <b>Reset Defaults</b>: If errors occur after an update, click "Reset to Defaults" to restore all prompts and configuration.`,
+      help_html: `<b>▌ Core Role: Information Extraction &amp; Vector Search</b><br/>
+                &bull; <code>Information Extraction</code>: Before the main model replies, precursor models extract valid information from the conversation, helping the main model respond more brilliantly.<br/>
+                &bull; <code>Vector Search</code>: Reorganizes bot data, replacing traditional keyword triggers with vector search to increase the amount of relevant information.<br/><br/>
+
+                <b>▌ Plugin Constraints</b><br/>
+                &bull; ❌ <b>Cannot resume non-plugin chats</b>: To continue previous non-plugin chat history, please summarize it first and start a new conversation.<br/>
+                &bull; ❌ <b>Cannot toggle on/off repeatedly</b>: The internal state (e.g., Long-Term Memory, World Encyclopedia) will become disconnected from the current plot if disabled.<br/>
+                &bull; ✅ <b>Switch system prompts (presets) mid-story</b>: As long as the plugin remains enabled, you can freely switch between different system prompts during your roleplay.<br/>
+                &bull; ✅ <b>Disabling the plugin</b>: You can transition from a plugin-enabled session to a non-plugin session (remember to change your system prompt), but the state maintained by the Agent will stop updating.<br/><br/>
+
+                <b>▌ Precursor Model Settings: The Core Supporting the Plugin</b><br/>
+                &bull; <code>Main Model</code>: A powerful model capable of effectively processing large amounts of data.<br/>
+                &bull; <code>Auxiliary Model</code>: A non-coding model capable of understanding the play language and processing 1k~5k content.<br/>
+                &bull; <code>Embedding Model</code>: If the play language differs from the bot language, be sure to select a model that supports cross-lingual search.<br/><br/>
+
+                <b>▌ Expected Model Call Frequency</b><br/>
+                <b>[At Start of Conversation]</b><br/>
+                &bull; <code>Main Model</code>: 0 times.<br/>
+                &bull; <code>Auxiliary Model</code>: Called several times to break down bot data and build the classification system.<br/>
+                &bull; <code>Embedding Model</code>: If cache search is enabled, called several times to build the vector index.<br/>
+                <b>[Subsequent Turns: Setting 1]</b><br/>
+                &bull; <code>Main Model</code>: Once every 10 / 15 turns.<br/>
+                &bull; <code>Auxiliary Model</code>: Twice every turn, once every 3 turns.<br/>
+                &bull; <code>Embedding Model</code>: Once every turn if cache search is enabled.<br/>
+                <b>[Subsequent Turns: Setting 2]</b><br/>
+                &bull; <code>Main Model</code>: Once every 3 / 10 / 15 turns.<br/>
+                &bull; <code>Auxiliary Model</code>: Three times every turn, once every 2 turns, once every 3 turns.<br/>
+                &bull; <code>Embedding Model</code>: Once every turn if cache search is enabled.<br/><br/>
+
+                <b>▌ Enable Settings: Individual configuration for each bot</b><br/>
+                &bull; <code>Classification Model</code>: Breaks down bot data into three categories and places them in the most effective positions within the prompt.<br/>
+                &bull; <code>Read Mod Lorebook</code>: Currently, plugin v3 does not support CBS syntax parsing. Disabling this prevents Lorebook entries from mods from polluting the response quality.<br/>
+                &bull; <code>Preset 1 vs Preset 2</code>: Preset 1 is for general bots; Preset 2 is for epic narrative bots with complex plots.<br/><br/>
+
+                <b>▌ Cache Warehouse: Where each bot's data is stored</b><br/>
+                &bull; <code>Classification</code>: Index built by the classification model.<br/>
+                &bull; <code>Vector</code>: Cache index built by the vector (embedding) model.`,
     },
     ko: {
       append: "추가", overwrite: "덮어쓰기",
-      tab_help: "사용 설명", tab_model: "모델 설정", tab_vector: "벡터 검색",
-      tab_prompt: "전역 프롬프트", tab_lore: "로어북 호출", tab_cache: "캐시 관리",
-      sec_a: "주요 모델 (Main Model)", sec_b: "보조 모델 (Auxiliary Model)",
+      tab_help: "설정 안내", tab_model: "전도 모델 설정", tab_vector: "벡터 검색",
+      tab_entry: "정보 추출", tab_cache: "캐시 창고", tab_enable: "활성화 설정",
+      tab_common: "공통 프롬프트",
+      sec_a: "메인 모델", sec_b: "보조 모델",
       sec_embed_title: "임베딩 모델 (Embedding Model)",
       embed_warn: "⚠️ 다른 임베딩 모델이 생성하는 벡터는 완전히 호환되지 않습니다. 모델을 변경할 경우 반드시 아래 캐시 데이터를 먼저 지우세요.",
-      lbl_provider: "제공자", lbl_format: "요청 형식", lbl_url: "요청 주소 (URL)",
-      lbl_key: "API 키", lbl_model: "모델", lbl_temp: "온도 (Temperature)",
+      lbl_provider: "공급자", lbl_format: "요청 형식", lbl_url: "요청 URL",
+      lbl_key: "API 키", lbl_model: "모델", lbl_temp: "온도",
       lbl_concur: "요청 모드 (Concurrency)",
       opt_concurrent: "병렬 (복수 요청 동시 발송 허용)",
       opt_sequential: "순차 (단일 스레드 요청만 가능)",
       sec_lore_calls: "로어북 쓰기 호출 설정",
-      lore_warn: "⚠️ Agent 작동 중에는 현재 대화의 로컬 로어북을 수동으로 편집하지 마세요. 시스템에 의해 자동으로 덮어쓰일 수 있습니다.",
+      lore_warn: "⚠️ Agent 작동 중에는 로어북을 수동으로 편집하지 마세요. 시스템에 의해 자동으로 덮어쓰일 수 있습니다.",
       btn_add_call: "호출 작업 추가",
       lbl_anchor: "시스템 앵커 프롬프트 (System Prompt)", lbl_prefill: "어시스턴트 프리필 (Assistant Prefill)", lbl_prereply: "사전 응답 프롬프트 (Assistant Pre-Reply)",
       aria_expand: "확대 편집",
@@ -179,37 +203,51 @@
       lbl_topk: "Top K (반환 항목 수)",
       lbl_minscore: "최소 유사도 점수 임계값 (0~1)",
       sec_classify: "분류 모델 설정", lbl_use_model: "사용 모델",
-      opt_main_model: "주요 모델 (Main)", opt_aux_model: "보조 모델 (Aux)",
+      opt_main_model: "메인 모델", opt_aux_model: "보조 모델",
       lbl_classify_anchor: "분류 앵커 프롬프트",
+      lbl_classify_model: "분류 모델",
+      lbl_read_mod_lorebook_short: "Mod Lorebook 읽기",
+      sec_card_settings: "봇 활성화 설정",
+      lbl_card_name: "봇",
+      lbl_memory_extract: "정보 추출 활성화",
+      lbl_vector_search_card: "벡터 검색 활성화",
+      lbl_card_disabled: "이 플러그인 비활성화",
+      opt_off: "끄기",
+      opt_preset1: "설정 1",
+      opt_preset2: "설정 2",
+      no_cards: "데이터베이스에 봇이 없습니다.",
       sec_cache: "캐시 관리 센터 (Cache Hub)",
       btn_refresh_cache: "캐시 목록 새로고침", btn_clear_cache: "전체 캐시 삭제",
       btn_reset: "기본 설정으로 초기화",
-      lbl_card: "카드", lbl_entries: "항목 수", lbl_filesize: "파일 크기",
+      lbl_card: "", lbl_entries: "항목 수", lbl_filesize: "파일 크기",
       btn_delete: "삭제",
+      lbl_classify_only: "분류 전용",
+      lbl_chunks: "항목 수",
+      tag_vector: "벡터",
+      tag_classify: "분류",
       btn_save: "설정 저장", btn_close: "닫기",
+      preset1: "설정 1", preset2: "설정 2",
       no_cache: "현재 벡터 캐시 데이터가 없습니다.",
-      confirm_clear: "전체 벡터 캐시를 삭제하시겠습니까?\\n모든 카드의 캐시 데이터가 삭제되며 다음 발송 시 재생성됩니다.",
+      confirm_clear: "전체 벡터 캐시를 삭제하시겠습니까?\\n모든 봇의 캐시 데이터가 삭제되며 다음 발송 시 재생성됩니다.",
       st_cache_refreshed: "벡터 캐시 목록이 업데이트되었습니다.",
       st_cache_cleared: "전체 벡터 캐시가 삭제되었습니다. 다음 발송 시 재생성됩니다.",
-      st_card_deleted: "해당 카드의 벡터 캐시가 삭제되었습니다.",
+      st_card_deleted: "해당 봇의 벡터 캐시가 삭제되었습니다.",
       st_saved: "설정이 저장되었습니다.", st_save_fail: "저장 실패: ",
       st_reset: "Agent 기본값으로 초기화되었습니다.", st_reset_fail: "초기화 실패: ",
       editor_cancel: "취소", editor_apply: "적용", aria_close: "닫기",
       lbl_lore_entry: "로어북 항목", lbl_write_mode: "쓰기 모드 (덮어쓰기/추가)",
-      lbl_always_active: "항상 활성화", yes: "예", no: "아니오",
+      lbl_always_active: "언제나 활성화", yes: "예", no: "아니오",
       lbl_output_format: "출력 형식 (JSON Schema)",
       lbl_read_mod_lorebook: "Mod Lorebook 읽기",
-      warn_cbs_unsupported: "주의: 현재 Risu plugin v3는 CBS 문법 파싱을 지원하지 않습니다. 사용 중인 Mod 또는 캐릭터 카드 Lorebook에 CBS 문법이 많다면 이 plugin을 활성화하지 않는 것을 권장합니다.",
+      warn_cbs_unsupported: "주의: 현재 Risu plugin v3는 CBS 문법 파싱을 지원하지 않습니다. 사용 중인 Mod 또는 캐릭터 봇 Lorebook에 CBS 문법이 많다면 이 plugin을 활성화하지 않는 것을 권장합니다.",
       ret_after_lbl: "경과 후",
       ret_mid_lbl: "턴 후 자동 정리 실행, 최신 데이터만 유지",
       ret_end_lbl: "턴 데이터",
       ret_enabled_title: "활성화 후 지정 턴 수에 도달하면 이 항목의 오래된 데이터를 자동으로 정리하고 최신 몇 턴 내용만 유지합니다",
       ret_after_title: "이 턴 수를 초과하면 정리 시작 (0 = 즉시)",
       ret_keep_title: "정리 후 유지할 최신 턴 블록 수 (0 = 전체 삭제)",
-      lbl_parallel: "병렬 실행",
-      parallel_title: "활성화 후 이 작업이 다른 병렬 작업과 동시에 실행되어 대기 시간을 단축합니다.",
       lbl_call_note: "호출 메모",
-      lbl_call_model: "모델", opt_main: "주요 모델", opt_aux: "보조 모델",
+      lbl_call_model: "모델", opt_main: "메인 모델", opt_aux: "보조 모델",
       lbl_freq: "트리거 빈도 (턴)",
       lbl_read_rounds: "대화 턴 수 읽기 (0=전부)",
       lbl_read_lore: "연관 로어북 항목 (쉼표로 구분)",
@@ -223,6 +261,9 @@
       expand_classify: "분류 앵커 프롬프트 - 확대 편집",
       expand_generic: "프롬프트 내용 편집",
       expand_format: "출력 형식 (JSON Schema) - 확대 편집",
+      lbl_thinking: "사고 토큰", lbl_thinking_level: "사고 수준",
+      thinking_title: "이 모델에 대한 확장 사고 활성화",
+      opt_thinking_auto: "Auto (적응형)", opt_thinking_low: "Low", opt_thinking_medium: "Medium", opt_thinking_high: "High",
       aux_failed: "보조 모델 실행 실패:\n",
       entry_save_failed: "항목 저장 실패:\n",
       no_conv: "건너뜀: beforeRequest 페이로드에 사용 가능한 대화 텍스트 없음.",
@@ -230,78 +271,100 @@
       aux_abort_suffix: "API 쿼터를 보호하기 위해 메인 모델 요청이 중단되었습니다.",
       unknown_reason: "알 수 없는 오류",
       aux_error_line: ({ callName, target, provider, model, reason }) => `호출 "${callName}" (모델 ${target}, 제공자 ${provider}, 모델 ${model}) 실패: ${reason}`,
+      err_json_expected: (name) => `보조 모델 (${name})은 JSON 객체를 반환해야 하지만 파싱에 실패했습니다.`,
+      err_validation_failed: (name, issues) => `보조 모델 출력 검증 실패 (${name}): ${issues}.`,
+      err_unusable_output: (name) => `보조 모델 출력을 사용할 수 없습니다 (${name}).`,
+      err_extractor_empty: (mode) => `추출기 ${mode}가 빈 내용을 반환했습니다.`,
+      warn_parse_failed: "⚠️ 정적 지식 청크를 파싱할 수 없습니다. Step 0이 완료되었는지 확인하십시오.",
+      warn_no_chunks: "⚠️ 사용 가능한 청크가 없습니다. 지식 주입을 건너뜜. Step 0이 완료되었는지 확인하십시오.",
       copilot_refresh: "Copilot 토큰 갱신",
-      help_html: `<b>▌ 시스템 핵심: 서사 감사 및 상태 추출 엔진</b><br/>
-                이 플러그인은 여러 병렬 모델 호출을 통해 대화에서 사실을 자동으로 추출하고, 논리적 일관성을 추적하며, 동적으로 업데이트되는 세계관 데이터베이스를 유지합니다. 협업 소설, 롤플레이 등 모든 서사 시나리오에 적합합니다.<br/><br/>
-                <b>▌ Step0 (데이터베이스 구축)</b><br/><br/>
-                <b>첫 번째 대화 시 모든 카드 내용을 청크로 분할하고 태그를 부여합니다 (초기화/주요 모델/임베딩 모델)</b><br/>
-                시간이 걸릴 수 있으니 인내심 있게 기다려주세요.<br/>
-                &bull; <code>목적</code>: 이후 카드 읽기 효율 최적화.<br/>
-                &bull; <code>벡터 검색</code>: 활성화된 경우 벡터 데이터베이스도 함께 빌드됩니다.<br/>
-                &bull; <code>캐시 관리</code>: 빌드된 데이터베이스는 여기에 저장되므로 매번 재시작 시 재빌드할 필요가 없습니다.<br/><br/>
-                <b>▌ 프로세스 구조 (5개 병렬 작업 그룹)</b><br/><br/>
-                <b>Part1 — 서사 스냅샷 및 캐릭터 현황 (매 턴/보조 모델)</b><br/>
-                스토리의 실시간 '작업 메모리' 유지:<br/>
-                &bull; <code>recent_turn_log</code>: 현재 씬 변화, 플레이어 행동 및 서사 전개 결과를 정확히 기록.<br/>
-                &bull; <code>recent_character_states</code>: 현장 NPC의 외적 상태 및 숨겨진 동기를 추적하여 행동 일관성 확보.<br/>
-                &bull; <code>system_director</code>: 스토리 흐름을 감지하고 필요 시 외부 이벤트를 발생시켜 대화 교착 상태를 타개.<br/><br/>
-                <b>Part2 — 논리 감사 및 스토리라인 관리 (매 턴/보조 모델)</b><br/>
-                스토리 논리의 엄밀성을 확보하고 설정 충돌 방지:<br/>
-                &bull; <code>known_contradictions</code>: 불합리한 행동 감지 (예: 부상 설정 위반, 미보유 아이템, 세계관 규칙 위반).<br/>
-                &bull; <code>unsolved_quests</code>: 모든 미해결 갈등, 장기 목표, 퀘스트 라인 전개를 추적 및 관리.<br/><br/>
-                <b>Part3 — 서사 품질 보호 및 새 설정 기록 (3턴마다/보조 모델)</b><br/>
-                글쓰기 품질을 향상시키고 새롭게 등장하는 설정을 포착:<br/>
-                &bull; <code>repetition_guard</code>: 반복되는 서사 클리셰, 금지 표현, 과도하게 사용된 말투를 필터링.<br/>
-                &bull; <code>recent_world_entries</code>: 새롭게 등장하는 지리적 위치, 규칙 세부사항, 캐릭터 특성을 자동 기록.<br/><br/>
-                <b>Part4 — 장기 기억 요약 및 중요 이정표 (10턴마다/주요 모델)</b><br/>
-                주요 모델이 스토리 핵심을 추출하고 장기 기억을 업데이트합니다:<br/>
-                &bull; <code>story_turning_points</code>: 스토리 방향을 바꾸는 핵심 전환점 기록.<br/>
-                &bull; <code>story_arc_summary</code>: 특정 갈등 종료 시 요약하고 세계나 관계에 대한 영구적 영향 기록.<br/><br/>
-                <b>Part5 — 지속적 세계 백과사전 (15턴마다/주요 모델)</b><br/>
-                단편적인 정보를 구조화된 지식 베이스로 통합:<br/>
-                &bull; <code>world_encyclopedia</code>: 지리, NPC, 파벌, 전설 설정을 정리하여 장편 대화에 안정적인 일관성 기반 제공.<br/><br/>
-                <b>▌ 지식 주입 및 배치 규칙</b><br/>
-                &bull; <b>지시</b>: 시스템 프롬프트 아래에 주입하여 AI 행동을 안내.<br/>
-                &bull; <b>정보</b>: 채팅 기록 아래에 주입하여 배경 참조 제공.<br/>
-                &bull; <b>형식</b>: 프롬프트 최하단에 주입하여 JSON 또는 특정 형식 출력 보장.<br/>
-                &bull; <b>벡터 검색</b>: 활성화된 경우 매 대화 시 벡터 검색을 수행하여 현재 상황에 가장 적합한 로어북 항목을 추출합니다.<br/><br/>
-                <b>▌ 주의 사항</b><br/>
-                &bull; <b>수동 편집</b>: Agent 작동 중에는 현재 채팅의 로컬 로어북을 수동으로 편집하지 마세요. 시스템에 의해 자동으로 덮어쓰일 수 있습니다.<br/>
-                &bull; <b>벡터 검색</b>: 활성화 후 시스템이 자동으로 의미적 관련성에 따라 최적 항목을 선택하여 주입합니다.<br/>
-                &bull; <b>기본값 초기화</b>: 업데이트 후 오류 발생 시 「기본 설정으로 초기화」를 클릭하여 모든 프롬프트와 설정을 복원.`,
+      help_html: `<b>▌ 핵심 역할: 정보 추출 및 벡터 검색</b><br/>
+                &bull; <code>정보 추출</code>: 메인 모델이 응답하기 전, 전도 모델을 통해 대화에서 유효한 정보를 추출하여 메인 모델이 더 멋지게 응답할 수 있도록 돕습니다.<br/>
+                &bull; <code>벡터 검색</code>: 봇 데이터를 재구성하여 전통적인 키워드 트리거 대신 벡터 검색을 사용하여 유효 정보량을 높입니다.<br/><br/>
+
+                <b>▌ 플러그인 제한 사항</b><br/>
+                &bull; ❌ <b>일반 채팅 기록과 직접 호환 불가</b>: 플러그인을 사용하지 않은 이전 기록을 가져오려면 내용을 요약한 뒤 새 대화를 시작해 주세요.<br/>
+                &bull; ❌ <b>반복적인 On/Off 불가</b>: 플러그인을 비활성화하면 내부 상태(장기 기억, 세계 백과사전 등)가 현재 줄거리와 동떨어지게 됩니다.<br/>
+                &bull; ✅ <b>도중 시스템 프롬프트(프리셋) 교체</b>: 플러그인이 활성화된 상태라면 플레이 도중 언제든지 다른 시스템 프롬프트로 자유롭게 전환할 수 있습니다.<br/>
+                &bull; ✅ <b>플러그인 비활성화</b>: 플러그인 사용 모드에서 일반 모드로 전환하는 것이 가능하지만(시스템 프롬프트 교체 필요), 에이전트가 기록하는 상태 정보는 더 이상 업데이트되지 않습니다.<br/><br/>
+
+                <b>▌ 전도 모델 설정: 플러그인 작동을 지원하는 핵심</b><br/>
+                &bull; <code>메인 모델</code>: 강력한 성능으로 대량의 데이터를 효과적으로 처리할 수 있는 모델입니다.<br/>
+                &bull; <code>보조 모델</code>: 플레이 언어를 이해하고 1k~5k의 내용을 처리할 수 있는 비코딩 모델입니다.<br/>
+                &bull; <code>임베딩 모델</code>: 플레이 언어와 봇 언어가 다를 경우, 반드시 교차 언어 검색이 가능한 모델을 선택하세요.<br/><br/>
+
+                <b>▌ 예상 모델 호출 빈도</b><br/>
+                <b>【대화 시작 시】</b><br/>
+                &bull; <code>메인 모델</code>: 0회.<br/>
+                &bull; <code>보조 모델</code>: 봇 데이터를 분해하고 분류 시스템을 구축하기 위해 수 회 호출됩니다.<br/>
+                &bull; <code>임베딩 모델</code>: 캐시 검색이 활성화된 경우 벡터 인덱스를 생성하기 위해 수 회 호출됩니다.<br/>
+                <b>【이후 대화: 설정 1】</b><br/>
+                &bull; <code>메인 모델</code>: 10 / 15 턴마다 1회.<br/>
+                &bull; <code>보조 모델</code>: 매 턴 2회, 3턴마다 1회.<br/>
+                &bull; <code>임베딩 모델</code>: 캐시 검색이 활성화된 경우 매 턴 1회.<br/>
+                <b>【이후 대화: 설정 2】</b><br/>
+                &bull; <code>메인 모델</code>: 3 / 10 / 15 턴마다 1회.<br/>
+                &bull; <code>보조 모델</code>: 매 턴 3회, 2턴마다 1회, 3턴마다 1회.<br/>
+                &bull; <code>임베딩 모델</code>: 캐시 검색이 활성화된 경우 매 턴 1회.<br/><br/>
+
+                <b>▌ 활성화 설정: 각 봇별 개별 설정</b><br/>
+                &bull; <code>분류 모델</code>: 봇 데이터를 분해하여 세 가지 카테고리로 분류한 뒤, 프롬프트에서 가장 효과적인 위치에 배치합니다.<br/>
+                &bull; <code>모듈 로어북 읽기 여부</code>: 현재 플러그인 v3는 CBS 문법 파싱을 지원하지 않으므로, 이를 비활성화하면 모듈의 로어북 항목이 응답 품질을 저해하는 것을 방지할 수 있습니다.<br/>
+                &bull; <code>설정 1 vs 설정 2</code>: 설정 1은 일반적인 봇에 적합하며, 설정 2는 복잡한 줄거리의 대서사시형 봇에 적합합니다.<br/><br/>
+
+                <b>▌ 캐시 창고: 각 봇의 데이터가 저장되는 곳</b><br/>
+                &bull; <code>분류</code>: 분류 모델에 의해 생성된 인덱스입니다.<br/>
+                &bull; <code>벡터</code>: 벡터(임베딩) 모델에 의해 생성된 캐시 인덱스입니다.`,
     },
     tc: {
       append: "添加", overwrite: "覆蓋",
-      tab_help: "使用說明", tab_model: "模型設定", tab_vector: "向量搜尋",
-      tab_prompt: "全域提示詞", tab_lore: "Lorebook 呼叫", tab_cache: "快取管理",
-      sec_a: "主要模型 (Main Model)", sec_b: "輔助模型 (Auxiliary Model)",
-      sec_embed_title: "嵌入模型 (Embedding Model)",
+      tab_help: "設定說明", tab_model: "前導模型設定", tab_vector: "向量搜尋",
+      tab_entry: "資訊萃取", tab_cache: "快取倉庫", tab_enable: "啟用設置",
+      tab_common: "共同提示詞",
+      sec_a: "主要模型", sec_b: "輔助模型",
+      sec_embed_title: "嵌入模型",
       embed_warn: "⚠️ 不同嵌入模型產出的向量完全不互通。若更換模型，請務必先清除下方快取資料。",
-      lbl_provider: "提供者", lbl_format: "請求格式", lbl_url: "請求地址 (URL)",
-      lbl_key: "API 金鑰", lbl_model: "模型", lbl_temp: "溫度 (Temperature)",
+      lbl_provider: "提供者", lbl_format: "請求格式", lbl_url: "請求地址（URL）",
+      lbl_key: "API 金鑰", lbl_model: "模型", lbl_temp: "溫度（Temperature）",
       lbl_concur: "請求模式 (Concurrency)",
       opt_concurrent: "併發 (允許同時發送複數請求)",
       opt_sequential: "序列 (僅能單線請求)",
       sec_lore_calls: "Lorebook 寫入呼叫設定",
-      lore_warn: "⚠️ Agent 運作期間請勿手動編輯當前對話的 Local Lorebook，以免被系統自動覆蓋。",
+      lore_warn: "⚠️ Agent 運作期間，請勿手動編輯Lorebook，以免被系統自動覆蓋。",
       btn_add_call: "新增呼叫任務",
       lbl_anchor: "系統定位提示詞 (System Prompt)", lbl_prefill: "助理預填充 (Assistant Prefill)", lbl_prereply: "預回覆提示詞 (Assistant Pre-Reply)",
       aria_expand: "放大編輯",
-      sec_vec: "向量搜尋 (Vector Search)",
+      sec_vec: "向量搜尋",
       opt_vec_on: "啟用 (依語意關聯度挑選 Lorebook 條目)",
       opt_vec_off: "停用 (使用傳統關鍵字匹配)",
       lbl_query_rounds: "以最近幾輪對話作為搜尋關鍵",
       lbl_topk: "Top K (回傳條目數)",
       lbl_minscore: "最低相似度分數門檻 (0~1)",
       sec_classify: "分類模型設定", lbl_use_model: "使用模型",
-      opt_main_model: "主要模型 (Main)", opt_aux_model: "輔助模型 (Aux)",
+      opt_main_model: "主要模型", opt_aux_model: "輔助模型",
       lbl_classify_anchor: "分類定位提示詞",
-      sec_cache: "快取管理中心 (Cache Hub)",
+      lbl_classify_model: "分類模型",
+      lbl_read_mod_lorebook_short: "讀取模組 Lorebook",
+      sec_card_settings: "卡片啟用設置",
+      lbl_card_name: "卡片",
+      lbl_memory_extract: "啟用資訊萃取",
+      lbl_vector_search_card: "啟用向量搜尋",
+      lbl_card_disabled: "不啟用此外掛",
+      opt_off: "關閉",
+      opt_preset1: "設定1",
+      opt_preset2: "設定2",
+      no_cards: "資料庫中找不到卡片。",
+      sec_cache: "快取倉庫",
       btn_refresh_cache: "更新快取列表", btn_clear_cache: "清除全部快取",
       btn_reset: "重置為預設設定",
-      lbl_card: "卡片", lbl_entries: "條目數", lbl_filesize: "檔案大小",
+      lbl_card: "", lbl_entries: "條目數", lbl_filesize: "檔案大小",
       btn_delete: "刪除",
+      lbl_classify_only: "僅進行分類",
+      lbl_chunks: "條目數",
+      tag_vector: "向量",
+      tag_classify: "分類",
       btn_save: "儲存設定", btn_close: "關閉",
+      preset1: "設定 1", preset2: "設定 2",
       no_cache: "目前沒有向量快取資料。",
       confirm_clear: "確定要清除全部向量快取嗎？\\n這將刪除所有卡片的快取資料，下次發送時會重新建立。",
       st_cache_refreshed: "已更新向量快取列表。",
@@ -309,7 +372,7 @@
       st_card_deleted: "已刪除該卡片的向量快取。",
       st_saved: "設定已儲存。", st_save_fail: "儲存失敗：",
       st_reset: "已重置為 Agent 預設。", st_reset_fail: "重置失敗：",
-      editor_cancel: "取消", editor_apply: "套用", aria_close: "關閉",
+      editor_cancel: "取消", editor_apply: "應用", aria_close: "關閉",
       lbl_lore_entry: "Lorebook 條目", lbl_write_mode: "寫入模式 (覆蓋/添加)",
       lbl_always_active: "始終啟用", yes: "是", no: "否",
       lbl_output_format: "輸出格式 (JSON Schema)",
@@ -321,8 +384,6 @@
       ret_enabled_title: "啟用後，在達到指定回合數後，自動修剪此條目的舊資料，僅保留最新幾回合內容",
       ret_after_title: "累積超過此回合數後才開始修剪 (0 = 立即)",
       ret_keep_title: "清理後保留最新幾回合的區塊 (0 = 清空全部)",
-      lbl_parallel: "併發執行",
-      parallel_title: "啟用後，此任務將與其他併發任務同時執行，縮短等待時間。",
       lbl_call_note: "呼叫備註",
       lbl_call_model: "模型", opt_main: "主要模型", opt_aux: "輔助模型",
       lbl_freq: "觸發頻率 (回合)",
@@ -338,6 +399,9 @@
       expand_classify: "分類定位提示詞 - 放大編輯",
       expand_generic: "編輯提示詞內容",
       expand_format: "輸出格式 (JSON Schema) - 放大編輯",
+      lbl_thinking: "思考 Tokens", lbl_thinking_level: "思考等級",
+      thinking_title: "為此模型啟用延伸思考",
+      opt_thinking_auto: "Auto（自適應）", opt_thinking_low: "Low", opt_thinking_medium: "Medium", opt_thinking_high: "High",
       aux_failed: "輔助模型執行失敗：\n",
       entry_save_failed: "條目儲存失敗：\n",
       no_conv: "跳過：beforeRequest 酬載中無可用對話文字。",
@@ -345,45 +409,50 @@
       aux_abort_suffix: "為保護 API 配額，主模型請求已被攔截中止。",
       unknown_reason: "未知錯誤",
       aux_error_line: ({ callName, target, provider, model, reason }) => `呼叫「${callName}」（模型 ${target}、提供者 ${provider}、model ${model}）失敗：${reason}`,
+      err_json_expected: (name) => `輔助模型 (${name}) 必須回傳 JSON 物件，但解析失敗。`,
+      err_validation_failed: (name, issues) => `輔助模型輸出驗證失敗 (${name})：${issues}。`,
+      err_unusable_output: (name) => `輔助模型輸出無法使用 (${name})。`,
+      err_extractor_empty: (mode) => `提取器 ${mode} 回傳內容為空。`,
+      warn_parse_failed: "⚠️ 無法解析靜態知識分塊。請檢查 Step 0 是否已完成。",
+      warn_no_chunks: "⚠️ 無可用分塊。已跳過知識注入。請檢查 Step 0 是否已完成。",
       copilot_refresh: "Copilot token refresh",
-      help_html: `<b>▌ 系統核心：敘事稽核與狀態提取引擎</b><br/>
-                本插件透過多個並行模型呼叫，自動從對話中提取事實、追蹤邏輯連貫性，並維護一個動態更新的世界觀資料庫。適用於協作小說、角色扮演等所有敘事場景。<br/><br/>
-                <b>▌ Step0（建構資料庫）</b><br/><br/>
-                <b>第一次對話，會將所有卡片中的內容分塊，進行標籤 (開局/主要模型/嵌入模型)</b><br/>
-                會花上好一陣子，請耐心等待。<br/>
-                &bull; <code>目的</code>：效率最佳化後續的卡片讀取。<br/>
-                &bull; <code>向量搜尋</code>：若有開啟，則會一併建立向量資料庫。<br/>
-                &bull; <code>快取管理</code>：建立好的資料庫都會放在這，不用每次重開啟就重建一次。<br/><br/>
-                <b>▌ 流程架構（5 個並行任務組）</b><br/><br/>
-                <b>Part1 — 敘事快照與角色現況 (每回合/輔助模型)</b><br/>
-                維持故事的即時「工作記憶」：<br/>
-                &bull; <code>recent_turn_log</code>：精確紀錄當前場景變化、玩家行為與敘事發展結果。<br/>
-                &bull; <code>recent_character_states</code>：追蹤在場 NPC 的外在狀態與隱藏動機，確保行為連貫。<br/>
-                &bull; <code>system_director</code>：偵測劇情流暢度，必要時引發外部事件以打破對話僵局。<br/><br/>
-                <b>Part2 — 邏輯稽核與劇情線管理 (每回合/輔助模型)</b><br/>
-                確保故事邏輯嚴密，防止設定衝突：<br/>
-                &bull; <code>known_contradictions</code>：偵測不合理的行動（如：違反傷勢設定、未持有的道具或世界觀規則）。<br/>
-                &bull; <code>unsolved_quests</code>：追蹤並管理所有懸而未決的衝突、長期目標或任務線發展。<br/><br/>
-                <b>Part3 — 敘事品質防護與新設定紀錄 (每3回合/輔助模型)</b><br/>
-                提升寫作質量並捕捉新出現的設定：<br/>
-                &bull; <code>repetition_guard</code>：過濾重複的敘事套路、禁用詞彙或過度使用的口頭禪。<br/>
-                &bull; <code>recent_world_entries</code>：自動紀錄新出現的地理位置、規則細節或角色特徵。<br/><br/>
-                <b>Part4 — 長期記憶總結與重要里程碑 (每10回合/主要模型)</b><br/>
-                由主要模型提煉故事精華，更新長效記憶：<br/>
-                &bull; <code>story_turning_points</code>：紀錄改變故事走向的關鍵轉折時刻。<br/>
-                &bull; <code>story_arc_summary</code>：於特定衝突結束時進行總結，並紀錄對世界或關係的永久性影響。<br/><br/>
-                <b>Part5 — 持久化世界百科 (每15回合/主要模型)</b><br/>
-                將碎片化資訊整合為結構化知識庫：<br/>
-                &bull; <code>world_encyclopedia</code>：彙整地理、NPC、派系與傳說設定，為長篇對話提供穩定的一致性基礎。<br/><br/>
-                <b>▌ 知識注入與放置規則</b><br/>
-                &bull; <b>指示</b>：注入於系統提示詞下方，引導 AI 行為。<br/>
-                &bull; <b>資訊</b>：注入於聊天記錄下方，提供背景參考。<br/>
-                &bull; <b>格式</b>：注入於提示詞最底部，確保 JSON 或特定格式輸出。<br/>
-                &bull; <b>向量搜尋</b>：若有開啟，則會在每次對話進行向量搜尋，抽取出最符合當下情境的Lorebook條目。<br/><br/>
-                <b>▌ 注意事項</b><br/>
-                &bull; <b>手動編輯</b>：Agent 運作期間請勿手動編輯當前聊天的 Local Lorebook，以免被系統自動覆蓋。<br/>
-                &bull; <b>向量搜尋</b>：啟用向量搜尋後，系統會自動根據語意相關性挑選最合適的條目注入。<br/>
-                &bull; <b>預設重置</b>：若更新後發生錯誤，可點擊「重置為預設設定」還原所有提示詞與配置。`,
+      help_html: `<b>▌ 核心作用：資訊萃取與向量搜尋</b><br/>
+                &bull; <code>資訊萃取</code>：主要模型回覆之前，先透過前導模型從對話中萃取有效資訊，輔助主要模型回應得更精彩。<br/>
+                &bull; <code>向量搜尋</code>：重組卡片資料，以向量搜尋取代傳統的關鍵字觸發，提高有效資訊量。<br/><br/>
+
+                <b>▌ 本外掛限制</b><br/>
+                &bull; ❌ <b>無法銜接無外掛對話</b>：若要延續先前無外掛的遊玩記錄，請將記錄彙整後，重新開啟一段新對話。<br/>
+                &bull; ❌ <b>外掛無法時開時關</b>：因為外掛內的狀態（如長期記憶、世界百科）會在關閉時與當前劇情脫節。<br/>
+                &bull; ✅ <b>外掛途中切換提示詞 (preset)</b>：只要持續啟用此外掛，就可以在遊玩途中自由切換不同的提示詞。<br/>
+                &bull; ✅ <b>關閉外掛</b>：可從有外掛模式接軌至切換至無外掛模式 (記得換提示詞)，但外掛紀錄的狀態將停止更新。<br/><br/>
+
+                <b>▌ 前導模型設定：支持外掛運作的核心</b><br/>
+                &bull; <code>主要模型</code>：功能強大、能夠有效處理大量資料的模型。<br/>
+                &bull; <code>輔助模型</code>：能夠理解遊玩語言、處理 1k~5k 內容的非編程模型。<br/>
+                &bull; <code>嵌入模型</code>：若遊玩語言與卡片語言不同，請務必要選用可跨語言搜尋的模型。<br/><br/>
+
+                <b>▌ 預期呼叫模型的頻率</b><br/>
+                <b>【啟動對話時】</b><br/>
+                &bull; <code>主要模型</code>：0 次。<br/>
+                &bull; <code>輔助模型</code>：呼叫數次，將卡片資料拆散建立分類系統。<br/>
+                &bull; <code>嵌入模型</code>：若開啟快取搜尋則呼叫數次，建立向量索引。<br/>
+                <b>【之後對話：設定 1】</b><br/>
+                &bull; <code>主要模型</code>：每 10 / 15 回合 1 次。<br/>
+                &bull; <code>輔助模型</code>：每回合 2 次、每 3 回合 1 次。<br/>
+                &bull; <code>嵌入模型</code>：若開啟快取搜尋，每回合 1 次。<br/>
+                <b>【之後對話：設定 2】</b><br/>
+                &bull; <code>主要模型</code>：每 3 / 10 / 15 回合 1 次。<br/>
+                &bull; <code>輔助模型</code>：每回合 3 次、每 2 回合 1 次、每 3 回合 1 次。<br/>
+                &bull; <code>嵌入模型</code>：若開啟快取搜尋，每回合 1 次。<br/><br/>
+
+                <b>▌ 啟用設置：為每張卡片進行個別設置</b><br/>
+                &bull; <code>分類模型</code>：將卡片資料拆散後分成三類，放進提示詞中最有效的位置。<br/>
+                &bull; <code>是否讀取模組 Lorebook</code>：目前外掛 v3 不支援解析 CBS 語法，因此關閉後，可以避免模組中的 Lorebook 條目污染回覆品質。<br/>
+                &bull; <code>設定1與設定2的差異</code>：設定1適用於一般卡片；設定2適合劇情複雜的史詩型卡片。<br/><br/>
+
+                <b>▌ 快取倉庫：儲存每張卡片資料之處</b><br/>
+                &bull; <code>分類</code>：分類模型建立的索引。<br/>
+                &bull; <code>向量</code>：向量模型建立的快取索引。`,
     },
   };
 
@@ -391,7 +460,7 @@
   let _langInitialized = false;
 
   const PLUGIN_NAME = "👤 RisuAI Agent";
-  const PLUGIN_VER = "1.6.1";
+  const PLUGIN_VER = "1.7";
   const LOG = "[RisuAIAgent]";
   const SYSTEM_INJECT_TAG = "PLUGIN_PARALLEL_STATUS";
   const SYSTEM_REWRITE_TAG = "PLUGIN_PARALLEL_REWRITE";
@@ -427,139 +496,7 @@
   const EMBEDDING_VECTOR_CACHE_VERSION = 1;
   const EMBEDDING_VECTOR_CACHE_MAX_PER_CARD = 300;
 
-  const DEFAULT_MODEL_CALLS = JSON.stringify([
-    {
-      "id": "call_state",
-      "name": "State",
-      "target_model": "B",
-      "every_n_turns": 1,
-      "read_dialogue_rounds": 2,
-      "read_lorebook_names": "recent_turn_log,recent_character_states,system_director",
-      "allow_parallel": true,
-      "entries": [
-        {
-          "lorebook_name": "recent_turn_log",
-          "write_mode": "append",
-          "always_active": true,
-          "output_format": "SCHEMA:\n{\n  \"recent_turn_log\": {\n    \"scene\": \"<location, ≤12 words>\",\n    \"time_anchor\": \"<explicit in-story time anchor>\",\n    \"elapsed_since_prev\": \"<same moment / +2h / +3d / etc>\",\n    \"user_action\": \"<player action, ≤12 words>\",\n    \"narrative_event\": \"<story result, ≤15 words>\",\n    \"shift\": \"<tone/stakes change ≤8 words, or null>\",\n    \"user_scene_change\": false\n  }\n}\n\nFIELD RULES:\n- Keep concise for this entry: all string values should stay ≤15 words when possible.\n- scene: location + one sensory cue only.\n- time_anchor must explicitly state time position from text (calendar date, day count, morning/night, etc).\n- elapsed_since_prev must describe time progression relative to previous turn; if unknown, use \"unspecified_continuation\".\n- user_action: player's latest input only.\n- narrative_event: story output result only.\n- shift: only if something changed. null if unchanged.\n- user_scene_change: true only if player moved to a new location.",
-          "retention_enabled": true,
-          "retention_after": 10,
-          "retention_keep": 2
-        },
-        {
-          "lorebook_name": "recent_character_states",
-          "write_mode": "append",
-          "always_active": true,
-          "output_format": "SCHEMA:\n{\n  \"recent_character_states\": {\n    \"location\": \"<place, ≤10 words>\",\n    \"player_state\": \"<condition + key items, ≤15 words>\",\n    \"npcs\": [\n      {\n        \"name\": \"<NPC name>\",\n        \"physical_state\": \"<appearance, ≤12 words>\",\n        \"internal_state\": \"<true motive/feeling, ≤12 words>\",\n        \"relation_to_player\": \"<dynamic, ≤10 words, or null>\"\n      }\n    ]\n  }\n}\n\nFIELD RULES:\n- All string values: ≤15 words. Keywords only, no full sentences.\n- location: place name + one key atmospheric detail.\n- player_state: current condition, injuries, and items on person.\n- npcs: one object per NPC in scene. Remove departed NPCs. Add new ones.\n- internal_state: true motives even if hidden. System use only.\n- relation_to_player: current stance toward player. null if irrelevant.\n- npcs: [] if no NPCs present.",
-          "retention_enabled": true,
-          "retention_after": 10,
-          "retention_keep": 2
-        },
-        {
-          "lorebook_name": "system_director",
-          "write_mode": "overwrite",
-          "always_active": true,
-          "output_format": "SCHEMA:\n{\n  \"system_director\": {\n    \"staleness_level\": 0,\n    \"environment_intervention\": null\n  }\n}\n\nFIELD RULES:\n- Compare this turn's recent_turn_log with previous turn's.\n- staleness_level: 0 (completely different) to 10 (nearly identical). Evaluate current vs previous turn only.\n- If staleness_level ≥ 8: write a brief unexpected external event in environment_intervention.\n- If staleness_level ≤ 7: set environment_intervention to null."
-        }
-      ]
-    },
-    {
-      "id": "call_logic",
-      "name": "Logic",
-      "target_model": "B",
-      "every_n_turns": 1,
-      "read_dialogue_rounds": 3,
-      "read_lorebook_names": "unsolved_quests,recent_character_states,recent_turn_log",
-      "allow_parallel": true,
-      "entries": [
-        {
-          "lorebook_name": "known_contradictions",
-          "write_mode": "overwrite",
-          "always_active": true,
-          "output_format": "SCHEMA:\n{\n  \"known_contradictions\": {\n    \"logic_violation\": \"<describe contradiction, or null>\",\n    \"strict_directive\": \"<see allowed values>\"\n  }\n}\n\nFIELD RULES:\n- Read user_action from recent_turn_log. Read player_state and location from recent_character_states.\n- Check for:\n  a) Action impossible given current injuries or equipment.\n  b) Player in a distant location without traveling.\n  c) Action contradicts established world rules or NPC capabilities.\n- If found:\n  - logic_violation: describe the specific contradiction.\n  - strict_directive: one of exactly:\n      \"Reject the user action and narrate failure\"\n      \"Show cognitive friction: character hesitates or struggles\"\n- If none found:\n  - logic_violation: null\n  - strict_directive: \"Proceed normally\""
-        },
-        {
-          "lorebook_name": "unsolved_quests",
-          "write_mode": "overwrite",
-          "always_active": true,
-          "output_format": "SCHEMA:\n{\n  \"unsolved_quests\": {\n    \"active_threads\": [\n      {\n        \"id\": 1,\n        \"desc\": \"<quest or goal description>\",\n        \"weight\": \"medium\",\n        \"status\": \"active\",\n        \"related_npcs\": [],\n        \"notes\": \"<what changed this turn>\",\n        \"next_step\": \"<most likely next action>\",\n        \"risk_if_ignored\": \"<consequence if postponed, or null>\"\n      }\n    ],\n    \"lost_entities\": [\n      {\n        \"name\": \"<character name>\",\n        \"last_seen\": \"<location and circumstance>\",\n        \"relevance\": \"<connection to active threads>\",\n        \"search_priority\": \"<high/medium/low>\"\n      }\n    ],\n    \"resolved_this_turn\": [\n      {\n        \"id\": 1,\n        \"desc\": \"<resolved thread description>\",\n        \"closure_reason\": \"<why this is considered resolved>\",\n        \"consequence\": \"<lasting change caused by closure>\"\n      }\n    ]\n  }\n}\n\nFIELD RULES:\n- Start from previous turn's data. Copy all active_threads forward as baseline.\n- If this turn shows developments: update status, notes, and next_step.\n- notes must describe concrete progression; avoid vague text.\n- For status progressed/stalled/nearly_resolved, notes cannot be null.\n- Completed quest → remove from active_threads and append an object to resolved_this_turn.\n- New quest → add with id = highest existing id + 1.\n- weight: critical | high | medium | low.\n- status: active | progressed | stalled | nearly_resolved.\n- lost_entities should only include people still unresolved.\n- search_priority: high | medium | low.\n- [] for any list with no entries."
-        }
-      ]
-    },
-    {
-      "id": "call_quality",
-      "name": "Quality",
-      "target_model": "B",
-      "every_n_turns": 3,
-      "read_dialogue_rounds": 3,
-      "read_lorebook_names": "recent_world_entries,world_encyclopedia",
-      "allow_parallel": true,
-      "entries": [
-        {
-          "lorebook_name": "repetition_guard",
-          "write_mode": "overwrite",
-          "always_active": true,
-          "output_format": "SCHEMA:\n{\n  \"repetition_guard\": {\n    \"flagged_cliches\": [],\n    \"last_tsukkomi\": null,\n    \"banned_phrases\": []\n  }\n}\n\nFIELD RULES:\n- flagged_cliches: up to 3 overused tropes or narrative patterns found in recent turns. [] if none.\n- last_tsukkomi: most recent sarcastic, comedic, or meta-commentary remark by any character. null if none.\n- banned_phrases: exact phrases or sentence structures appearing ≥2 times in recent turns. [] if none.\n- The Actor LLM must avoid reusing anything listed here."
-        },
-        {
-          "lorebook_name": "recent_world_entries",
-          "write_mode": "append",
-          "always_active": true,
-          "output_format": "SCHEMA:\n{\n  \"recent_world_entries\": [\n    \"<entry: Name. Key fact. ≤20 words.>\"\n  ]\n}\n\nFIELD RULES:\n- Each entry: one sentence, ≤20 words. Name first, then the single most important fact.\n- Only include NEW info not already in recent_world_entries or world_encyclopedia.\n- Cover all turns since last run (up to 3 turns).\n- null if nothing new. Do not use [].",
-          "retention_enabled": true,
-          "retention_after": 15,
-          "retention_keep": 1
-        }
-      ]
-    },
-    {
-      "id": "call_longterm",
-      "name": "Longterm",
-      "target_model": "A",
-      "every_n_turns": 10,
-      "read_dialogue_rounds": 1,
-      "read_lorebook_names": "recent_turn_log,recent_character_states,unsolved_quests,story_turning_points,story_arc_summary",
-      "allow_parallel": true,
-      "entries": [
-        {
-          "lorebook_name": "story_turning_points",
-          "write_mode": "append",
-          "always_active": true,
-          "output_format": "SCHEMA:\n{\n  \"story_turning_points\": [\n    {\n      \"seq\": 1,\n      \"type\": \"<type>\",\n      \"impact\": \"<what changed and why it matters>\",\n      \"immediate_effect\": \"<same-turn direct effect>\",\n      \"long_term_implication\": \"<future consequence or direction change>\",\n      \"evidence_turns\": [1, 2]\n    }\n  ]\n}\n\nFIELD RULES:\n- A turning point = a moment that fundamentally changed the story's direction (irreversible or highly consequential).\n- type: one of relationship_shift | power_change | revelation | betrayal | loss | discovery.\n- impact must include both subject and direction of change (who/what changed).\n- immediate_effect describes what happened right away; long_term_implication describes what now becomes likely.\n- evidence_turns must contain concrete turn numbers from the reviewed window.\n- Read previous story_turning_points. Find highest seq. New entries start at highest seq + 1.\n- Keep all prior entries unchanged. Append new turning points only.\n- Review all turns since the last time this block ran (up to 10 turns).\n- [] if no turning point occurred in the reviewed window.",
-          "retention_enabled": false,
-          "retention_after": 0,
-          "retention_keep": 0
-        },
-        {
-          "lorebook_name": "story_arc_summary",
-          "write_mode": "append",
-          "always_active": true,
-          "output_format": "SCHEMA:\n{\n  \"story_arc_summary\": [\n    {\n      \"arc_name\": \"<name of completed arc>\",\n      \"arc_time_span\": \"<start time -> end time in-story>\",\n      \"chronology_position\": \"<where this arc sits in overall timeline>\",\n      \"key_actors\": [\"<actor 1>\", \"<actor 2>\"],\n      \"core_conflict\": \"<what central conflict was resolved>\",\n      \"summary\": \"<2-4 sentences: trigger -> escalation -> outcome>\",\n      \"resolution\": \"<how the conflict was resolved>\",\n      \"permanent_impact\": \"<lasting consequences on world/characters>\",\n      \"unresolved_hooks\": [\"<remaining tension/setup>\"],\n      \"evidence_turns\": [1, 2]\n    }\n  ]\n}\n\nFIELD RULES:\n- A completed arc = major conflict resolved, character journey concluded, or quest chain fully closed.\n- summary must contain trigger, escalation, and outcome; avoid one-line vague summaries.\n- arc_time_span must explicitly state in-story time progression, including jumps (hours/days/date changes) if present.\n- chronology_position should clarify sequence context (e.g., \"after prison break arc\", \"before winter festival\").\n- permanent_impact must state concrete state changes (who/what/where changed), not abstract wording.\n- unresolved_hooks: [] if none.\n- evidence_turns must point to concrete turn numbers that support this arc.\n- Check resolved_this_turn in unsolved_quests for evidence.\n- Review all turns since the last time this block ran (up to 10 turns).\n- Keep all prior entries unchanged. Append new arcs only.\n- [] if no arc completed in the reviewed window.",
-          "retention_enabled": false,
-          "retention_after": 0,
-          "retention_keep": 0
-        }
-      ]
-    },
-    {
-      "id": "call_world",
-      "name": "World",
-      "target_model": "A",
-      "every_n_turns": 15,
-      "read_dialogue_rounds": 1,
-      "read_lorebook_names": "recent_world_entries,world_encyclopedia,story_arc_summary",
-      "allow_parallel": false,
-      "entries": [
-        {
-          "lorebook_name": "world_encyclopedia",
-          "write_mode": "overwrite",
-          "always_active": true,
-          "output_format": "SCHEMA:\n{\n  \"world_encyclopedia\": {\n    \"geography\": [\n      { \"name\": \"<place>\", \"description\": \"<detail>\", \"current_relevance\": \"<why this place matters now>\", \"evidence_turns\": [1] }\n    ],\n    \"npcs\": [\n      { \"name\": \"<name>\", \"role\": \"<role>\", \"status\": \"<alive/dead/unknown + condition>\", \"notes\": \"<stable profile + latest change>\", \"relationship_delta\": \"<what changed recently or null>\", \"evidence_turns\": [1] }\n    ],\n    \"factions\": [\n      { \"name\": \"<name>\", \"description\": \"<purpose/nature>\", \"relations\": \"<stance toward player and other factions>\", \"recent_move\": \"<latest meaningful action or null>\", \"evidence_turns\": [1] }\n    ],\n    \"lore\": [\n      { \"topic\": \"<subject>\", \"detail\": \"<explanation>\", \"impact_scope\": \"<local/regional/global>\", \"evidence_turns\": [1] }\n    ]\n  }\n}\n\nFIELD RULES:\n- Start from previous output. Copy as baseline.\n- Merge all recent_world_entries accumulated since the last run (up to 15 turns) into the correct category.\n- Apply permanent_impact from story_arc_summary to affected entries.\n- Same entity name in old and new data → keep most current version only (merge, do not duplicate).\n- Update notes/relations with concrete deltas when changes happened.\n- evidence_turns should reference where the fact was established or updated.\n- Retain all prior entries not contradicted by new information.\n- Output the full updated encyclopedia every time.\n- [] for any category with no entries."
-        }
-      ]
-    }
-  ]);
-
+  const DEFAULT_MODEL_CALLS = JSON.parse(atob("W3siaWQiOiJjYWxsX3N0YXRlIiwibmFtZSI6IlN0YXRlIiwidGFyZ2V0X21vZGVsIjoiQiIsImV2ZXJ5X25fdHVybnMiOjEsInJlYWRfZGlhbG9ndWVfcm91bmRzIjoyLCJyZWFkX2xvcmVib29rX25hbWVzIjoicmVjZW50X3R1cm5fbG9nLCByZWNlbnRfY2hhcmFjdGVyX3N0YXRlcywgc3lzdGVtX2RpcmVjdG9yIiwiZW50cmllcyI6W3sibG9yZWJvb2tfbmFtZSI6InJlY2VudF90dXJuX2xvZyIsIndyaXRlX21vZGUiOiJhcHBlbmQiLCJhbHdheXNfYWN0aXZlIjp0cnVlLCJvdXRwdXRfZm9ybWF0IjoiU0NIRU1BOlxue1xuICBcInJlY2VudF90dXJuX2xvZ1wiOiB7XG4gICAgXCJzY2VuZVwiOiBcIjxsb2NhdGlvbiArIHNlbnNvcnkgY3VlLCA8PTEyIHdvcmRzPlwiLFxuICAgIFwidGltZV9hbmNob3JcIjogXCI8ZXhwbGljaXQgaW4tc3RvcnkgdGltZT5cIixcbiAgICBcImVsYXBzZWRfc2luY2VfcHJldlwiOiBcIjxzYW1lIG1vbWVudCAvICsyaCAvICszZCAvIGV0Yz5cIixcbiAgICBcInVzZXJfYWN0aW9uXCI6IFwiPDw9MTIgd29yZHM+XCIsXG4gICAgXCJuYXJyYXRpdmVfZXZlbnRcIjogXCI8PD0xNSB3b3Jkcz5cIixcbiAgICBcInNoaWZ0XCI6IFwiPHRvbmUvc3Rha2VzIGNoYW5nZSA8PTggd29yZHMsIG9yIG51bGw+XCJcbiAgfVxufVxuXG5GSUVMRCBSVUxFUzpcbi0gQWxsIHN0cmluZ3MgPD0xNSB3b3Jkcy4gS2V5d29yZHMgb25seS5cbi0gZWxhcHNlZF9zaW5jZV9wcmV2OiB0aW1lIHNpbmNlIHByZXZpb3VzIHR1cm47IFwidW5zcGVjaWZpZWRfY29udGludWF0aW9uXCIgaWYgdW5rbm93bi5cbi0gc2hpZnQ6IG51bGwgaWYgbm90aGluZyBjaGFuZ2VkLiIsInJldGVudGlvbl9lbmFibGVkIjp0cnVlLCJyZXRlbnRpb25fYWZ0ZXIiOjEwLCJyZXRlbnRpb25fa2VlcCI6Mn0seyJsb3JlYm9va19uYW1lIjoicmVjZW50X2NoYXJhY3Rlcl9zdGF0ZXMiLCJ3cml0ZV9tb2RlIjoiYXBwZW5kIiwiYWx3YXlzX2FjdGl2ZSI6dHJ1ZSwib3V0cHV0X2Zvcm1hdCI6IlNDSEVNQTpcbntcbiAgXCJyZWNlbnRfY2hhcmFjdGVyX3N0YXRlc1wiOiB7XG4gICAgXCJsb2NhdGlvblwiOiBcIjw8PTEwIHdvcmRzPlwiLFxuICAgIFwicGxheWVyX3N0YXRlXCI6IFwiPGNvbmRpdGlvbiArIGtleSBpdGVtcywgPD0xNSB3b3Jkcz5cIixcbiAgICBcIm5wY3NcIjpbXG4gICAgICB7XG4gICAgICAgIFwibmFtZVwiOiBcIjxOUEMgbmFtZT5cIixcbiAgICAgICAgXCJwaHlzaWNhbF9zdGF0ZVwiOiBcIjw8PTEyIHdvcmRzPlwiLFxuICAgICAgICBcImludGVybmFsX3N0YXRlXCI6IFwiPHRydWUgbW90aXZlL2ZlZWxpbmcsIDw9MTIgd29yZHM+XCIsXG4gICAgICAgIFwicmVsYXRpb25fdG9fcGxheWVyXCI6IFwiPDw9MTAgd29yZHMsIG9yIG51bGw+XCJcbiAgICAgIH1cbiAgICBdXG4gIH1cbn1cblxuRklFTEQgUlVMRVM6XG4tIFJlbW92ZSBkZXBhcnRlZCBOUENzLiBBZGQgbmV3IG9uZXMuIG5wY3M6W10gaWYgbm9uZSBwcmVzZW50LlxuLSBpbnRlcm5hbF9zdGF0ZTogdHJ1ZSBtb3RpdmVzIGV2ZW4gaWYgaGlkZGVuLiIsInJldGVudGlvbl9lbmFibGVkIjp0cnVlLCJyZXRlbnRpb25fYWZ0ZXIiOjEwLCJyZXRlbnRpb25fa2VlcCI6Mn0seyJsb3JlYm9va19uYW1lIjoic3lzdGVtX2RpcmVjdG9yIiwid3JpdGVfbW9kZSI6Im92ZXJ3cml0ZSIsImFsd2F5c19hY3RpdmUiOnRydWUsIm91dHB1dF9mb3JtYXQiOiJTQ0hFTUE6XG57XG4gIFwic3lzdGVtX2RpcmVjdG9yXCI6IHtcbiAgICBcInN0YWxlbmVzc19sZXZlbFwiOiAwLFxuICAgIFwiZW52aXJvbm1lbnRfaW50ZXJ2ZW50aW9uXCI6IG51bGxcbiAgfVxufVxuXG5GSUVMRCBSVUxFUzpcbi0gQ29tcGFyZSBjdXJyZW50IHR1cm4ncyByZWNlbnRfdHVybl9sb2cgd2l0aCBwcmV2aW91cyB0dXJuJ3MuXG4tIHN0YWxlbmVzc19sZXZlbDogMCAoY29tcGxldGVseSBkaWZmZXJlbnQpIHRvIDEwIChuZWFybHkgaWRlbnRpY2FsKS5cbi0gPj04OiB3cml0ZSBhIGJyaWVmIHVuZXhwZWN0ZWQgZXZlbnQgaW4gZW52aXJvbm1lbnRfaW50ZXJ2ZW50aW9uLlxuLSA8PTc6IG51bGwuIn1dfSx7ImlkIjoiY2FsbF9sb2dpYyIsIm5hbWUiOiJMb2dpYyIsInRhcmdldF9tb2RlbCI6IkIiLCJldmVyeV9uX3R1cm5zIjoxLCJyZWFkX2RpYWxvZ3VlX3JvdW5kcyI6MywicmVhZF9sb3JlYm9va19uYW1lcyI6InVuc29sdmVkX3F1ZXN0cywgcmVjZW50X2NoYXJhY3Rlcl9zdGF0ZXMsIHJlY2VudF90dXJuX2xvZyIsImVudHJpZXMiOlt7ImxvcmVib29rX25hbWUiOiJrbm93bl9jb250cmFkaWN0aW9ucyIsIndyaXRlX21vZGUiOiJvdmVyd3JpdGUiLCJhbHdheXNfYWN0aXZlIjp0cnVlLCJvdXRwdXRfZm9ybWF0IjoiU0NIRU1BOlxue1xuICBcImtub3duX2NvbnRyYWRpY3Rpb25zXCI6IHtcbiAgICBcImxvZ2ljX3Zpb2xhdGlvblwiOiBcIjxkZXNjcmliZSBjb250cmFkaWN0aW9uLCBvciBudWxsPlwiLFxuICAgIFwic3RyaWN0X2RpcmVjdGl2ZVwiOiBcIjxzZWUgYWxsb3dlZCB2YWx1ZXM+XCJcbiAgfVxufVxuXG5GSUVMRCBSVUxFUzpcbi0gQ2hlY2sgdXNlcl9hY3Rpb24gYWdhaW5zdCBwbGF5ZXJfc3RhdGUgYW5kIGxvY2F0aW9uLlxuLSBWaW9sYXRpb24gZm91bmQgLT4gZGVzY3JpYmUgaXQ7IHN0cmljdF9kaXJlY3RpdmU6IFwiUmVqZWN0IHRoZSB1c2VyIGFjdGlvbiBhbmQgbmFycmF0ZSBmYWlsdXJlXCIgb3IgXCJTaG93IGNvZ25pdGl2ZSBmcmljdGlvbjogY2hhcmFjdGVyIGhlc2l0YXRlcyBvciBzdHJ1Z2dsZXNcIi5cbi0gTm8gdmlvbGF0aW9uIC0+IGxvZ2ljX3Zpb2xhdGlvbjogbnVsbDsgc3RyaWN0X2RpcmVjdGl2ZTogXCJQcm9jZWVkIG5vcm1hbGx5XCIuIn0seyJsb3JlYm9va19uYW1lIjoidW5zb2x2ZWRfcXVlc3RzIiwid3JpdGVfbW9kZSI6Im92ZXJ3cml0ZSIsImFsd2F5c19hY3RpdmUiOnRydWUsIm91dHB1dF9mb3JtYXQiOiJTQ0hFTUE6XG57XG4gIFwidW5zb2x2ZWRfcXVlc3RzXCI6IHtcbiAgICBcImFjdGl2ZV90aHJlYWRzXCI6W1xuICAgICAge1xuICAgICAgICBcImlkXCI6IDEsIFwiZGVzY1wiOiBcIjxxdWVzdCBkZXNjcmlwdGlvbj5cIiwgXCJ3ZWlnaHRcIjogXCJtZWRpdW1cIiwgXCJzdGF0dXNcIjogXCJhY3RpdmVcIiwgXCJyZWxhdGVkX25wY3NcIjogW10sIFwibm90ZXNcIjogXCI8d2hhdCBjaGFuZ2VkIHRoaXMgdHVybj5cIiwgXCJuZXh0X3N0ZXBcIjogXCI8bW9zdCBsaWtlbHkgbmV4dCBhY3Rpb24+XCIsIFwicmVhc29uX2lmX2lnbm9yZWRcIjogXCI8Y29uc2VxdWVuY2UsIG9yIG51bGw+XCJcbiAgICAgIH1cbiAgICBdLFxuICAgIFwibG9zdF9lbnRpdGllc1wiOlsge1wibmFtZVwiOiBcIjxuYW1lPlwiLCBcImxhc3Rfc2VlblwiOiBcIjxsb2NhdGlvbiArIGNpcmN1bXN0YW5jZT5cIiwgXCJyZWxldmFuY2VcIjogXCI8Y29ubmVjdGlvbiB0byB0aHJlYWRzPlwiLCBcInNlYXJjaF9wcmlvcml0eVwiOiBcIjxoaWdoL21lZGl1bS9sb3c+XCJ9IF0sXG4gICAgXCJyZXNvbHZlZF90aGlzX3R1cm5cIjpbIHtcImlkXCI6IDEsIFwiZGVzY1wiOiBcIjxyZXNvbHZlZCBkZXNjcmlwdGlvbj5cIiwgXCJjbG9zdXJlX3JlYXNvblwiOiBcIjx3aHkgcmVzb2x2ZWQ+XCIsIFwiY29uc2VxdWVuY2VcIjogXCI8bGFzdGluZyBjaGFuZ2U+XCJ9IF1cbiAgfVxufVxuXG5GSUVMRCBSVUxFUzpcbi0gQ29weSBwcmV2aW91cyBhY3RpdmVfdGhyZWFkcyBhcyBiYXNlbGluZS4gVXBkYXRlIGNoYW5nZWQgZmllbGRzIG9ubHkuXG4tIENvbXBsZXRlZCAtPiBtb3ZlIHRvIHJlc29sdmVkX3RoaXNfdHVybi4gTmV3IC0+IGlkID0gbWF4IGlkICsgMS5cbi0gd2VpZ2h0OiBjcml0aWNhbCB8IGhpZ2ggfCBtZWRpdW0gfCBsb3cuIHN0YXR1czogYWN0aXZlIHwgcHJvZ3Jlc3NlZCB8IHN0YWxsZWQgfCBuZWFybHlfcmVzb2x2ZWQuXG4tIFtdIGZvciBlbXB0eSBsaXN0cy4ifV19LHsiaWQiOiJjYWxsX3F1YWxpdHkiLCJuYW1lIjoiUXVhbGl0eSIsInRhcmdldF9tb2RlbCI6IkIiLCJldmVyeV9uX3R1cm5zIjozLCJyZWFkX2RpYWxvZ3VlX3JvdW5kcyI6MywicmVhZF9sb3JlYm9va19uYW1lcyI6InJlY2VudF93b3JsZF9lbnRyaWVzLCB3b3JsZF9lbmN5Y2xvcGVkaWEiLCJlbnRyaWVzIjpbeyJsb3JlYm9va19uYW1lIjoicmVwZXRpdGlvbl9ndWFyZCIsIndyaXRlX21vZGUiOiJvdmVyd3JpdGUiLCJhbHdheXNfYWN0aXZlIjp0cnVlLCJvdXRwdXRfZm9ybWF0IjoiU0NIRU1BOlxue1xuICBcInJlcGV0aXRpb25fZ3VhcmRcIjoge1xuICAgIFwiZmxhZ2dlZF9jbGljaGVzXCI6W10sIFwiYmFubmVkX3BocmFzZXNcIjpbXVxuICB9XG59XG5cbkZJRUxEIFJVTEVTOlxuLSBmbGFnZ2VkX2NsaWNoZXM6IHVwIHRvIDMgb3ZlcnVzZWQgdHJvcGVzIGluIHJlY2VudCB0dXJucy4gW10gaWYgbm9uZS5cbi0gYmFubmVkX3BocmFzZXM6IGV4YWN0IHBocmFzZXMgYXBwZWFyaW5nID49MiB0aW1lcy4gW10gaWYgbm9uZS4ifSx7ImxvcmVib29rX25hbWUiOiJyZWNlbnRfd29ybGRfZW50cmllcyIsIndyaXRlX21vZGUiOiJhcHBlbmQiLCJhbHdheXNfYWN0aXZlIjp0cnVlLCJvdXRwdXRfZm9ybWF0IjoiU0NIRU1BOlxue1xuICBcInJlY2VudF93b3JsZF9lbnRyaWVzXCI6IHtcbiAgICBcImVudHJpZXNcIjogWyBcIjxOYW1lLiBLZXkgZmFjdC4gPD0yMCB3b3Jkcy4+XCIgXVxuICB9XG59XG5cbkZJRUxEIFJVTEVTOlxuLSBPbmUgc2VudGVuY2UgcGVyIGVudHJ5LCA8PTIwIHdvcmRzLiBOYW1lIGZpcnN0LCB0aGVuIGtleSBmYWN0LlxuLSBPbmx5IE5FVyBmYWN0cyBub3QgYWxyZWFkeSBpbiByZWNlbnRfd29ybGRfZW50cmllcyBvciB3b3JsZF9lbmN5Y2xvcGVkaWEuXG4tIENvdmVyIGFsbCB0dXJucyBzaW5jZSBsYXN0IHJ1biAodXAgdG8gMyB0dXJucykuXG4tIGVudHJpZXM6W10gaWYgbm90aGluZyBuZXcuIiwicmV0ZW50aW9uX2VuYWJsZWQiOnRydWUsInJldGVudGlvbl9hZnRlciI6MTUsInJldGVudGlvbl9rZWVwIjoxfV19LHsiaWQiOiJjYWxsX2xvbmd0ZXJtIiwibmFtZSI6Ikxvbmd0ZXJtIiwidGFyZ2V0X21vZGVsIjoiQSIsImV2ZXJ5X25fdHVybnMiOjEwLCJyZWFkX2RpYWxvZ3VlX3JvdW5kcyI6MSwicmVhZF9sb3JlYm9va19uYW1lcyI6InJlY2VudF90dXJuX2xvZywgcmVjZW50X2NoYXJhY3Rlcl9zdGF0ZXMsIHVuc29sdmVkX3F1ZXN0cywgc3RvcnlfdHVybmluZ19wb2ludHMsIHN0b3J5X2FyY19zdW1tYXJ5IiwiZW50cmllcyI6W3sibG9yZWJvb2tfbmFtZSI6InN0b3J5X3R1cm5pbmdfcG9pbnRzIiwid3JpdGVfbW9kZSI6ImFwcGVuZCIsImFsd2F5c19hY3RpdmUiOnRydWUsIm91dHB1dF9mb3JtYXQiOiJTQ0hFTUE6XG57XG4gIFwic3RvcnlfdHVybmluZ19wb2ludHNcIjpbXG4gICAgeyBcInNlcVwiOiAxLCBcInR5cGVcIjogXCI8dHlwZT5cIiwgXCJpbXBhY3RcIjogXCI8d2hhdCBjaGFuZ2VkIGFuZCB3aHk+XCIsIFwibG9uZ190ZXJtX2ltcGxpY2F0aW9uXCI6IFwiPGZ1dHVyZSBjb25zZXF1ZW5jZT5cIiwgXCJldmlkZW5jZV90dXJuc1wiOiBbMSwgMl0gfVxuICBdXG59XG5cbkZJRUxEIFJVTEVTOlxuLSBUdXJuaW5nIHBvaW50ID0gbW9tZW50IHRoYXQgZnVuZGFtZW50YWxseSBjaGFuZ2VkIHRoZSBzdG9yeSdzIGRpcmVjdGlvbi4iLCJyZXRlbnRpb25fZW5hYmxlZCI6ZmFsc2UsInJldGVudGlvbl9hZnRlciI6MCwicmV0ZW50aW9uX2tlZXAiOjB9LHsibG9yZWJvb2tfbmFtZSI6InN0b3J5X2FyY19zdW1tYXJ5Iiwid3JpdGVfbW9kZSI6ImFwcGVuZCIsImFsd2F5c19hY3RpdmUiOnRydWUsIm91dHB1dF9mb3JtYXQiOiJTQ0hFTUE6XG57XG4gIFwic3RvcnlfYXJjX3N1bW1hcnlcIjpbXG4gICAgeyBcImFyY19uYW1lXCI6IFwiPG5hbWU+XCIsIFwiYXJjX3RpbWVfc3BhblwiOiBcIjxzdGFydCAtPiBlbmQgaW4tc3Rvcnk+XCIsIFwia2V5X2FjdG9yc1wiOiBbXSwgXCJzdW1tYXJ5XCI6IFwiPDItNCBzZW50ZW5jZXM6IHRyaWdnZXIgLT4gZXNjYWxhdGlvbiAtPiBvdXRjb21lPlwiLCBcInBlcm1hbmVudF9pbXBhY3RcIjogXCI8Y29uY3JldGUgbGFzdGluZyBjaGFuZ2VzPlwiLCBcInVucmVzb2x2ZWRfaG9va3NcIjogW10sIFwiZXZpZGVuY2VfdHVybnNcIjogWzEsIDJdIH1cbiAgXVxufVxuXG5GSUVMRCBSVUxFUzpcbi0gQ29tcGxldGVkIGFyYyA9IG1ham9yIGNvbmZsaWN0IHJlc29sdmVkIG9yIHF1ZXN0IGNoYWluIGNsb3NlZC4iLCJyZXRlbnRpb25fZW5hYmxlZCI6ZmFsc2UsInJldGVudGlvbl9hZnRlciI6MCwicmV0ZW50aW9uX2tlZXAiOjB9XX0seyJpZCI6ImNhbGxfd29ybGQiLCJuYW1lIjoiV29ybGQiLCJ0YXJnZXRfbW9kZWwiOiJBIiwiZXZlcnlfbl90dXJucyI6MTUsInJlYWRfZGlhbG9ndWVfcm91bmRzIjoxLCJyZWFkX2xvcmVib29rX25hbWVzIjoicmVjZW50X3dvcmxkX2VudHJpZXMsIHdvcmxkX2VuY3ljbG9wZWRpYSwgc3RvcnlfYXJjX3N1bW1hcnkiLCJlbnRyaWVzIjpbeyJsb3JlYm9va19uYW1lIjoid29ybGRfZW5jeWNsb3BlZGlhIiwid3JpdGVfbW9kZSI6Im92ZXJ3cml0ZSIsImFsd2F5c19hY3RpdmUiOnRydWUsIm91dHB1dF9mb3JtYXQiOiJTQ0hFTUE6XG57XG4gIFwid29ybGRfZW5jeWNsb3BlZGlhXCI6IHtcbiAgICBcImdlb2dyYXBoeVwiOlsgeyBcIm5hbWVcIjogXCI8cGxhY2U+XCIsIFwiZGVzY3JpcHRpb25cIjogXCI8ZGV0YWlsPlwiLCBcImN1cnJlbnRfcmVsZXZhbmNlXCI6IFwiPHdoeSBpdCBtYXR0ZXJzIG5vdz5cIiwgXCJldmlkZW5jZV90dXJuc1wiOiBbMV0gfSBdLFxuICAgIFwibnBjc1wiOlsgeyBcIm5hbWVcIjogXCI8bmFtZT5cIiwgXCJyb2xlXCI6IFwiPHJvbGU+XCIsIFwic3RhdHVzXCI6IFwiPGFsaXZlL2RlYWQvdW5rbm93biArIGNvbmRpdGlvbj5cIiwgXCJub3Rlc1wiOiBcIjxwcm9maWxlICsgbGF0ZXN0IGNoYW5nZT5cIiwgXCJldmlkZW5jZV90dXJuc1wiOiBbMV0gfSBdLFxuICAgIFwiZmFjdGlvbnNcIjpbIHsgXCJuYW1lXCI6IFwiPG5hbWU+XCIsIFwiZGVzY3JpcHRpb25cIjogXCI8cHVycG9zZT5cIiwgXCJyZWxhdGlvbnNcIjogXCI8c3RhbmNlIHRvd2FyZCBwbGF5ZXIvb3RoZXJzPlwiLCBcImV2aWRlbmNlX3R1cm5zXCI6IFsxXSB9IF0sXG4gICAgXCJsb3JlXCI6WyB7IFwidG9waWNcIjogXCI8c3ViamVjdD5cIiwgXCJkZXRhaWxcIjogXCI8ZXhwbGFuYXRpb24+XCIsIFwiZXZpZGVuY2VfdHVybnNcIjogWzFdIH0gXVxuICB9XG59XG5cbkZJRUxEIFJVTEVTOlxuLSBDb3B5IHByZXZpb3VzIG91dHB1dCBhcyBiYXNlbGluZS4ifV19XQ=="));
   const DEFAULTS = {
     extractor_a_provider: "custom_api",
     extractor_a_format: "openai",
@@ -585,7 +522,7 @@
     embedding_provider_key_map: "{}",
     extractor_a_provider_key_map: "{}",
     extractor_b_provider_key_map: "{}",
-    model_calls: DEFAULT_MODEL_CALLS,
+    model_calls: "pse_model_calls",
     advanced_model_anchor_prompt: `ROLE: Narrative state extraction engine for collaborative fiction.
 
 TASK: Read the story text. Extract factual narrative data. Return ONLY valid JSON matching the schema below.
@@ -600,12 +537,12 @@ RULES:
 7. First character must be '{' and last character must be '}'.`,
     advanced_prefill_prompt: `Now, let's start extracting. Once you are ready, say 'Ready.'`,
     advanced_prereply_prompt: "Ready.",
-    read_mod_lorebook: 1,
+    read_mod_lorebook: 0,
     vector_search_enabled: 0,
     vector_search_query_dialogue_rounds: 2,
-    vector_search_top_k: 8,
+    vector_search_top_k: 6,
     vector_search_min_score: 0.35,
-    init_bootstrap_target_model: "A",
+    init_bootstrap_target_model: "B",
     init_bootstrap_model_anchor_prompt: `You are Erum, a giant purple-dark butterfly devoid of human morals but a rule follower. You gather diverse narratives and characters, fearlessly engaging with pain and suffering, and then refine them into valid data.
 
 Your task: classify roleplay character data into exactly one of three categories:
@@ -620,10 +557,19 @@ Analyze the given JSON list of text blocks. Return ONLY a JSON array of objects 
 Example: [{"id": "chk_0", "category": "information"}, {"id": "chk_1", "category": "rp_instruction"}]`,
     context_messages: 10,
     timeout_ms: FIXED_TIMEOUT_MS,
-    enable_cache: 1,
+    extractor_a_thinking_enabled: 0,
+    extractor_a_thinking_level: "",
+    extractor_b_thinking_enabled: 0,
+    extractor_b_thinking_level: "",
     extractor_a_concurrency: 0,
     extractor_b_concurrency: 1,
     embedding_concurrency: 1,
+    model_calls_2: atob("W3siaWQiOiJjYWxsX3N0YXRlIiwibmFtZSI6IlN0YXRlIiwidGFyZ2V0X21vZGVsIjoiQiIsImV2ZXJ5X25fdHVybnMiOjEsInJlYWRfZGlhbG9ndWVfcm91bmRzIjoyLCJyZWFkX2xvcmVib29rX25hbWVzIjoicmVjZW50X3R1cm5fbG9nLCByZWNlbnRfY2hhcmFjdGVyX3N0YXRlcywgc3lzdGVtX2RpcmVjdG9yLCBzdHJhdGVnaWNfYW5hbHlzaXMiLCJlbnRyaWVzIjpbeyJsb3JlYm9va19uYW1lIjoicmVjZW50X3R1cm5fbG9nIiwid3JpdGVfbW9kZSI6ImFwcGVuZCIsImFsd2F5c19hY3RpdmUiOnRydWUsIm91dHB1dF9mb3JtYXQiOiJTQ0hFTUE6XG57XG4gIFwicmVjZW50X3R1cm5fbG9nXCI6IHtcbiAgICBcInNjZW5lXCI6IFwiPGxvY2F0aW9uICsgb25lIHNlbnNvcnkgY3VlLCA8PTEyIHdvcmRzPlwiLFxuICAgIFwidGltZV9hbmNob3JcIjogXCI8ZXhwbGljaXQgaW4tc3RvcnkgdGltZSBwb3NpdGlvbj5cIixcbiAgICBcImVsYXBzZWRfc2luY2VfcHJldlwiOiBcIjxzYW1lIG1vbWVudCAvICsyaCAvICszZCAvIGV0Yy47ICd1bnNwZWNpZmllZF9jb250aW51YXRpb24nIGlmIHVua25vd24+XCIsXG4gICAgXCJ1c2VyX2FjdGlvblwiOiBcIjxwbGF5ZXIgYWN0aW9uLCA8PTEyIHdvcmRzPlwiLFxuICAgIFwibmFycmF0aXZlX2V2ZW50XCI6IFwiPHN0b3J5IHJlc3VsdCwgPD0xNSB3b3Jkcz5cIixcbiAgICBcInNoaWZ0XCI6IFwiPHRvbmUvc3Rha2VzIGNoYW5nZSA8PTggd29yZHMsIG9yIG51bGw+XCIsXG4gICAgXCJ1c2VyX3NjZW5lX2NoYW5nZVwiOiBmYWxzZVxuICB9XG59XG5cbkZJRUxEIFJVTEVTOlxuLSBBbGwgc3RyaW5nIHZhbHVlcyA8PTE1IHdvcmRzLiBLZXl3b3JkcyBwcmVmZXJyZWQuIiwicmV0ZW50aW9uX2VuYWJsZWQiOnRydWUsInJldGVudGlvbl9hZnRlciI6MTAsInJldGVudGlvbl9rZWVwIjoyfSx7ImxvcmVib29rX25hbWUiOiJyZWNlbnRfY2hhcmFjdGVyX3N0YXRlcyIsIndyaXRlX21vZGUiOiJhcHBlbmQiLCJhbHdheXNfYWN0aXZlIjp0cnVlLCJvdXRwdXRfZm9ybWF0IjoiU0NIRU1BOlxue1xuICBcInJlY2VudF9jaGFyYWN0ZXJfc3RhdGVzXCI6IHtcbiAgICBcImxvY2F0aW9uXCI6IFwiIDxwbGFjZSArIG9uZSBhdG1vc3BoZXJpYyBkZXRhaWwsIDw9MTAgd29yZHM+XCIsXG4gICAgXCJwbGF5ZXJfc3RhdGVcIjogXCI8Y29uZGl0aW9uICsga2V5IGl0ZW1zLCA8PTE1IHdvcmRzPlwiLFxuICAgIFwibnBjc1wiOltcbiAgICAgIHtcbiAgICAgICAgXCJuYW1lXCI6IFwiPE5QQyBuYW1lPlwiLFxuICAgICAgICBcInBoeXNpY2FsX3N0YXRlXCI6IFwiPGFwcGVhcmFuY2UsIDw9MTIgd29yZHM+XCIsXG4gICAgICAgIFwiaW50ZXJuYWxfc3RhdGVcIjogXCI8dHJ1ZSBtb3RpdmUvZmVlbGluZywgPD0xMiB3b3Jkcz5cIixcbiAgICAgICAgXCJyZWxhdGlvbl90b19wbGF5ZXJcIjogXCI8Y3VycmVudCBzdGFuY2UsIDw9MTAgd29yZHMsIG9yIG51bGw+XCJcbiAgICAgIH1cbiAgICBdXG4gIH1cbn1cblxuRklFTEQgUlVMRVM6XG4tIEtleXdvcmRzIG9ubHksIG5vIGZ1bGwgc2VudGVuY2VzLiIsInJldGVudGlvbl9lbmFibGVkIjp0cnVlLCJyZXRlbnRpb25fYWZ0ZXIiOjEwLCJyZXRlbnRpb25fa2VlcCI6Mn0seyJsb3JlYm9va19uYW1lIjoic3lzdGVtX2RpcmVjdG9yIiwid3JpdGVfbW9kZSI6Im92ZXJ3cml0ZSIsImFsd2F5c19hY3RpdmUiOnRydWUsIm91dHB1dF9mb3JtYXQiOiJTQ0hFTUE6XG57XG4gIFwic3lzdGVtX2RpcmVjdG9yXCI6IHtcbiAgICBcInN0YWxlbmVzc19sZXZlbFwiOiAwLFxuICAgIFwic3RyYXRlZ2ljX3N0YWduYXRpb25cIjogZmFsc2UsXG4gICAgXCJnbG9iYWxfc3RhZ25hdGlvblwiOiBmYWxzZSxcbiAgICBcImVudmlyb25tZW50X2ludGVydmVudGlvblwiOiBudWxsXG4gIH1cbn1cblxuRklFTEQgUlVMRVM6XG4tIFNjb3JlIHN0YWxlbmVzc19sZXZlbCAw4oCTMTAuIn1dfSx7ImlkIjoiY2FsbF90cmFja2VyX2siLCJuYW1lIjoiVHJhY2tlci1LIiwidGFyZ2V0X21vZGVsIjoiQiIsImV2ZXJ5X25fdHVybnMiOjEsInJlYWRfZGlhbG9ndWVfcm91bmRzIjoyLCJyZWFkX2xvcmVib29rX25hbWVzIjoia25vd2xlZGdlX21hdHJpeCwga25vd2xlZGdlX2Fubm90YXRpb25zLCBrbm93bGVkZ2VfYXJjaGl2ZSIsImVudHJpZXMiOlt7ImxvcmVib29rX25hbWUiOiJrbm93bGVkZ2VfbWF0cml4Iiwid3JpdGVfbW9kZSI6Im92ZXJ3cml0ZSIsImFsd2F5c19hY3RpdmUiOnRydWUsIm91dHB1dF9mb3JtYXQiOiJTQ0hFTUE6XG57XG4gIFwia25vd2xlZGdlX21hdHJpeFwiOiB7XG4gICAgXCJjaGFuZ2VkX2lkc1wiOiBbXSxcbiAgICBcImVudHJpZXNcIjogW1xuICAgICAge1xuICAgICAgICBcImlkXCI6IFwiSzAwMVwiLFxuICAgICAgICBcInN1YmplY3RcIjogXCI8ZmFjdCBvciBzZWNyZXQsIDw9MTUgd29yZHM+XCIsXG4gICAgICAgIFwidHJ1ZV9hbnN3ZXJcIjogXCI8YWN0dWFsIHRydXRoLCA8PTE1IHdvcmRzPlwiLFxuICAgICAgICBcImtub3dlcnNcIjogW10sXG4gICAgICAgIFwidW5rbm93bl90b1wiOiBbXSxcbiAgICAgICAgXCJwdWJsaWNfc3RhdHVzXCI6IFwicHVibGljIHwgc2VjcmV0XCIsXG4gICAgICAgIFwic3RhYmlsaXR5XCI6IFwibG9ja2VkIHwgZnJhZ2lsZVwiXG4gICAgICB9XG4gICAgXVxuICB9XG59In1dfSx7ImlkIjoiY2FsbF90cmFja2VyX3MiLCJuYW1lIjoiVHJhY2tlci1TIiwidGFyZ2V0X21vZGVsIjoiQiIsImV2ZXJ5X25fdHVybnMiOjIsInJlYWRfZGlhbG9ndWVfcm91bmRzIjoyLCJyZWFkX2xvcmVib29rX25hbWVzIjoiYWN0aXZlX3N0cmF0ZWdpY19sYXllciwgc3RyYXRlZ2ljX2FuYWx5c2lzLCBzdHJhdGVnaWNfYXJjaGl2ZSIsImVudHJpZXMiOlt7ImxvcmVib29rX25hbWUiOiJhY3RpdmVfc3RyYXRlZ2ljX2xheWVyIiwid3JpdGVfbW9kZSI6Im92ZXJ3cml0ZSIsImFsd2F5c19hY3RpdmUiOnRydWUsIm91dHB1dF9mb3JtYXQiOiJTQ0hFTUE6XG57XG4gIFwiYWN0aXZlX3N0cmF0ZWdpY19sYXllclwiOiB7XG4gICAgXCJwbGF5ZXJfc3RyYXRlZ3lcIjoge1xuICAgICAgXCJwcmltYXJ5X2dvYWxcIjogXCI8Z29hbCwgPD0xNSB3b3Jkcz5cIixcbiAgICAgIFwib3BlcmF0aW9uc1wiOiBbXVxuICAgIH0sXG4gICAgXCJyaXZhbF9zdHJhdGVnaWVzXCI6IFtdXG4gIH1cbn0ifV19LHsiaWQiOiJjYWxsX2xvZ2ljIiwibmFtZSI6IkxvZ2ljIiwidGFyZ2V0X21vZGVsIjoiQiIsImV2ZXJ5X25fdHVybnMiOjEsInJlYWRfZGlhbG9ndWVfcm91bmRzIjozLCJyZWFkX2xvcmVib29rX25hbWVzIjoidW5zb2x2ZWRfcXVlc3RzLCByZWNlbnRfY2hhcmFjdGVyX3N0YXRlcywgcmVjZW50X3R1cm5fbG9nLCBrbm93bGVkZ2VfbWF0cml4LCBrbm93bGVkZ2VfYW5ub3RhdGlvbnMsIGFjdGl2ZV9zdHJhdGVnaWNfbGF5ZXIsIHN0cmF0ZWdpY19hbmFseXNpcyIsImVudHJpZXMiOlt7ImxvcmVib29rX25hbWUiOiJrbm93bl9jb250cmFkaWN0aW9ucyIsIndyaXRlX21vZGUiOiJvdmVyd3JpdGUiLCJhbHdheXNfYWN0aXZlIjp0cnVlLCJvdXRwdXRfZm9ybWF0IjoiU0NIRU1BOlxue1xuICBcImtub3duX2NvbnRyYWRpY3Rpb25zXCI6IHtcbiAgICBcImxvZ2ljX3Zpb2xhdGlvblwiOiBcIjxkZXNjcmliZSBjb250cmFkaWN0aW9uLCBvciBudWxsPlwiLFxuICAgIFwic3RyaWN0X2RpcmVjdGl2ZVwiOiBcIjxzZWUgYWxsb3dlZCB2YWx1ZXM+XCJcbiAgfVxufSJ9LHsibG9yZWJvb2tfbmFtZSI6InVuc29sdmVkX3F1ZXN0cyIsIndyaXRlX21vZGUiOiJvdmVyd3JpdGUiLCJhbHdheXNfYWN0aXZlIjp0cnVlLCJvdXRwdXRfZm9ybWF0IjoiU0NIRU1BOlxue1xuICBcInVuc29sdmVkX3F1ZXN0c1wiOiB7XG4gICAgXCJhY3RpdmVfdGhyZWFkc1wiOiBbXSxcbiAgICBcInJlc29sdmVkX3RoaXNfdHVyblwiOiBbXVxuICB9XG59In1dfSx7ImlkIjoiY2FsbF9zdHJhdGVneV9hbmFseXN0IiwibmFtZSI6IlN0cmF0ZWd5LUFuYWx5c3QiLCJ0YXJnZXRfbW9kZWwiOiJBIiwiZXZlcnlfbl90dXJucyI6MywicmVhZF9kaWFsb2d1ZV9yb3VuZHMiOjUsInJlYWRfbG9yZWJvb2tfbmFtZXMiOiJrbm93bGVkZ2VfbWF0cml4LCBrbm93bGVkZ2VfYW5ub3RhdGlvbnMsIGFjdGl2ZV9zdHJhdGVnaWNfbGF5ZXIsIHJlY2VudF90dXJuX2xvZywgcmVjZW50X2NoYXJhY3Rlcl9zdGF0ZXMsIHVuc29sdmVkX3F1ZXN0cywgc3RyYXRlZ2ljX2FuYWx5c2lzIiwiZW50cmllcyI6W3sibG9yZWJvb2tfbmFtZSI6InN0cmF0ZWdpY19hbmFseXNpcyIsIndyaXRlX21vZGUiOiJvdmVyd3JpdGUiLCJhbHdheXNfYWN0aXZlIjp0cnVlLCJvdXRwdXRfZm9ybWF0IjoiU0NIRU1BOlxue1xuICBcInN0cmF0ZWdpY19hbmFseXNpc1wiOiB7XG4gICAgXCJhbmFseXN0X3N0cmF0ZWd5X292ZXJyaWRlc1wiOiB7fSxcbiAgICBcImNvZ25pdGlvbl92aW9sYXRpb25zXCI6IFtdXG4gIH1cbn0ifSx7ImxvcmVib29rX25hbWUiOiJrbm93bGVkZ2VfYW5ub3RhdGlvbnMiLCJ3cml0ZV9tb2RlIjoib3ZlcndyaXRlIiwiYWx3YXlzX2FjdGl2ZSI6dHJ1ZSwib3V0cHV0X2Zvcm1hdCI6IlNDSEVNQTpcbntcbiAgXCJrbm93bGVkZ2VfYW5ub3RhdGlvbnNcIjoge1xuICAgIFwiZW50cmllc1wiOiBbXVxuICB9XG59In1dfSx7ImlkIjoiY2FsbF9xdWFsaXR5IiwibmFtZSI6IlF1YWxpdHkiLCJ0YXJnZXRfbW9kZWwiOiJCIiwiZXZlcnlfbl90dXJucyI6MywicmVhZF9kaWFsb2d1ZV9yb3VuZHMiOjUsInJlYWRfbG9yZWJvb2tfbmFtZXMiOiJyZWNlbnRfd29ybGRfZW50cmllcywgd29ybGRfZW5jeWNsb3BlZGlhLCByZWNlbnRfdHVybl9sb2ciLCJlbnRyaWVzIjpbeyJsb3JlYm9va19uYW1lIjoicmVwZXRpdGlvbl9ndWFyZCIsIndyaXRlX21vZGUiOiJvdmVyd3JpdGUiLCJhbHdheXNfYWN0aXZlIjp0cnVlLCJvdXRwdXRfZm9ybWF0IjoiU0NIRU1BOlxue1xuICBcInJlcGV0aXRpb25fZ3VhcmRcIjoge1xuICAgIFwiZmxhZ2dlZF9jbGljaGVzXCI6IFtdLCBcImxhc3RfdHN1a2tvbWlcIjogbnVsbCwgXCJiYW5uZWRfcGhyYXNlc1wiOiBbXVxuICB9XG59In0seyJsb3JlYm9va19uYW1lIjoicmVjZW50X3dvcmxkX2VudHJpZXMiLCJ3cml0ZV9tb2RlIjoiYXBwZW5kIiwiYWx3YXlzX2FjdGl2ZSI6dHJ1ZSwib3V0cHV0X2Zvcm1hdCI6IlNDSEVNQTpcbntcbiAgXCJyZWNlbnRfd29ybGRfZW50cmllc1wiOiB7XG4gICAgXCJlbnRyaWVzXCI6IFsgXCI8TmFtZS4gS2V5IGZhY3QuIDw9MjAgd29yZHMuPlwiIF1cbiAgfVxufSIsInJldGVudGlvbl9lbmFibGVkIjp0cnVlLCJyZXRlbnRpb25fYWZ0ZXIiOjE1LCJyZXRlbnRpb25fa2VlcCI6MX1dfSx7ImlkIjoiY2FsbF9sb25ndGVybSIsIm5hbWUiOiJMb25ndGVybSIsInRhcmdldF9tb2RlbCI6IkEiLCJldmVyeV9uX3R1cm5zIjoxMCwicmVhZF9kaWFsb2d1ZV9yb3VuZHMiOjEsInJlYWRfbG9yZWJvb2tfbmFtZXMiOiJyZWNlbnRfdHVybl9sb2csIHJlY2VudF9jaGFyYWN0ZXJfc3RhdGVzLCB1bnNvbHZlZF9xdWVzdHMsIHN0b3J5X3R1cm5pbmdfcG9pbnRzLCBzdG9yeV9hcmNfc3VtbWFyeSwgYWN0aXZlX3N0cmF0ZWdpY19sYXllciwgc3RyYXRlZ2ljX2FuYWx5c2lzIiwiZW50cmllcyI6W3sibG9yZWJvb2tfbmFtZSI6InN0b3J5X3R1cm5pbmdfcG9pbnRzIiwid3JpdGVfbW9kZSI6ImFwcGVuZCIsImFsd2F5c19hY3RpdmUiOnRydWUsIm91dHB1dF9mb3JtYXQiOiJTQ0hFTUE6IFtdIiwicmV0ZW50aW9uX2VuYWJsZWQiOmZhbHNlLCJyZXRlbnRpb25fYWZ0ZXIiOjAsInJldGVudGlvbl9rZWVwIjowfSx7ImxvcmVib29rX25hbWUiOiJzdG9yeV9hcmNfc3VtbWFyeSIsIndyaXRlX21vZGUiOiJhcHBlbmQiLCJhbHdheXNfYWN0aXZlIjp0cnVlLCJvdXRwdXRfZm9ybWF0IjoiU0NIRU1BOiBbXSIsInJldGVudGlvbl9lbmFibGVkIjpmYWxzZSwicmV0ZW50aW9uX2FmdGVyIjowLCJyZXRlbnRpb25fa2VlcCI6MH0seyJsb3JlYm9va19uYW1lIjoia25vd2xlZGdlX2FyY2hpdmUiLCJ3cml0ZV9tb2RlIjoib3ZlcndyaXRlIiwiYWx3YXlzX2FjdGl2ZSI6dHJ1ZSwib3V0cHV0X2Zvcm1hdCI6IlNDSEVNQToge1wiZW50cmllc1wiOltdfSJ9LHsibG9yZWJvb2tfbmFtZSI6InN0cmF0ZWdpY19hcmNoaXZlIiwid3JpdGVfbW9kZSI6Im92ZXJ3cml0ZSIsImFsd2F5c19hY3RpdmUiOnRydWUsIm91dHB1dF9mb3JtYXQiOiJTQ0hFTUE6IHtcImVudHJpZXNcIjpbXX0ifV19LHsiaWQiOiJjYWxsX3dvcmxkIiwibmFtZSI6IldvcmxkIiwidGFyZ2V0X21vZGVsIjoiQiIsImV2ZXJ5X25fdHVybnMiOjE1LCJyZWFkX2RpYWxvZ3VlX3JvdW5kcyI6MSwicmVhZF9sb3JlYm9va19uYW1lcyI6InJlY2VudF93b3JsZF9lbnRyaWVzLCB3b3JsZF9lbmN5Y2xvcGVkaWEsIHN0b3J5X2FyY19zdW1tYXJ5LCBrbm93bGVkZ2VfYXJjaGl2ZSIsImVudHJpZXMiOlt7ImxvcmVib29rX25hbWUiOiJ3b3JsZF9lbmN5Y2xvcGVkaWEiLCJ3cml0ZV9tb2RlIjoib3ZlcndyaXRlIiwiYWx3YXlzX2FjdGl2ZSI6dHJ1ZSwib3V0cHV0X2Zvcm1hdCI6IlNDSEVNQTpcbntcbiAgXCJ3b3JsZF9lbmN5Y2xvcGVkaWFcIjoge1xuICAgIFwiZ2VvZ3JhcGh5XCI6IFtdLCBcIm5wY3NcIjogW10sIFwibG9yZVwiOiBbXVxuICB9XG59In1dfV0="),
+    active_preset: 1,
+    card_enable_settings: "{}",
+    vector_search_query_dialogue_rounds_2: 2,
+    vector_search_top_k_2: 10,
+    vector_search_min_score_2: 0.35,
   };
 
   const SETTING_KEYS = {
@@ -651,7 +597,7 @@ Example: [{"id": "chk_0", "category": "information"}, {"id": "chk_1", "category"
     embedding_provider_key_map: "pse_embedding_provider_key_map",
     extractor_a_provider_key_map: "pse_extractor_a_provider_key_map",
     extractor_b_provider_key_map: "pse_extractor_b_provider_key_map",
-    model_calls: "pse_model_calls",
+    model_calls: JSON.stringify(DEFAULT_MODEL_CALLS),
     advanced_model_anchor_prompt: "pse_advanced_model_anchor_prompt",
     advanced_prefill_prompt: "pse_advanced_prefill_prompt",
     advanced_prereply_prompt: "pse_advanced_prereply_prompt",
@@ -664,10 +610,19 @@ Example: [{"id": "chk_0", "category": "information"}, {"id": "chk_1", "category"
     init_bootstrap_model_anchor_prompt: "pse_init_bootstrap_model_anchor_prompt",
     context_messages: "pse_context_messages",
     timeout_ms: "pse_timeout_ms",
-    enable_cache: "pse_enable_cache",
+    extractor_a_thinking_enabled: "pse_extractor_a_thinking_enabled",
+    extractor_a_thinking_level: "pse_extractor_a_thinking_level",
+    extractor_b_thinking_enabled: "pse_extractor_b_thinking_enabled",
+    extractor_b_thinking_level: "pse_extractor_b_thinking_level",
     extractor_a_concurrency: "pse_extractor_a_concurrency",
     extractor_b_concurrency: "pse_extractor_b_concurrency",
     embedding_concurrency: "pse_embedding_concurrency",
+    model_calls_2: "pse_model_calls_2",
+    active_preset: "pse_active_preset",
+    card_enable_settings: "pse_card_enable_settings",
+    vector_search_query_dialogue_rounds_2: "pse_vector_search_query_dialogue_rounds_2",
+    vector_search_top_k_2: "pse_vector_search_top_k_2",
+    vector_search_min_score_2: "pse_vector_search_min_score_2",
   };
 
   const MODEL_PROVIDER_OPTIONS = [
@@ -787,9 +742,16 @@ Example: [{"id": "chk_0", "category": "information"}, {"id": "chk_1", "category"
     const charId = char?.chaId || "-1";
     const currentReloadKeys = char?.reloadKeys || 0;
 
-    if (cachedGlobalNoteData.charId === charId &&
-      cachedGlobalNoteData.reloadKeys === currentReloadKeys &&
-      cachedGlobalNoteData.charId !== null) {
+    
+    
+    
+    const isCacheValid =
+      cachedGlobalNoteData.charId !== null &&
+      cachedGlobalNoteData.charId === charId &&
+      charId !== "-1" &&
+      cachedGlobalNoteData.reloadKeys === currentReloadKeys;
+
+    if (isCacheValid) {
       return cachedGlobalNoteData;
     }
 
@@ -846,7 +808,7 @@ Example: [{"id": "chk_0", "category": "information"}, {"id": "chk_1", "category"
   const embeddingVectorCache = new Map();
 
   function safeTrim(v) { return typeof v === "string" ? v.trim() : ""; }
-  // Keep trigger syntax aligned with plugin output blocks.
+  
   const TURN_BLOCK_SPLIT_REGEX = /(?=###\s*Turn\s*\d+)/i;
   const TURN_BLOCK_HEADER_REGEX = /^###\s*Turn\s*(\d+)/i;
   const TURN_MARKER_ANY_REGEX = /###\s*Turn\s*\d+/i;
@@ -1010,7 +972,6 @@ Example: [{"id": "chk_0", "category": "information"}, {"id": "chk_1", "category"
   const STATIC_DATA_HASH_KEY = "static_data_hash";
   const STEP0_COMPLETE_KEY = "step0_complete";
   const LAST_REQ_HASH_KEY = "last_req_hash";
-  const LAST_COMPLETED_REQ_HASH_KEY = "last_completed_req_hash";
   const LAST_EXTRACTED_DATA_KEY = "last_extracted_data";
   const FIRST_MESSAGE_HANDLED_KEY = "first_message_handled";
 
@@ -1041,7 +1002,6 @@ Example: [{"id": "chk_0", "category": "information"}, {"id": "chk_1", "category"
     return {
       scopeId,
       lastReqHash: makeScopedStorageKey(LAST_REQ_HASH_KEY, scopeId),
-      lastCompletedReqHash: makeScopedStorageKey(LAST_COMPLETED_REQ_HASH_KEY, scopeId),
       lastExtractedData: makeScopedStorageKey(LAST_EXTRACTED_DATA_KEY, scopeId),
     };
   }
@@ -1148,7 +1108,6 @@ Example: [{"id": "chk_0", "category": "information"}, {"id": "chk_1", "category"
       try { await Risuai.pluginStorage.removeItem(staticKeys.staticDataHash); } catch { }
       try { await Risuai.pluginStorage.removeItem(staticKeys.step0Complete); } catch { }
       try { await Risuai.safeLocalStorage.removeItem(requestKeys.lastReqHash); } catch { }
-      try { await Risuai.safeLocalStorage.removeItem(requestKeys.lastCompletedReqHash); } catch { }
       try { await Risuai.safeLocalStorage.removeItem(requestKeys.lastExtractedData); } catch { }
       try { await Risuai.safeLocalStorage.removeItem(firstMessageHandledKey); } catch { }
     } catch { }
@@ -1158,7 +1117,6 @@ Example: [{"id": "chk_0", "category": "information"}, {"id": "chk_1", "category"
     try { await Risuai.pluginStorage.removeItem(STATIC_DATA_HASH_KEY); } catch { }
     try { await Risuai.pluginStorage.removeItem(STEP0_COMPLETE_KEY); } catch { }
     try { await Risuai.safeLocalStorage.removeItem(LAST_REQ_HASH_KEY); } catch { }
-    try { await Risuai.safeLocalStorage.removeItem(LAST_COMPLETED_REQ_HASH_KEY); } catch { }
     try { await Risuai.safeLocalStorage.removeItem(LAST_EXTRACTED_DATA_KEY); } catch { }
   }
 
@@ -1184,7 +1142,7 @@ Example: [{"id": "chk_0", "category": "information"}, {"id": "chk_1", "category"
     } catch { return false; }
   }
 
-  function upsertEmbeddingCacheEntry(store, cardKey, cardName, entryKey, entry) {
+  function upsertEmbeddingCacheEntry(store, cardKey, cardName, entryKey, entry, modelName = "") {
     if (!store.cards) store.cards = {};
     if (!store.cards[cardKey]) {
       store.cards[cardKey] = {
@@ -1192,10 +1150,12 @@ Example: [{"id": "chk_0", "category": "information"}, {"id": "chk_1", "category"
         cardName: safeTrim(cardName || "Character"),
         updatedAt: Date.now(),
         entries: {},
+        modelName: safeTrim(modelName),
       };
     }
     const card = store.cards[cardKey];
     if (cardName && cardName !== "Character") card.cardName = safeTrim(cardName);
+    if (modelName) card.modelName = safeTrim(modelName);
     card.updatedAt = Date.now();
 
     let optimizedEntry = { ...entry, updatedAt: Date.now() };
@@ -1228,6 +1188,7 @@ Example: [{"id": "chk_0", "category": "information"}, {"id": "chk_1", "category"
           entryCount,
           sizeBytes,
           updatedAt: Number(card.updatedAt || 0),
+          modelName: String(card.modelName || ""),
         };
       })
       .sort((a, b) => b.updatedAt - a.updatedAt);
@@ -1236,59 +1197,88 @@ Example: [{"id": "chk_0", "category": "information"}, {"id": "chk_1", "category"
   function parsePossiblyWrappedJson(text) {
     if (!text) return null;
     let src = String(text).trim();
-    let mergedResult = null;
 
     const codeBlockRegex = /```(?:json)?\s*([\s\S]*?)\s*```/gi;
     const matches = [...src.matchAll(codeBlockRegex)];
     if (matches.length > 0) {
-      matches.forEach(match => {
+      const parsedBlocks = [];
+      for (const match of matches) {
         try {
-          const parsed = JSON.parse(match[1].trim());
-          if (parsed && typeof parsed === "object") {
-            if (!mergedResult) mergedResult = Array.isArray(parsed) ? [] : {};
-            if (Array.isArray(mergedResult) && Array.isArray(parsed)) mergedResult = mergedResult.concat(parsed);
-            else Object.assign(mergedResult, parsed);
-          }
+          const b = JSON.parse(match[1].trim());
+          if (b !== null && typeof b === "object") parsedBlocks.push(b);
         } catch { }
-      });
-      if (mergedResult) return mergedResult;
+      }
+      if (parsedBlocks.length > 0) {
+        const hasPlainObject = parsedBlocks.some(b => !Array.isArray(b));
+        if (hasPlainObject) {
+          const merged = {};
+          for (const b of parsedBlocks) {
+            if (Array.isArray(b)) {
+              for (const item of b) {
+                if (item && typeof item === "object" && !Array.isArray(item)) Object.assign(merged, item);
+              }
+            } else {
+              Object.assign(merged, b);
+            }
+          }
+          if (Object.keys(merged).length) return merged;
+        } else {
+          const merged = [];
+          for (const b of parsedBlocks) merged.push(...b);
+          if (merged.length) return merged;
+        }
+      }
     }
 
-    const tryLastBrace = (startChar, endChar) => {
-      const first = src.indexOf(startChar);
-      const last = src.lastIndexOf(endChar);
+    let stripped = src
+      .replace(/^\uFEFF/, "")
+      .replace(/^<(?:json|o|r|output|result|response|answer)[^>]*>/i, "")
+      .replace(/<\/(?:json|o|r|output|result|response|answer)>\s*$/i, "")
+      .trim();
+    if (stripped !== src) {
+      try {
+        const r = JSON.parse(stripped);
+        if (r !== null && typeof r === "object") return r;
+      } catch { }
+    }
+
+    const tryLastBrace = (s, startChar, endChar) => {
+      const first = s.indexOf(startChar);
+      const last = s.lastIndexOf(endChar);
       if (first >= 0 && last > first) {
-        try { return JSON.parse(src.slice(first, last + 1)); } catch { return null; }
+        try { return JSON.parse(s.slice(first, last + 1)); } catch { return null; }
       }
       return null;
     };
 
-    const tryDepthFirst = (startChar, endChar) => {
-      const startIdx = src.indexOf(startChar);
+    const tryDepthFirst = (s, startChar, endChar) => {
+      const startIdx = s.indexOf(startChar);
       if (startIdx < 0) return null;
       let depth = 0;
-      for (let i = startIdx; i < src.length; i++) {
-        const c = src[i];
+      for (let i = startIdx; i < s.length; i++) {
+        const c = s[i];
         if (c === startChar) depth++;
         else if (c === endChar) {
           depth--;
           if (depth === 0) {
-            try { return JSON.parse(src.slice(startIdx, i + 1)); } catch { return null; }
+            try { return JSON.parse(s.slice(startIdx, i + 1)); } catch { return null; }
           }
         }
       }
       return null;
     };
 
-    const firstBrace = src.indexOf("{");
-    const firstBracket = src.indexOf("[");
-    const useObj = firstBrace >= 0 && (firstBracket < 0 || firstBrace <= firstBracket);
-    const useArr = firstBracket >= 0 && (firstBrace < 0 || firstBracket < firstBrace);
+    for (const candidate of [stripped, src]) {
+      const firstBrace = candidate.indexOf("{");
+      const firstBracket = candidate.indexOf("[");
+      const useObj = firstBrace >= 0 && (firstBracket < 0 || firstBrace <= firstBracket);
+      const useArr = firstBracket >= 0 && (firstBrace < 0 || firstBracket < firstBrace);
 
-    if (useObj) { const r = tryLastBrace("{", "}"); if (r !== null) return r; }
-    if (useArr) { const r = tryLastBrace("[", "]"); if (r !== null) return r; }
-    if (useObj) { const r = tryDepthFirst("{", "}"); if (r !== null) return r; }
-    if (useArr) { const r = tryDepthFirst("[", "]"); if (r !== null) return r; }
+      if (useObj) { const r = tryLastBrace(candidate, "{", "}"); if (r !== null) return r; }
+      if (useArr) { const r = tryLastBrace(candidate, "[", "]"); if (r !== null) return r; }
+      if (useObj) { const r = tryDepthFirst(candidate, "{", "}"); if (r !== null) return r; }
+      if (useArr) { const r = tryDepthFirst(candidate, "[", "]"); if (r !== null) return r; }
+    }
 
     return null;
   }
@@ -1461,9 +1451,14 @@ Example: [{"id": "chk_0", "category": "information"}, {"id": "chk_1", "category"
     next.extractor_a_temperature = Number.isFinite(aTemp) ? Math.max(0, Math.min(2, aTemp)) : DEFAULTS.extractor_a_temperature;
     next.extractor_b_temperature = Number.isFinite(bTemp) ? Math.max(0, Math.min(2, bTemp)) : DEFAULTS.extractor_b_temperature;
 
+    next.extractor_a_thinking_enabled = toInt(next.extractor_a_thinking_enabled, 0) === 1 ? 1 : 0;
+    next.extractor_a_thinking_level = safeTrim(next.extractor_a_thinking_level || "");
+    next.extractor_b_thinking_enabled = toInt(next.extractor_b_thinking_enabled, 0) === 1 ? 1 : 0;
+    next.extractor_b_thinking_level = safeTrim(next.extractor_b_thinking_level || "");
     next.extractor_a_concurrency = toInt(next.extractor_a_concurrency, DEFAULTS.extractor_a_concurrency);
     next.extractor_b_concurrency = toInt(next.extractor_b_concurrency, DEFAULTS.extractor_b_concurrency);
     next.embedding_concurrency = toInt(next.embedding_concurrency, DEFAULTS.embedding_concurrency);
+    next.active_preset = toInt(next.active_preset, 1);
 
     const aProviderMap = parseSimpleStringMap(next.extractor_a_provider_model_map || DEFAULTS.extractor_a_provider_model_map);
     const bProviderMap = parseSimpleStringMap(next.extractor_b_provider_model_map || DEFAULTS.extractor_b_provider_model_map);
@@ -1517,13 +1512,16 @@ Example: [{"id": "chk_0", "category": "information"}, {"id": "chk_1", "category"
     next.vector_search_top_k = Math.max(1, toInt(next.vector_search_top_k, DEFAULTS.vector_search_top_k));
     const minScore = Number(next.vector_search_min_score);
     next.vector_search_min_score = Number.isFinite(minScore) ? Math.max(0, minScore) : DEFAULTS.vector_search_min_score;
+    next.vector_search_query_dialogue_rounds_2 = Math.max(1, toInt(next.vector_search_query_dialogue_rounds_2, DEFAULTS.vector_search_query_dialogue_rounds_2));
+    next.vector_search_top_k_2 = Math.max(1, toInt(next.vector_search_top_k_2, DEFAULTS.vector_search_top_k_2));
+    const minScore2 = Number(next.vector_search_min_score_2);
+    next.vector_search_min_score_2 = Number.isFinite(minScore2) ? Math.max(0, minScore2) : DEFAULTS.vector_search_min_score_2;
     next.init_bootstrap_target_model = safeTrim(next.init_bootstrap_target_model) === "B" ? "B" : "A";
     next.init_bootstrap_model_anchor_prompt = String(next.init_bootstrap_model_anchor_prompt || DEFAULTS.init_bootstrap_model_anchor_prompt);
 
     next.timeout_ms = FIXED_TIMEOUT_MS;
     await Risuai.safeLocalStorage.setItem(SETTING_KEYS.timeout_ms, String(FIXED_TIMEOUT_MS));
     await safeSetArgument("timeout_ms", FIXED_TIMEOUT_MS);
-    next.enable_cache = toInt(next.enable_cache, DEFAULTS.enable_cache) === 1 ? 1 : 0;
 
     if (!safeTrim(next.model_calls)) {
       next.model_calls = DEFAULT_MODEL_CALLS;
@@ -1550,6 +1548,8 @@ Example: [{"id": "chk_0", "category": "information"}, {"id": "chk_1", "category"
       provider: aProvider,
       format: aFormat,
       temperature: Number(configCache.extractor_a_temperature),
+      thinkingEnabled: configCache.extractor_a_thinking_enabled === 1,
+      thinkingLevel: safeTrim(configCache.extractor_a_thinking_level || ""),
     };
     const b = {
       url: normalizeUrlByFormat(configCache.extractor_b_url || configCache.extractor_a_url, bFormat),
@@ -1558,6 +1558,8 @@ Example: [{"id": "chk_0", "category": "information"}, {"id": "chk_1", "category"
       provider: bProvider,
       format: bFormat,
       temperature: Number(configCache.extractor_b_temperature),
+      thinkingEnabled: configCache.extractor_b_thinking_enabled === 1,
+      thinkingLevel: safeTrim(configCache.extractor_b_thinking_level || ""),
     };
     return { a, b };
   }
@@ -1567,8 +1569,7 @@ Example: [{"id": "chk_0", "category": "information"}, {"id": "chk_1", "category"
       if (formData[key] !== undefined) {
         const value = formData[key];
         await Risuai.safeLocalStorage.setItem(storageKey, String(value ?? ""));
-        const argVal = key === "enable_cache" ? (value ? 1 : 0) : value;
-        await safeSetArgument(key, argVal);
+        await safeSetArgument(key, value);
       }
     }
     await refreshConfig();
@@ -1579,7 +1580,7 @@ Example: [{"id": "chk_0", "category": "information"}, {"id": "chk_1", "category"
     if (!key) return "";
     const cachedToken = safeTrim(await Risuai.safeLocalStorage.getItem("copilot_tid_token"));
     const cachedExpiry = Number(await Risuai.safeLocalStorage.getItem("copilot_tid_token_expiry") || 0);
-    if (cachedToken && Number.isFinite(cachedExpiry) && Date.now() < cachedExpiry - 60_000) return cachedToken;
+    if (cachedToken && Number.isFinite(cachedExpiry) && Date.now() < cachedExpiry - 60000) return cachedToken;
 
     const { res } = await fetchWithFallback(
       COPILOT_TOKEN_URL,
@@ -1794,17 +1795,8 @@ Example: [{"id": "chk_0", "category": "information"}, {"id": "chk_1", "category"
     const charLore = await getCombinedLorebookEntries(char, chat);
 
     const pool = [];
-    const seenNames = new Set();
 
-    for (const entry of localLore) {
-      const name = safeTrim(entry?.comment || "");
-      if (!wanted.has(name)) continue;
-      const content = String(entry?.content || "").trim();
-      if (!content) continue;
-      pool.push({ name, content, source: "local" });
-      seenNames.add(name);
-    }
-
+    // charLore (static) goes first as baseline
     for (const entry of charLore) {
       const name = safeTrim(entry?.comment || "");
       if (!wanted.has(name)) continue;
@@ -1817,6 +1809,21 @@ Example: [{"id": "chk_0", "category": "information"}, {"id": "chk_1", "category"
         pool.push({ name, content, source: "char" });
       }
     }
+
+    // localLore (agent-written dynamic data) overrides charLore for same entry names
+    for (const entry of localLore) {
+      const name = safeTrim(entry?.comment || "");
+      if (!wanted.has(name)) continue;
+      const content = String(entry?.content || "").trim();
+      if (!content) continue;
+      const existingIdx = pool.findIndex(p => p.name === name);
+      if (existingIdx >= 0) {
+        pool[existingIdx] = { name, content, source: "local" };
+      } else {
+        pool.push({ name, content, source: "local" });
+      }
+    }
+
     return pool.map(p => {
       const stripped = p.content.replace(/^<!-- written_at_turn: \d+ -->\n?/m, "");
       return `[${p.name}]\n${stripped}`;
@@ -1854,7 +1861,9 @@ Example: [{"id": "chk_0", "category": "information"}, {"id": "chk_1", "category"
       const count = matches ? matches.length : 0;
       if (level === 1) {
         if (count >= 2) { bestLevel = 1; break; }
-        break;
+        // Don't break here: fall through to try ## level splits even when no # headers exist
+        prevCount = count;
+        continue;
       } else {
         if (prevCount >= 2 && count >= 2) { bestLevel = level; break; }
         if (prevCount < 2) break;
@@ -2059,7 +2068,7 @@ Example: [{"id": "chk_0", "category": "information"}, {"id": "chk_1", "category"
     const wanted = new Set((names || []).map((x) => safeTrim(x)).filter(Boolean));
     if (wanted.size === 0) return "";
 
-    const topK = Math.max(1, toInt(configCache.vector_search_top_k, 8));
+    const topK = Math.max(1, toInt(configCache.vector_search_top_k, DEFAULTS.vector_search_top_k));
     const minScore = Number(configCache.vector_search_min_score) || 0;
     const queryRounds = Math.max(1, toInt(configCache.vector_search_query_dialogue_rounds, DEFAULTS.vector_search_query_dialogue_rounds));
 
@@ -2075,18 +2084,20 @@ Example: [{"id": "chk_0", "category": "information"}, {"id": "chk_1", "category"
     const charLore = await getCombinedLorebookEntries(char, chat);
     const localMap = new Map();
 
-    for (const entry of localLore) {
-      const name = safeTrim(entry?.comment || "");
-      if (!wanted.has(name)) continue;
-      const content = String(entry?.content || "").trim();
-      if (name && content) localMap.set(name, { content, isDynamic: true, alwaysActive: entry?.alwaysActive === true });
-    }
+    
+    
     for (const entry of charLore) {
       const name = safeTrim(entry?.comment || "");
       if (!wanted.has(name)) continue;
       const content = String(entry?.content || "").trim();
       const alwaysActive = entry?.alwaysActive === true || String(entry?.alwaysActive) === "true" || entry?.constant === true || String(entry?.constant) === "true";
       if (name && content) localMap.set(name, { content, isDynamic: false, alwaysActive });
+    }
+    for (const entry of localLore) {
+      const name = safeTrim(entry?.comment || "");
+      if (!wanted.has(name)) continue;
+      const content = String(entry?.content || "").trim();
+      if (name && content) localMap.set(name, { content, isDynamic: true, alwaysActive: entry?.alwaysActive === true });
     }
 
     const embedCfg = resolveEmbeddingRuntimeConfig();
@@ -2139,7 +2150,7 @@ Example: [{"id": "chk_0", "category": "information"}, {"id": "chk_1", "category"
             if (!miss.item.isDynamic) {
               upsertEmbeddingCacheEntry(store, cardKey, charName, miss.key, {
                 sourceType: miss.item.cacheType, name: miss.item.name, textHash: simpleHash(miss.text), dims: vec.length, vector: vec,
-              });
+              }, embedCfg.requestModel);
               newlyAdded = true;
             } else {
               const memoryCacheKey = `${embedCfg.provider}|${embedCfg.format}|${embedCfg.url}|${embedCfg.requestModel}|${simpleHash(miss.text)}`;
@@ -2156,7 +2167,10 @@ Example: [{"id": "chk_0", "category": "information"}, {"id": "chk_1", "category"
           .map((item, idx) => ({ ...item, score: cosineSimilarity(queryVec, vectors[idx]) }))
           .filter((x) => Number.isFinite(x.score)).sort((a, b) => b.score - a.score);
         const picked = scored.filter((x) => x.score >= minScore).slice(0, topK);
-        topInactiveList = picked.length ? picked : scored.slice(0, topK);
+        
+        
+        
+        topInactiveList = picked.length ? picked : scored.filter((x) => x.score >= 0).slice(0, topK);
       }
 
       const finalListText = [];
@@ -2397,24 +2411,28 @@ Example: [{"id": "chk_0", "category": "information"}, {"id": "chk_1", "category"
     const every = Math.max(1, toInt(call?.every_n_turns, 1));
     const readRounds = Math.max(0, toInt(call?.read_dialogue_rounds, 4));
     const entries = parseOutputEntries(call?.entries, target);
-    const allowParallel = call?.allow_parallel === true || call?.allow_parallel === "true";
     return {
       id: safeTrim(call?.id) || `call_${Date.now()}_${index}`, name: safeTrim(call?.name) || nameFallback,
       target_model: target, every_n_turns: every, read_dialogue_rounds: readRounds,
-      read_lorebook_names: String(call?.read_lorebook_names ?? ""), allow_parallel: allowParallel, entries,
+      read_lorebook_names: String(call?.read_lorebook_names ?? ""), entries,
     };
   }
 
   function parseModelCalls(raw) {
     try {
       const parsed = typeof raw === "string" ? JSON.parse(raw) : raw;
-      if (!Array.isArray(parsed) || parsed.length === 0) return JSON.parse(DEFAULT_MODEL_CALLS).map((x, i) => normalizeModelCall(x, i));
+      if (!Array.isArray(parsed)) return JSON.parse(DEFAULT_MODEL_CALLS).map((x, i) => normalizeModelCall(x, i));
+      if (parsed.length === 0) return [];
       const normalized = parsed.map((x, i) => normalizeModelCall(x, i));
       return normalized;
     } catch { return JSON.parse(DEFAULT_MODEL_CALLS).map((x, i) => normalizeModelCall(x, i)); }
   }
 
-  function getModelCalls() { return parseModelCalls(configCache.model_calls); }
+  function getModelCalls() {
+    const preset = toInt(configCache.active_preset, 1);
+    const raw = preset === 2 ? configCache.model_calls_2 : configCache.model_calls;
+    return parseModelCalls(raw);
+  }
   function isModelCallDue(call, roundIndex) {
     const n = Math.max(1, toInt(call?.every_n_turns, 1));
     return roundIndex % n === 0;
@@ -2437,30 +2455,55 @@ Example: [{"id": "chk_0", "category": "information"}, {"id": "chk_1", "category"
   }
 
   function formatLoreOutput(raw, parsed, outputFormat, lorebookName, totalEntries) {
-    if (!parsed || typeof parsed !== "object") {
+    
+    
+    
+    let normalizedParsed = parsed;
+    if (Array.isArray(parsed)) {
+      const merged = {};
+      for (const it of parsed) {
+        if (it && typeof it === "object" && !Array.isArray(it)) Object.assign(merged, it);
+      }
+      normalizedParsed = Object.keys(merged).length ? merged : null;
+    }
+
+    if (!normalizedParsed || typeof normalizedParsed !== "object") {
       const rawTrimmed = String(raw || "").trim();
       const formatTrimmed = String(outputFormat || "").trim();
       if (/^[{[]/.test(formatTrimmed) && !/^[{[]/.test(rawTrimmed)) return "";
       return totalEntries === 1 ? rawTrimmed : "";
     }
-    if (Object.prototype.hasOwnProperty.call(parsed, lorebookName)) {
-      const val = parsed[lorebookName];
+    if (Object.prototype.hasOwnProperty.call(normalizedParsed, lorebookName)) {
+      const val = normalizedParsed[lorebookName];
+      
+      
+      if (val === null || val === undefined || val === false || val === "" || val === 0) return "";
       if (typeof val === "string") return val.trim();
+      
+      
       try { return JSON.stringify(val); } catch { return String(val || "").trim(); }
     }
-    if (totalEntries === 1 && isPlainObject(parsed)) {
-      const keys = Object.keys(parsed);
+    if (totalEntries === 1 && isPlainObject(normalizedParsed)) {
+      const keys = Object.keys(normalizedParsed);
       if (keys.length === 1) {
-        const val = parsed[keys[0]];
+        const val = normalizedParsed[keys[0]];
+        if (val === null || val === undefined || val === false || val === "" || val === 0) return "";
         if (typeof val === "string") return val.trim();
         try { return JSON.stringify(val); } catch { return String(val || "").trim(); }
       }
+      
+      
+      
+      try { return JSON.stringify(normalizedParsed); } catch { return String(raw || "").trim(); }
     }
     return "";
   }
 
-  function resolveLoreCommentForTarget(target) {
-    const entries = getModelCalls().filter((c) => c.target_model === target).flatMap((c) => c.entries || []);
+  function resolveLoreCommentForTarget(target, callsOverride) {
+    
+    
+    const calls = callsOverride || getModelCalls();
+    const entries = calls.filter((c) => c.target_model === target).flatMap((c) => c.entries || []);
     return safeTrim(entries?.[0]?.lorebook_name) || LOCAL_LORE_COMMENT;
   }
 
@@ -2532,8 +2575,11 @@ Example: [{"id": "chk_0", "category": "information"}, {"id": "chk_1", "category"
     });
   }
 
-  async function applyRetentionCleanup(userMsgCount) {
-    const calls = getModelCalls();
+  async function applyRetentionCleanup(userMsgCount, callsOverride) {
+    
+    
+    
+    const calls = callsOverride || getModelCalls();
     const retentionEntries = [];
     for (const call of calls) {
       for (const entry of (call.entries || [])) {
@@ -2581,41 +2627,63 @@ Example: [{"id": "chk_0", "category": "information"}, {"id": "chk_1", "category"
     });
   }
 
-  async function writeOutputsForCall(modelCall, raw, parsed, reqHash, roundIndex = 0) {
+  async function writeOutputsForCall(modelCall, raw, parsed, roundIndex = 0, callsOverride) {
     const entries = modelCall.entries || [];
     const target = modelCall.target_model === "B" ? "B" : "A";
+
+    
+    
+    
+    
     const alignedParsed = alignParsedObjectToEntries(raw, parsed, entries);
-    if (entries.length > 1 && (!alignedParsed || typeof alignedParsed !== "object")) {
-      throw new Error(`Auxiliary model (${modelCall.name}) must return a JSON object, but parsing failed. First 100 chars of raw: ${String(raw || "").slice(0, 100)}`);
-    }
 
     const pendingWrites = [];
     const outputIssues = [];
     for (const entry of entries) {
-      const loreName = safeTrim(entry?.lorebook_name) || resolveLoreCommentForTarget(target);
+      const loreName = safeTrim(entry?.lorebook_name) || resolveLoreCommentForTarget(target, callsOverride);
       const writeMode = safeTrim(entry?.write_mode) === "overwrite" ? "overwrite" : "append";
       const alwaysActive = entry?.always_active === true;
       const outputFormat = safeTrim(entry?.output_format) || "raw";
-      if (alignedParsed && typeof alignedParsed === "object" && entries.length > 1 && !Object.prototype.hasOwnProperty.call(alignedParsed, loreName)) {
-        outputIssues.push(`${loreName}: missing key`);
-        continue;
-      }
-      const content = formatLoreOutput(raw, alignedParsed, outputFormat, loreName, entries.length);
-      if (!safeTrim(content)) {
-        outputIssues.push(`${loreName}: empty content`);
-        continue;
-      }
-      pendingWrites.push({
-        loreName, writeMode, alwaysActive, content
-      });
-    }
 
-    if (outputIssues.length > 0) {
-      throw new Error(`Auxiliary model output validation failed (${modelCall.name}): ${outputIssues.join("; ")}. Raw preview: ${String(raw || "").slice(0, 180)}`);
+      
+      let content = formatLoreOutput(raw, alignedParsed, outputFormat, loreName, entries.length);
+
+      
+      
+      if (!safeTrim(content) && entries.length > 1 && parsed && typeof parsed === "object") {
+        
+        const singleAlign = alignParsedObjectToEntries(raw, parsed, [entry]);
+        content = formatLoreOutput(raw, singleAlign, outputFormat, loreName, 1);
+      }
+
+      if (!safeTrim(content)) {
+        outputIssues.push(`${loreName}: no extractable content`);
+        continue;
+      }
+      pendingWrites.push({ loreName, writeMode, alwaysActive, content });
     }
 
     if (pendingWrites.length === 0) {
-      throw new Error(`Auxiliary model output is unusable (${modelCall.name}). Expected entries: ${entries.map(e => e.lorebook_name).join(", ") || "(none)"}`);
+      
+      const issuesSummary = outputIssues.join("; ");
+      if (entries.length > 1 && (!alignedParsed || typeof alignedParsed !== "object")) {
+        throw new Error(
+          _T.err_json_expected(modelCall.name) +
+          ` First 100 chars of raw: ${String(raw || "").slice(0, 100)}`
+        );
+      }
+      throw new Error(
+        _T.err_unusable_output(modelCall.name) +
+        ` Issues: ${issuesSummary || "(none)"}. Expected entries: ${entries.map(e => e.lorebook_name).join(", ") || "(none)"}`
+      );
+    }
+
+    
+    if (outputIssues.length > 0) {
+      await Risuai.log(
+        `${LOG} Warning (${modelCall.name}): partial write — ${outputIssues.join("; ")}. ` +
+        `Writing ${pendingWrites.length}/${entries.length} entries.`
+      );
     }
 
     const wrote = await batchUpsertLocalLore(pendingWrites, roundIndex);
@@ -2624,7 +2692,37 @@ Example: [{"id": "chk_0", "category": "information"}, {"id": "chk_1", "category"
     }
   }
 
-  async function callOpenAICompat({ url, apiKey, model, messages, timeoutMs, temperature }) {
+  
+  
+  function thinkingLevelToClaudeBudget(level) {
+    switch (safeTrim(level).toLowerCase()) {
+      case "low": return 1024;
+      case "medium": return 8000;
+      case "high": return 32000;
+      default: return 8000; 
+    }
+  }
+
+  
+  function thinkingLevelToGemini(level) {
+    switch (safeTrim(level).toUpperCase()) {
+      case "LOW": return "LOW";
+      case "HIGH": return "HIGH";
+      case "MEDIUM": return "MEDIUM";
+      default: return "MEDIUM";
+    }
+  }
+
+  
+  function thinkingLevelToOpenAIEffort(level) {
+    switch (safeTrim(level).toLowerCase()) {
+      case "low": return "low";
+      case "high": return "high";
+      default: return "medium";
+    }
+  }
+
+  async function callOpenAICompat({ url, apiKey, model, messages, timeoutMs, temperature, thinkingEnabled, thinkingLevel }) {
     const finalUrl = normalizeUrl(url);
     const finalModel = safeTrim(model);
     if (!finalUrl || !finalModel) throw new Error(`Extractor URL/model is missing.`);
@@ -2637,6 +2735,7 @@ Example: [{"id": "chk_0", "category": "information"}, {"id": "chk_1", "category"
       body: JSON.stringify({
         model: finalModel,
         ...(Number.isFinite(Number(temperature)) ? { temperature: Math.max(0, Math.min(2, Number(temperature))) } : {}),
+        ...(thinkingEnabled && thinkingLevel ? { reasoning_effort: thinkingLevelToOpenAIEffort(thinkingLevel) } : {}),
         response_format: { type: "json_object" },
         messages
       }),
@@ -2693,7 +2792,7 @@ Example: [{"id": "chk_0", "category": "information"}, {"id": "chk_1", "category"
     return { systemInstruction: systemTexts.length ? { parts: [{ text: systemTexts.join("\n\n") }] } : undefined, contents };
   }
 
-  async function callGoogleGenerative({ url, apiKey, model, messages, timeoutMs, temperature }) {
+  async function callGoogleGenerative({ url, apiKey, model, messages, timeoutMs, temperature, thinkingEnabled, thinkingLevel }) {
     const finalUrl = normalizeGoogleGenerateUrl(url, model, apiKey);
     if (!finalUrl) throw new Error("Google URL/model is missing.");
     const headers = { "Content-Type": "application/json" };
@@ -2703,6 +2802,7 @@ Example: [{"id": "chk_0", "category": "information"}, {"id": "chk_1", "category"
       generationConfig: {
         ...(Number.isFinite(Number(temperature)) ? { temperature: Math.max(0, Math.min(2, Number(temperature))) } : {}),
         responseMimeType: "application/json",
+        ...(thinkingEnabled && thinkingLevel ? { thinkingConfig: { includeThoughts: true, thinkingLevel: thinkingLevelToGemini(thinkingLevel).toLowerCase() } } : {}),
       },
       safetySettings: [
         { category: "HARM_CATEGORY_SEXUALLY_EXPLICIT", threshold: "BLOCK_NONE" },
@@ -2722,7 +2822,7 @@ Example: [{"id": "chk_0", "category": "information"}, {"id": "chk_1", "category"
     return { parsed: parsePossiblyWrappedJson(content), raw: content };
   }
 
-  async function callVertexGenerative({ url, apiKey, model, messages, timeoutMs, temperature }) {
+  async function callVertexGenerative({ url, apiKey, model, messages, timeoutMs, temperature, thinkingEnabled, thinkingLevel }) {
     const finalUrl = normalizeVertexGenerateUrl(url, model);
     if (!finalUrl) throw new Error("Vertex AI URL/model is missing.");
     const headers = { "Content-Type": "application/json" };
@@ -2733,6 +2833,7 @@ Example: [{"id": "chk_0", "category": "information"}, {"id": "chk_1", "category"
       generationConfig: {
         ...(Number.isFinite(Number(temperature)) ? { temperature: Math.max(0, Math.min(2, Number(temperature))) } : {}),
         responseMimeType: "application/json",
+        ...(thinkingEnabled && thinkingLevel ? { thinkingConfig: { includeThoughts: true, thinking_level: thinkingLevelToGemini(thinkingLevel) } } : {}),
       },
       safetySettings: [
         { category: "HARM_CATEGORY_SEXUALLY_EXPLICIT", threshold: "BLOCK_NONE" },
@@ -2752,7 +2853,7 @@ Example: [{"id": "chk_0", "category": "information"}, {"id": "chk_1", "category"
     return { parsed: parsePossiblyWrappedJson(content), raw: content };
   }
 
-  async function callClaudeCompat({ url, apiKey, model, messages, timeoutMs, temperature }) {
+  async function callClaudeCompat({ url, apiKey, model, messages, timeoutMs, temperature, thinkingEnabled, thinkingLevel }) {
     const finalUrl = safeTrim(url || "").replace(/\/+$/, "");
     if (!finalUrl || !safeTrim(model)) throw new Error("Claude URL/model is missing.");
     const system = (messages || []).filter((m) => m?.role === "system").map((m) => normalizeMessageContent(m?.content)).filter(Boolean).join("\n\n");
@@ -2765,12 +2866,16 @@ Example: [{"id": "chk_0", "category": "information"}, {"id": "chk_1", "category"
       headers = await applyCopilotAuthHeaders(headers, apiKey);
       delete headers["x-api-key"];
     }
+    const claudeThinkingBlock = thinkingEnabled && thinkingLevel
+      ? { thinking: { type: "enabled", budget_tokens: thinkingLevelToClaudeBudget(thinkingLevel) } }
+      : {};
     const basePayload = {
       model,
-      max_tokens: 4096,
+      max_tokens: thinkingEnabled && thinkingLevel ? Math.max(4096, thinkingLevelToClaudeBudget(thinkingLevel) + 1024) : 4096,
       ...(Number.isFinite(Number(temperature)) ? { temperature: Math.max(0, Math.min(2, Number(temperature))) } : {}),
       ...(system ? { system } : {}),
       messages: chatMessages,
+      ...claudeThinkingBlock,
     };
     const toolPayload = {
       ...basePayload,
@@ -2823,14 +2928,14 @@ Example: [{"id": "chk_0", "category": "information"}, {"id": "chk_1", "category"
     return { parsed: parsePossiblyWrappedJson(content), raw: content };
   }
 
-  async function callExtractorStrict({ url, apiKey, model, messages, timeoutMs, mode, format = "openai", temperature = 0 }) {
+  async function callExtractorStrict({ url, apiKey, model, messages, timeoutMs, mode, format = "openai", temperature = 0, thinkingEnabled = false, thinkingLevel = "" }) {
     const runner = async () => {
       const f = safeTrim(format || "openai").toLowerCase();
-      const result = f === "google" ? await callGoogleGenerative({ url, apiKey, model, messages, timeoutMs, temperature })
-        : f === "vertex" ? await callVertexGenerative({ url, apiKey, model, messages, timeoutMs, temperature })
-        : f === "claude" ? await callClaudeCompat({ url, apiKey, model, messages, timeoutMs, temperature })
-          : await callOpenAICompat({ url, apiKey, model, messages, timeoutMs, temperature });
-      if (!safeTrim(result?.raw)) throw new Error(`Extractor ${mode} returned empty content.`);
+      const result = f === "google" ? await callGoogleGenerative({ url, apiKey, model, messages, timeoutMs, temperature, thinkingEnabled, thinkingLevel })
+        : f === "vertex" ? await callVertexGenerative({ url, apiKey, model, messages, timeoutMs, temperature, thinkingEnabled, thinkingLevel })
+          : f === "claude" ? await callClaudeCompat({ url, apiKey, model, messages, timeoutMs, temperature, thinkingEnabled, thinkingLevel })
+            : await callOpenAICompat({ url, apiKey, model, messages, timeoutMs, temperature, thinkingEnabled, thinkingLevel });
+      if (!safeTrim(result?.raw)) throw new Error(_T.err_extractor_empty(mode));
       return { ...result, parsed: result?.parsed || null };
     };
     const m = mode === "A" ? mutexA : mode === "B" ? mutexB : null;
@@ -2875,13 +2980,13 @@ Example: [{"id": "chk_0", "category": "information"}, {"id": "chk_1", "category"
   }
 
   async function injectKnowledgeIntoMessages(messages, queryText) {
-    // Strip any PSE knowledge blocks injected in a previous pass.
+    
     const cleanInput = messages.filter(m =>
       !(m?.role === "system" && typeof m?.content === "string" && m.content.startsWith(`<${KNOWLEDGE_BLOCK_TAG}>`))
     );
     const isChatRole = (role) => role === "user" || role === "assistant" || role === "char";
 
-    // ── Load chunks ──────────────────────────────────────────────────────────
+    
     const { char, chat } = await getCurrentCharAndChatSafe();
     const staticKeys = getStaticCacheKeysForScope(char);
     const staticRaw = await Risuai.pluginStorage.getItem(staticKeys.staticKnowledgeChunks);
@@ -2890,7 +2995,7 @@ Example: [{"id": "chk_0", "category": "information"}, {"id": "chk_1", "category"
       try { staticChunks = JSON.parse(staticRaw); }
       catch (e) {
         console.warn(`${LOG} [injectKnowledge] failed to parse static_knowledge_chunks:`, e);
-        await Risuai.log(`${LOG} ⚠️ Unable to parse static_knowledge_chunks. Please check if Step 0 has completed.`);
+        await Risuai.log(`${LOG} ` + _T.warn_parse_failed);
       }
     }
 
@@ -2927,7 +3032,7 @@ Example: [{"id": "chk_0", "category": "information"}, {"id": "chk_1", "category"
     const allChunks = [...staticChunks, ...dynamicChunks];
     if (allChunks.length === 0) {
       console.warn(`${LOG} [injectKnowledge] allChunks is empty. Knowledge injection skipped.`);
-      await Risuai.log(`${LOG} ⚠️ No available chunks. Knowledge injection skipped. Please check if Step 0 has completed.`);
+      await Risuai.log(`${LOG} ` + _T.warn_no_chunks);
       return cleanInput;
     }
 
@@ -2935,7 +3040,7 @@ Example: [{"id": "chk_0", "category": "information"}, {"id": "chk_1", "category"
     const inactiveChunks = allChunks.filter((c) => !c.alwaysActive);
     const vectorEligibleInactiveChunks = inactiveChunks.filter((c) => hasPrimaryTriggerKey(c));
 
-    // ── Build query text from recent chat turns ───────────────────────────────
+    
     const firstChatIdx = (() => { const i = cleanInput.findIndex((m) => isChatRole(m?.role)); return i === -1 ? cleanInput.length : i; })();
     let lastChatIdx = -1;
     for (let i = cleanInput.length - 1; i >= 0; i--) { if (isChatRole(cleanInput[i]?.role)) { lastChatIdx = i; break; } }
@@ -2945,14 +3050,14 @@ Example: [{"id": "chk_0", "category": "information"}, {"id": "chk_1", "category"
     const recentMsgs = limitConversationByRounds(trimmedTurns, queryRounds);
     const resolvedQueryText = recentMsgs.map(m => String(m.content || "")).join("\n") || queryText || "";
 
-    // ── Select inactive chunks: vector search or keyword fallback ─────────────
-    const topK = Math.max(1, toInt(configCache.vector_search_top_k, 8));
+    
+    const topK = Math.max(1, toInt(configCache.vector_search_top_k, DEFAULTS.vector_search_top_k));
     const minScore = Number(configCache.vector_search_min_score) || 0;
     let topInactiveChunks = [];
 
     if (inactiveChunks.length > 0) {
       if (configCache.vector_search_enabled === 1 && vectorEligibleInactiveChunks.length > 0) {
-        // Vector search path
+        
         try {
           const finalQueryText = resolvedQueryText || " ";
           const queryVecs = await getEmbeddingsForTexts([finalQueryText], true);
@@ -2992,7 +3097,7 @@ Example: [{"id": "chk_0", "category": "information"}, {"id": "chk_1", "category"
                   if (!chunk.isDynamic) {
                     upsertEmbeddingCacheEntry(store, cardKey, cardName, `chunk|${simpleHash(chunk.content)}`, {
                       sourceType: "chunk", name: chunk.source, textHash: simpleHash(chunk.content), dims: vec.length, vector: vec,
-                    });
+                    }, cfg.requestModel);
                     newlyAddedBatch = true;
                   } else {
                     const memCacheKey = `${cfg.provider}|${cfg.format}|${cfg.url}|${cfg.requestModel}|${simpleHash(chunk.content)}`;
@@ -3016,7 +3121,7 @@ Example: [{"id": "chk_0", "category": "information"}, {"id": "chk_1", "category"
         }
       }
 
-      // Keyword matching path — used when vector search is off, or as fallback when vector search yields nothing
+      
       if (topInactiveChunks.length === 0) {
         if (resolvedQueryText.trim()) {
           const matchedChunks = [];
@@ -3052,7 +3157,7 @@ Example: [{"id": "chk_0", "category": "information"}, {"id": "chk_1", "category"
       }
     }
 
-    // ── Group and build injection blocks ──────────────────────────────────────
+    
     const grouped = {
       rp_instruction: { active: [], inactive: [] },
       information: { active: [], inactive: [] },
@@ -3126,7 +3231,7 @@ Example: [{"id": "chk_0", "category": "information"}, {"id": "chk_1", "category"
     };
   }
 
-  async function runStep0Classification(char, chat, resolvedGlobalNote, staticDataHash, staticKeys, resumeMode = false) {
+  async function runStep0Classification(char, chat, resolvedGlobalNote, staticDataHash, staticKeys, resumeMode = false, classifyDoneMode = false) {
     await Risuai.pluginStorage.setItem(staticKeys.step0Complete, "");
     const chunks = [];
     let chunkId = 0;
@@ -3215,7 +3320,7 @@ Example: [{"id": "chk_0", "category": "information"}, {"id": "chk_1", "category"
                       const textHash = simpleHash(chunk.content);
                       upsertEmbeddingCacheEntry(store, cardKey, charName, `chunk|${textHash}`, {
                         sourceType: "chunk", name: chunk.source, textHash, dims: vec.length, vector: vec,
-                      });
+                      }, cfg.requestModel);
                       newlyAdded = true;
                     }
                   });
@@ -3239,9 +3344,23 @@ Example: [{"id": "chk_0", "category": "information"}, {"id": "chk_1", "category"
     const endpoint = targetModel === "B" ? resolved.b : resolved.a;
 
     const chunksToClassify = chunks.filter(c => !c.alwaysActive);
-    const skipClassification = !safeTrim(endpoint.url) || !safeTrim(endpoint.model);
-    if (skipClassification || chunksToClassify.length === 0) {
-    } else {
+    const skipClassification = classifyDoneMode || !safeTrim(endpoint.url) || !safeTrim(endpoint.model);
+    if (classifyDoneMode) {
+      
+      try {
+        const savedRaw = await Risuai.pluginStorage.getItem(staticKeys.staticKnowledgeChunks);
+        if (savedRaw) {
+          const savedChunks = JSON.parse(savedRaw);
+          if (Array.isArray(savedChunks) && savedChunks.length > 0) {
+            const savedMap = new Map(savedChunks.map(c => [c.id, c]));
+            for (const chunk of chunks) {
+              const saved = savedMap.get(chunk.id);
+              if (saved?.category) chunk.category = saved.category;
+            }
+          }
+        }
+      } catch { }
+    } else if (!skipClassification && chunksToClassify.length > 0) {
       const batchSize = 10;
       const totalBatches = Math.ceil(chunksToClassify.length / batchSize);
       for (let i = 0; i < chunksToClassify.length; i += batchSize) {
@@ -3338,7 +3457,7 @@ Example: [{"id": "chk_0", "category": "information"}, {"id": "chk_1", "category"
                   textHash: textHash,
                   dims: vec.length,
                   vector: vec,
-                });
+                }, cfg.requestModel);
                 newlyAdded = true;
                 successCount++;
               }
@@ -3394,6 +3513,21 @@ Example: [{"id": "chk_0", "category": "information"}, {"id": "chk_1", "category"
       let entry = chat.localLore[i];
       if (!entry || typeof entry.content !== "string") { newLocalLore.push(entry); continue; }
       const originalContent = entry.content;
+
+      
+      
+      
+      const owMatch = originalContent.match(/^## .*?\n<!-- written_at_turn: (\d+) -->/m);
+      if (owMatch) {
+        const writtenAt = Number(owMatch[1]);
+        if (Number.isFinite(writtenAt) && writtenAt > userMsgCount) {
+          loreModified = true;
+          continue; 
+        }
+        newLocalLore.push(entry);
+        continue;
+      }
+
       if (!hasTurnMarkers(originalContent)) { newLocalLore.push(entry); continue; }
 
       const headerMatch = originalContent.match(/^## .*?\n/);
@@ -3564,7 +3698,7 @@ Example: [{"id": "chk_0", "category": "information"}, {"id": "chk_1", "category"
     const topPricing = modelObj?.top_provider?.pricing || {};
     const inRaw = Number(pricing?.prompt ?? pricing?.input ?? pricing?.input_text ?? pricing?.prompt_token ?? topPricing?.prompt ?? topPricing?.input);
     const outRaw = Number(pricing?.completion ?? pricing?.output ?? pricing?.output_text ?? pricing?.completion_token ?? topPricing?.completion ?? topPricing?.output);
-    const formatPerMillion = (v) => { if (!Number.isFinite(v) || v < 0) return ""; return `$${(v * 1_000_000).toFixed(3)}/M`; };
+    const formatPerMillion = (v) => { if (!Number.isFinite(v) || v < 0) return ""; return `$${(v * 1000000).toFixed(3)}/M`; };
     const inLabel = formatPerMillion(inRaw); const outLabel = formatPerMillion(outRaw);
     if (inLabel && outLabel) return `${id} | in ${inLabel} out ${outLabel}`;
     if (inLabel) return `${id} | in ${inLabel}`;
@@ -3708,30 +3842,30 @@ Example: [{"id": "chk_0", "category": "information"}, {"id": "chk_1", "category"
     s.id = "pse-styles";
     s.textContent = `
       :root {
-        --pse-overlay: rgba(82, 82, 82, 0.55);
-        --pse-card-bg: #f5f5f5;
-        --pse-card-text: #1f1f1f;
-        --pse-muted: #525252;
-        --pse-section-bg: #ebebeb;
-        --pse-section-border: #cfcfcf;
+        --pse-overlay: rgba(0, 0, 0, 0.4);
+        --pse-card-bg: #ffffff;
+        --pse-card-text: #171717;
+        --pse-muted: #666666;
+        --pse-section-bg: #f5f5f5;
+        --pse-section-border: #e5e5e5;
         --pse-input-bg: #ffffff;
-        --pse-input-border: #bdbdbd;
-        --pse-tab-bg: #f0f0f0;
-        --pse-tab-active-bg: #3f3f3f;
-        --pse-tab-active-text: #f5f5f5;
-        --pse-card-shadow: rgba(0, 0, 0, 0.28);
-        --pse-call-a-border: #9a9a9a;
-        --pse-call-b-border: #6f6f6f;
-        --pse-embed-border: #7f7f7f;
-        --pse-accent-blue: #2563eb;
-        --pse-accent-green: #059669;
-        --pse-accent-amber: #d97706;
-        --pse-accent-cyan: #0891b2;
-        --pse-accent-rose: #e11d48;
-        --pse-accent-indigo: #4f46e5;
-        --pse-accent-orange: #ea580c;
-        --pse-accent-violet: #7c3aed;
-        --pse-accent-yellow: #ca8a04;
+        --pse-input-border: #d4d4d4;
+        --pse-tab-bg: #f5f5f5;
+        --pse-tab-active-bg: #262626;
+        --pse-tab-active-text: #ffffff;
+        --pse-card-shadow: rgba(0, 0, 0, 0.12);
+        --pse-call-a-border: #a3a3a3;
+        --pse-call-b-border: #737373;
+        --pse-embed-border: #8c8c8c;
+        --pse-accent-blue: #2979ff;
+        --pse-accent-green: #00e676;
+        --pse-accent-amber: #ffab00;
+        --pse-accent-cyan: #00e5ff;
+        --pse-accent-rose: #ff1744;
+        --pse-accent-indigo: #651fff;
+        --pse-accent-orange: #ff9100;
+        --pse-accent-violet: #d500f9;
+        --pse-accent-yellow: #ffea00;
         --pse-font-size-title: 20px;
         --pse-font-size-subtitle: 13px;
         --pse-font-size-header: 15px;
@@ -3740,30 +3874,30 @@ Example: [{"id": "chk_0", "category": "information"}, {"id": "chk_1", "category"
       }
       @media (prefers-color-scheme: dark) {
         :root {
-          --pse-overlay: rgba(10, 10, 10, 0.72);
-          --pse-card-bg: #202020;
-          --pse-card-text: #e9e9e9;
-          --pse-muted: #b9b9b9;
-          --pse-section-bg: #292929;
-          --pse-section-border: #3e3e3e;
-          --pse-input-bg: #171717;
-          --pse-input-border: #4c4c4c;
-          --pse-tab-bg: #272727;
-          --pse-tab-active-bg: #dbdbdb;
-          --pse-tab-active-text: #1b1b1b;
-          --pse-card-shadow: rgba(0, 0, 0, 0.52);
-          --pse-call-a-border: #8f8f8f;
-          --pse-call-b-border: #b0b0b0;
-          --pse-embed-border: #7e7e7e;
-          --pse-accent-blue: #60a5fa;
-          --pse-accent-green: #34d399;
-          --pse-accent-amber: #fbbf24;
-          --pse-accent-cyan: #67e8f9;
-          --pse-accent-rose: #fb7185;
-          --pse-accent-indigo: #818cf8;
-          --pse-accent-orange: #fb923c;
-          --pse-accent-violet: #a78bfa;
-          --pse-accent-yellow: #facc15;
+          --pse-overlay: rgba(0, 0, 0, 0.65);
+          --pse-card-bg: #171717;
+          --pse-card-text: #f5f5f5;
+          --pse-muted: #a3a3a3;
+          --pse-section-bg: #262626;
+          --pse-section-border: #383838;
+          --pse-input-bg: #0a0a0a;
+          --pse-input-border: #4a4a4a;
+          --pse-tab-bg: #262626;
+          --pse-tab-active-bg: #f5f5f5;
+          --pse-tab-active-text: #171717;
+          --pse-card-shadow: rgba(0, 0, 0, 0.45);
+          --pse-call-a-border: #8c8c8c;
+          --pse-call-b-border: #a3a3a3;
+          --pse-embed-border: #737373;
+          --pse-accent-blue: #2979ff;
+          --pse-accent-green: #00e676;
+          --pse-accent-amber: #ffab00;
+          --pse-accent-cyan: #00e5ff;
+          --pse-accent-rose: #ff1744;
+          --pse-accent-indigo: #651fff;
+          --pse-accent-orange: #ff9100;
+          --pse-accent-violet: #d500f9;
+          --pse-accent-yellow: #ffea00;
         }
       }
       .pse-body {
@@ -3802,17 +3936,17 @@ Example: [{"id": "chk_0", "category": "information"}, {"id": "chk_1", "category"
       .pse-model-section-a {
         border:1px solid var(--pse-section-border);
         border-left:4px solid var(--pse-accent-blue);
-        background:linear-gradient(180deg, rgba(37, 99, 235, 0.1) 0%, var(--pse-input-bg) 100%);
+        background:linear-gradient(180deg, rgba(41, 121, 255, 0.1) 0%, var(--pse-input-bg) 100%);
       }
       .pse-model-section-b {
         border:1px solid var(--pse-section-border);
         border-left:4px solid var(--pse-accent-green);
-        background:linear-gradient(180deg, rgba(5, 150, 105, 0.1) 0%, var(--pse-input-bg) 100%);
+        background:linear-gradient(180deg, rgba(0, 230, 118, 0.1) 0%, var(--pse-input-bg) 100%);
       }
       .pse-model-section-embed {
         border:1px solid var(--pse-section-border);
         border-left:4px solid var(--pse-accent-amber);
-        background:linear-gradient(180deg, rgba(217, 119, 6, 0.1) 0%, var(--pse-input-bg) 100%);
+        background:linear-gradient(180deg, rgba(255, 171, 0, 0.1) 0%, var(--pse-input-bg) 100%);
       }
       .pse-section-title { margin:0 0 8px; color:var(--pse-card-text); font-size:var(--pse-font-size-header); font-weight:700; }
       .pse-tabs { display:flex; gap:8px; margin:10px 0 12px; }
@@ -3826,19 +3960,14 @@ Example: [{"id": "chk_0", "category": "information"}, {"id": "chk_1", "category"
       .pse-page.active { display:block; }
       .pse-label { display:block; margin:6px 0 4px; font-size:var(--pse-font-size-body); color:var(--pse-muted); font-weight:600; }
       .pse-status { margin:10px 0; padding:10px; border-radius:8px; font-size:var(--pse-font-size-small); font-weight:600; display:none; }
-      .pse-status.info { display:block; background:#dcdcdc; color:#2b2b2b; }
-      .pse-status.ok { display:block; background:#cecece; color:#1f1f1f; }
-      .pse-status.err { display:block; background:#bdbdbd; color:#111; }
+      .pse-status.info { display:block; background:rgba(128, 128, 128, 0.15); color:var(--pse-card-text); border:1px solid var(--pse-section-border); }
+      .pse-status.ok { display:block; background:rgba(0, 230, 118, 0.1); color:var(--pse-accent-green); border:1px solid rgba(0, 230, 118, 0.3); }
+      .pse-status.err { display:block; background:rgba(255, 23, 68, 0.1); color:var(--pse-accent-rose); border:1px solid rgba(255, 23, 68, 0.3); }
       .pse-input {
         width:100%; padding:8px 10px; border-radius:8px;
         background:var(--pse-input-bg); color:var(--pse-card-text);
         border:1px solid var(--pse-input-border); box-sizing:border-box;
         font-size:var(--pse-font-size-body); font-family:inherit; outline:none;
-      }
-      .pse-btn {
-        padding:10px 16px; border:none; border-radius:8px;
-        font-size:var(--pse-font-size-body); font-weight:700; cursor:pointer;
-        background:var(--pse-accent-blue); color:#fff; transition:opacity 0.2s;
       }
       .pse-btn-outline {
         padding:8px 12px; border:1px solid var(--pse-accent-blue); background:none;
@@ -3853,36 +3982,36 @@ Example: [{"id": "chk_0", "category": "information"}, {"id": "chk_1", "category"
       .pse-textarea-wrap { position:relative; }
       .pse-textarea {
         width:100%; min-height:120px; padding:8px 50px 8px 8px; border:1px solid var(--pse-input-border);
-        background:#1a1a1a; color:#f5f5f5; border-radius:6px; font-size:13px; box-sizing:border-box;
+        background:var(--pse-input-bg); color:var(--pse-card-text); border-radius:6px; font-size:13px; box-sizing:border-box;
         font-family: 'Consolas', 'Monaco', 'Lucida Console', 'Courier New', monospace; resize:vertical; outline:none;
       }
       .pse-entry-list { display:flex; flex-direction:column; gap:8px; margin-top:8px; }
       .pse-call-card {
         border:1px solid var(--pse-section-border); border-left:4px solid var(--pse-accent-blue);
-        background:linear-gradient(180deg, rgba(37, 99, 235, 0.1) 0%, var(--pse-input-bg) 100%);
+        background:linear-gradient(180deg, rgba(41, 121, 255, 0.1) 0%, var(--pse-input-bg) 100%);
         border-radius:10px; padding:12px;
       }
-.pse-call-card[data-call-parity="odd"] { border-left-color:var(--pse-accent-green); background:linear-gradient(180deg, rgba(5, 150, 105, 0.12) 0%, var(--pse-input-bg) 100%); }
-      .pse-call-card[data-call-parity="even"] { border-left-color:var(--pse-accent-blue); background:linear-gradient(180deg, rgba(37, 99, 235, 0.12) 0%, var(--pse-input-bg) 100%); }
+.pse-call-card[data-call-parity="odd"] { border-left-color:var(--pse-accent-green); background:linear-gradient(180deg, rgba(0, 230, 118, 0.12) 0%, var(--pse-input-bg) 100%); }
+      .pse-call-card[data-call-parity="even"] { border-left-color:var(--pse-accent-blue); background:linear-gradient(180deg, rgba(41, 121, 255, 0.12) 0%, var(--pse-input-bg) 100%); }
       .pse-page[data-page="3"] .pse-section:first-child { border-left:4px solid var(--pse-accent-indigo); }
-      .pse-page[data-page="5"] .pse-section { border-left: 4px solid var(--pse-accent-green); background: linear-gradient(180deg, rgba(5, 150, 105, 0.08) 0%, var(--pse-input-bg) 100%); }
-      .pse-page[data-page="6"] .pse-section { border-left: 4px solid var(--pse-accent-amber); background: linear-gradient(180deg, rgba(217, 119, 6, 0.1) 0%, var(--pse-section-bg) 100%); }
-      .pse-call-head { display:grid; grid-template-columns: auto 1fr 120px 120px auto; gap:8px; align-items:end; }
-      .pse-call-row2 { margin-top:8px; display:grid; grid-template-columns: 180px 1fr; gap:8px; align-items:end; }
+      .pse-page[data-page="5"] .pse-section { border-left: 4px solid var(--pse-accent-green); background: linear-gradient(180deg, rgba(0, 230, 118, 0.08) 0%, var(--pse-input-bg) 100%); }
+      .pse-page[data-page="6"] .pse-section { border-left: 4px solid var(--pse-accent-amber); background: linear-gradient(180deg, rgba(255, 171, 0, 0.1) 0%, var(--pse-section-bg) 100%); }
+      .pse-call-head { display:grid; grid-template-columns: 1fr minmax(110px, auto) minmax(90px, auto) auto; gap:8px; align-items:end; }
+      .pse-call-row2 { margin-top:8px; display:grid; grid-template-columns: minmax(180px, auto) 1fr; gap:8px; align-items:end; }
       .pse-assembly {
         border:1px dashed var(--pse-section-border); border-left:4px solid var(--pse-accent-violet);
-        background:linear-gradient(180deg, rgba(124, 58, 237, 0.08) 0%, var(--pse-input-bg) 100%);
+        background:linear-gradient(180deg, rgba(213, 0, 249, 0.08) 0%, var(--pse-input-bg) 100%);
         border-radius:8px; padding:10px; font-size:12px; line-height:1.55; color:var(--pse-card-text);
       }
       .pse-entry-block { border:1px solid var(--pse-section-border); border-radius:8px; background:var(--pse-input-bg); padding:8px; }
-      .pse-entry-block[data-cache-parity="even"] { border-left:4px solid var(--pse-accent-blue); background:linear-gradient(180deg, rgba(37, 99, 235, 0.08) 0%, var(--pse-input-bg) 100%); }
-      .pse-entry-block[data-cache-parity="odd"] { border-left:4px solid var(--pse-accent-green); background:linear-gradient(180deg, rgba(5, 150, 105, 0.08) 0%, var(--pse-input-bg) 100%); }
-      .pse-entry-grid { display:grid; grid-template-columns: 1fr 120px 100px auto; gap:8px; align-items:end; }
-      .pse-entry-grid-row2 { margin-top:8px; display:grid; grid-template-columns: 1fr; gap:8px; }
+      .pse-entry-block[data-cache-parity="even"] { border-left:4px solid var(--pse-accent-blue); background:linear-gradient(180deg, rgba(41, 121, 255, 0.08) 0%, var(--pse-input-bg) 100%); }
+      .pse-entry-block[data-cache-parity="odd"] { border-left:4px solid var(--pse-accent-green); background:linear-gradient(180deg, rgba(0, 230, 118, 0.08) 0%, var(--pse-input-bg) 100%); }
+      .pse-entry-grid { display:grid; grid-template-columns: 1fr minmax(110px, auto) minmax(90px, auto) auto; gap:8px; align-items:end; }      .pse-entry-grid-row2 { margin-top:8px; display:grid; grid-template-columns: 1fr; gap:8px; }
       .pse-entry-format-input {
         width:100%; min-height:72px; padding:8px; border:1px solid var(--pse-input-border);
         border-radius:6px; box-sizing:border-box; resize:vertical; font-size:12px;
         font-family:ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+        background: var(--pse-input-bg); color: var(--pse-card-text);
       }
       .pse-entry-col .pse-label { margin:0 0 4px; font-size:11px; }
       .pse-model-suggestions { margin-top:6px; border:1px solid var(--pse-section-border); border-radius:8px; background:var(--pse-input-bg); max-height:180px; overflow:auto; padding:4px; }
@@ -3891,22 +4020,40 @@ Example: [{"id": "chk_0", "category": "information"}, {"id": "chk_1", "category"
         display:block; width:100%; border:0; background:transparent; color:var(--pse-card-text);
         text-align:left; font-size:12px; padding:6px 8px; border-radius:6px; cursor:pointer;
       }
-      .pse-model-suggestion-item:hover { background:rgba(120,120,120,0.18); }
+      .pse-model-suggestion-item:hover { background:rgba(128,128,128,0.2); }
       .pse-entry-remove { border:1px solid var(--pse-section-border); background:var(--pse-input-bg); color:var(--pse-card-text); border-radius:6px; height:34px; min-width:34px; cursor:pointer; }
       .pse-add-entry { margin-top:8px; border:1px dashed var(--pse-section-border); background:var(--pse-input-bg); color:var(--pse-card-text); border-radius:8px; padding:8px 10px; font-size:12px; font-weight:700; cursor:pointer; }
-      .pse-editor-overlay { position:fixed; inset:0; background:#161616; z-index:10000; }
-      .pse-editor-modal { width:100vw; height:100vh; background:#161616; color:#e6edf3; padding:20px; box-sizing:border-box; display:flex; flex-direction:column; gap:10px; }
+      .pse-editor-overlay { position:fixed; inset:0; background:rgba(0,0,0,0.85); z-index:10000; }
+      .pse-editor-modal { width:100vw; height:100vh; background:var(--pse-card-bg); color:var(--pse-card-text); padding:20px; box-sizing:border-box; display:flex; flex-direction:column; gap:10px; }
       .pse-editor-head { display:flex; align-items:center; justify-content:space-between; gap:8px; }
-      .pse-editor-title { font-size:14px; font-weight:700; color:#e6edf3; }
-      .pse-editor-close { width:34px; height:30px; border:0; background:rgba(255,255,255,.12); color:#fff; border-radius:6px; cursor:pointer; font-size:16px; line-height:1; }
-      .pse-editor-textarea { flex:1; width:100%; border:1px solid #3a3a3a; border-radius:8px; padding:12px; box-sizing:border-box; resize:none; font-size:14px; line-height:1.5; color:#e6edf3; background:#111; font-family:ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; }
+      .pse-editor-title { font-size:14px; font-weight:700; color:var(--pse-card-text); }
+      .pse-editor-close { width:34px; height:30px; border:0; background:var(--pse-section-bg); color:var(--pse-card-text); border-radius:6px; cursor:pointer; font-size:16px; line-height:1; }
+      .pse-editor-textarea { flex:1; width:100%; border:1px solid var(--pse-input-border); border-radius:8px; padding:12px; box-sizing:border-box; resize:none; font-size:14px; line-height:1.5; color:var(--pse-card-text); background:var(--pse-input-bg); font-family:ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; }
       .pse-editor-actions { display:flex; justify-content:flex-end; gap:8px; }
       .pse-row { display:flex; gap:8px; }
       .pse-btn-row { display:flex; gap:8px; margin-top:12px; }
-      .pse-btn { flex:1; border:none; border-radius:8px; padding:10px 12px; color:#fff; font-size:13px; font-weight:700; cursor:pointer; }
-      .pse-btn.save { background:#454545; }
-      .pse-btn.cache { background:#666; }
-      .pse-btn.close { background:#7c7c7c; }
+      .pse-btn { flex:1; border:none; border-radius:8px; padding:10px 12px; color:#fff; font-size:13px; font-weight:700; cursor:pointer; transition: opacity 0.2s; }
+      .pse-btn:hover { opacity: 0.85; }
+      .pse-btn.save { background:var(--pse-accent-blue); }
+      .pse-btn.cache { background:var(--pse-accent-indigo); }
+      .pse-btn.close { background:var(--pse-muted); }
+      .pse-preset-btn {
+        flex: 1;
+        padding: 6px 10px;
+        border: 1px solid var(--pse-input-border);
+        background: var(--pse-input-bg);
+        color: var(--pse-muted);
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 12px;
+        font-weight: 600;
+        transition: all 0.2s;
+      }
+      .pse-preset-btn.active {
+        background: var(--pse-accent-blue);
+        color: #fff;
+        border-color: var(--pse-accent-blue);
+      }
       @media (max-width: 768px) {
         .pse-body { padding:0; align-items:flex-start; }
         .pse-card { width:100%; max-width:100%; min-height:100vh; max-height:100vh; border-radius:0; padding:14px; box-shadow:none; }
@@ -3949,16 +4096,16 @@ Example: [{"id": "chk_0", "category": "information"}, {"id": "chk_1", "category"
 
   async function abortMainModelWithAuxError(message) {
     const msg = String(message || _T.aux_abort_default);
-    await Risuai.pluginStorage.setItem("last_lore_sync_error", msg);
-    await Risuai.log(`${LOG} ❌ Error: ${msg}. Main model response has been forcibly aborted!`);
+    const suffix = _T.aux_abort_suffix || "Main model request was intercepted to save API quota.";
+    await Risuai.safeLocalStorage.setItem("last_lore_sync_error", `${msg}\n(${suffix})`);
+    await Risuai.log(`${LOG} ❌ ${msg} — ${suffix}`);
     try {
       const { requestKeys } = await getScopedKeysForCurrentChat();
       try { await Risuai.safeLocalStorage.removeItem(requestKeys.lastReqHash); } catch { }
-      try { await Risuai.safeLocalStorage.removeItem(requestKeys.lastCompletedReqHash); } catch { }
       try { await Risuai.safeLocalStorage.removeItem(requestKeys.lastExtractedData); } catch { }
     } catch { }
     try { await Risuai.safeLocalStorage.removeItem(LAST_REQ_HASH_KEY); } catch { }
-    throw new Error(`[RisuAI Agent Error] ${msg}\n(${_T.aux_abort_suffix || "Main model request was intercepted to save API quota."})`);
+    throw new Error(`[RisuAI Agent Error] ${msg}\n(${suffix})`);
   }
 
   async function renderSettingsUI() {
@@ -3970,22 +4117,61 @@ Example: [{"id": "chk_0", "category": "information"}, {"id": "chk_1", "category"
     document.body.innerHTML = `
       <div class="pse-body">
         <div class="pse-card">
-          <h1 class="pse-title">👤 RisuAI Agent v1.6.1</h1>
+          <h1 class="pse-title">👤 RisuAI Agent v1.7</h1>
           <div id="pse-status" class="pse-status"></div>
           ${renderModelDatalists()}
 
           <div class="pse-tabs">
-            ${`<button class="pse-tab" data-page="7">${_T.tab_help}</button>
-            <button class="pse-tab active" data-page="1">${_T.tab_model}</button>
-            <button class="pse-tab" data-page="5">${_T.tab_vector}</button>`}
-          </div>
-          <div class="pse-tabs pse-tabs-secondary">
-            ${`<button class="pse-tab" data-page="3">${_T.tab_prompt}</button>
-            <button class="pse-tab" data-page="2">${_T.tab_lore}</button>
+            ${`<button class="pse-tab active" data-page="7">${_T.tab_help}</button>
+            <button class="pse-tab" data-page="8">${_T.tab_enable}</button>
             <button class="pse-tab" data-page="6">${_T.tab_cache}</button>`}
           </div>
+          <div class="pse-tabs pse-tabs-secondary">
+            ${`<button class="pse-tab" data-page="1">${_T.tab_model}</button>
+            <button class="pse-tab" data-page="2">${_T.tab_entry}</button>
+            <button class="pse-tab" data-page="5">${_T.tab_vector}</button>`}
+          </div>
 
-          <div class="pse-page active" data-page="1">
+          <div class="pse-page active" data-page="7">
+            <div class="pse-section">
+              <div style="margin-bottom:6px;padding:7px 10px;border-radius:6px;background:rgba(255,171,0,0.1);border:1px solid rgba(255,171,0,0.3);font-size:var(--pse-font-size-small);color:var(--pse-accent-amber);">
+                ${escapeHtml(_T.lore_warn)}
+              </div>
+              <div class="pse-assembly">
+                ${_T.help_html}
+              </div>
+            </div>
+          </div>
+
+          <div class="pse-page" data-page="8">
+            <div style="margin-bottom:10px;padding:10px 12px;border-radius:8px;border:1px solid rgba(255,23,68,0.4);background:rgba(255,23,68,0.1);color:var(--pse-accent-rose);font-weight:700;line-height:1.45;">
+              ${escapeHtml(_T.warn_cbs_unsupported)}
+            </div>
+            <div class="pse-section" style="border-left:4px solid var(--pse-accent-cyan); background:linear-gradient(180deg, rgba(0, 229, 255, 0.1) 0%, var(--pse-input-bg) 100%); padding:10px 12px;">
+              <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+                <div style="display:flex;align-items:center;gap:8px;flex:1;min-width:200px;">
+                  <label class="pse-label" style="margin:0;white-space:nowrap;">${_T.lbl_classify_model}</label>
+                  <select id="init_bootstrap_target_model" class="pse-input" style="flex:1;min-width:100px;">
+                    <option value="A" ${safeTrim(configCache.init_bootstrap_target_model) === "B" ? "" : "selected"}>${_T.opt_main_model}</option>
+                    <option value="B" ${safeTrim(configCache.init_bootstrap_target_model) === "B" ? "selected" : ""}>${_T.opt_aux_model}</option>
+                  </select>
+                </div>
+                <div style="display:flex;align-items:center;gap:8px;flex:1;min-width:180px;">
+                  <label class="pse-label" style="margin:0;white-space:nowrap;">${_T.lbl_read_mod_lorebook}</label>
+                  <select id="read_mod_lorebook" class="pse-input" style="flex:1;min-width:70px;">
+                    <option value="1" ${Number(configCache.read_mod_lorebook) === 1 ? "selected" : ""}>${_T.yes}</option>
+                    <option value="0" ${Number(configCache.read_mod_lorebook) === 1 ? "" : "selected"}>${_T.no}</option>
+                  </select>
+                </div>
+                <button id="pse-reset-agent-defaults" class="pse-btn cache" type="button" style="padding:6px 14px;font-size:12px;white-space:nowrap;margin-left:auto;">${_T.btn_reset}</button>
+              </div>
+            </div>
+            <div id="pse-card-enable-list" class="pse-entry-list" style="margin-top:8px;">
+              <div class="pse-assembly" style="color:var(--pse-muted);font-size:12px;">Loading...</div>
+            </div>
+          </div>
+
+          <div class="pse-page" data-page="1">
             <div class="pse-section pse-model-section-a">
               <div class="pse-section-title">${_T.sec_a}</div>
               <label class="pse-label">${_T.lbl_provider}</label>
@@ -4006,6 +4192,16 @@ Example: [{"id": "chk_0", "category": "information"}, {"id": "chk_1", "category"
                 <option value="1" ${Number(configCache.extractor_a_concurrency) === 1 ? "selected" : ""}>${_T.opt_concurrent}</option>
                 <option value="0" ${Number(configCache.extractor_a_concurrency) === 0 ? "selected" : ""}>${_T.opt_sequential}</option>
               </select>
+              <div style="display:flex;align-items:center;gap:8px;margin-top:8px;flex-wrap:wrap;">
+                <input type="checkbox" id="extractor_a_thinking_enabled" ${Number(configCache.extractor_a_thinking_enabled) === 1 ? "checked" : ""} title="${_T.thinking_title}" style="margin:0;flex-shrink:0;" />
+                <label for="extractor_a_thinking_enabled" class="pse-label" style="margin:0;cursor:pointer;white-space:nowrap;">${_T.lbl_thinking}</label>
+                <select id="extractor_a_thinking_level" class="pse-input" style="flex:1;min-width:120px;" ${Number(configCache.extractor_a_thinking_enabled) !== 1 ? "disabled" : ""}>
+                  <option value="low" ${configCache.extractor_a_thinking_level === "low" ? "selected" : ""}>${_T.opt_thinking_low}</option>
+                  <option value="medium" ${(!configCache.extractor_a_thinking_level || configCache.extractor_a_thinking_level === "medium") ? "selected" : ""}>${_T.opt_thinking_medium}</option>
+                  <option value="high" ${configCache.extractor_a_thinking_level === "high" ? "selected" : ""}>${_T.opt_thinking_high}</option>
+                </select>
+              </div>
+              <div id="extractor_a_thinking_hint" style="font-size:11px;color:var(--pse-muted);margin-top:4px;display:${Number(configCache.extractor_a_thinking_enabled) === 1 ? "block" : "none"};"></div>
             </div>
 
             <div class="pse-section pse-model-section-b">
@@ -4028,6 +4224,16 @@ Example: [{"id": "chk_0", "category": "information"}, {"id": "chk_1", "category"
                 <option value="1" ${Number(configCache.extractor_b_concurrency) === 1 ? "selected" : ""}>${_T.opt_concurrent}</option>
                 <option value="0" ${Number(configCache.extractor_b_concurrency) === 0 ? "selected" : ""}>${_T.opt_sequential}</option>
               </select>
+              <div style="display:flex;align-items:center;gap:8px;margin-top:8px;flex-wrap:wrap;">
+                <input type="checkbox" id="extractor_b_thinking_enabled" ${Number(configCache.extractor_b_thinking_enabled) === 1 ? "checked" : ""} title="${_T.thinking_title}" style="margin:0;flex-shrink:0;" />
+                <label for="extractor_b_thinking_enabled" class="pse-label" style="margin:0;cursor:pointer;white-space:nowrap;">${_T.lbl_thinking}</label>
+                <select id="extractor_b_thinking_level" class="pse-input" style="flex:1;min-width:120px;" ${Number(configCache.extractor_b_thinking_enabled) !== 1 ? "disabled" : ""}>
+                  <option value="low" ${configCache.extractor_b_thinking_level === "low" ? "selected" : ""}>${_T.opt_thinking_low}</option>
+                  <option value="medium" ${(!configCache.extractor_b_thinking_level || configCache.extractor_b_thinking_level === "medium") ? "selected" : ""}>${_T.opt_thinking_medium}</option>
+                  <option value="high" ${configCache.extractor_b_thinking_level === "high" ? "selected" : ""}>${_T.opt_thinking_high}</option>
+                </select>
+              </div>
+              <div id="extractor_b_thinking_hint" style="font-size:11px;color:var(--pse-muted);margin-top:4px;display:${Number(configCache.extractor_b_thinking_enabled) === 1 ? "block" : "none"};"></div>
             </div>
 
             <div class="pse-section pse-model-section-embed">
@@ -4049,58 +4255,49 @@ Example: [{"id": "chk_0", "category": "information"}, {"id": "chk_1", "category"
                 <div id="embedding_model_suggestions" class="pse-model-suggestions"></div>
               </div>
               <input id="embedding_request_model" type="hidden" value="${String(configCache.embedding_request_model || "").replace(/"/g, "&quot;")}" />
-              <label class="pse-label" style="margin-top:10px;">${_T.lbl_concur}</label>
-              <select id="embedding_concurrency" class="pse-input">
-                <option value="1" ${Number(configCache.embedding_concurrency) === 1 ? "selected" : ""}>${_T.opt_concurrent}</option>
-                <option value="0" ${Number(configCache.embedding_concurrency) === 0 ? "selected" : ""}>${_T.opt_sequential}</option>
-              </select>
             </div>
           </div>
 
           <div class="pse-page" data-page="2">
             <div class="pse-section">
-              <div class="pse-section-title">${_T.sec_lore_calls}</div>
-              <div style="margin-bottom:6px;padding:7px 10px;border-radius:6px;background:rgba(180,140,0,0.1);border:1px solid rgba(180,140,0,0.25);font-size:var(--pse-font-size-small);color:var(--pse-muted);">
-                ${escapeHtml(_T.lore_warn)}
+              <div class="pse-row" style="margin-bottom:10px;">
+                <button id="pse-preset-common" class="pse-preset-btn" type="button">${_T.tab_common}</button>
+                <button id="pse-preset-1" class="pse-preset-btn ${toInt(configCache.active_preset, 1) === 1 ? "active" : ""}" type="button">${_T.preset1}</button>
+                <button id="pse-preset-2" class="pse-preset-btn ${toInt(configCache.active_preset, 1) === 2 ? "active" : ""}" type="button">${_T.preset2}</button>
               </div>
-              <div id="model_call_list" class="pse-entry-list"></div>
-              <button id="add_model_call" class="pse-add-entry" type="button">${_T.btn_add_call}</button>
-            </div>
-          </div>
-
-          <div class="pse-page" data-page="3">
-            <div class="pse-section">
-              <label class="pse-label">${_T.lbl_anchor}</label>
-              <div class="pse-textarea-wrap">
-                <textarea id="advanced_model_anchor_prompt" class="pse-textarea">${escapeHtml(configCache.advanced_model_anchor_prompt || "")}</textarea>
-                <button id="advanced_model_anchor_prompt_expand" class="pse-expand-btn" type="button" aria-label="${_T.aria_expand}">
-                  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 4H5a1 1 0 0 0-1 1v3"/><path d="M16 4h3a1 1 0 0 1 1 1v3"/><path d="M20 16v3a1 1 0 0 1-1 1h-3"/><path d="M4 16v3a1 1 0 0 0 1 1h3"/></svg>
-                </button>
+              <div id="pse-lore-presets-container">
+                <div id="model_call_list" class="pse-entry-list"></div>
+                <button id="add_model_call" class="pse-add-entry" type="button">${_T.btn_add_call}</button>
               </div>
-              <label class="pse-label">${_T.lbl_prefill}</label>
-              <div class="pse-textarea-wrap">
-                <textarea id="advanced_prefill_prompt" class="pse-textarea">${escapeHtml(configCache.advanced_prefill_prompt || "")}</textarea>
-                <button id="advanced_prefill_prompt_expand" class="pse-expand-btn" type="button" aria-label="${_T.aria_expand}">
-                  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 4H5a1 1 0 0 0-1 1v3"/><path d="M16 4h3a1 1 0 0 1 1 1v3"/><path d="M20 16v3a1 1 0 0 1-1 1h-3"/><path d="M4 16v3a1 1 0 0 0 1 1h3"/></svg>
-                </button>
-              </div>
-              <label class="pse-label">${_T.lbl_prereply}</label>
-              <div class="pse-textarea-wrap">
-                <textarea id="advanced_prereply_prompt" class="pse-textarea">${escapeHtml(configCache.advanced_prereply_prompt || "")}</textarea>
-                <button id="advanced_prereply_prompt_expand" class="pse-expand-btn" type="button" aria-label="${_T.aria_expand}">
-                  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 4H5a1 1 0 0 0-1 1v3"/><path d="M16 4h3a1 1 0 0 1 1 1v3"/><path d="M20 16v3a1 1 0 0 1-1 1h-3"/><path d="M4 16v3a1 1 0 0 0 1 1h3"/></svg>
-                </button>
+              <div id="pse-common-prompts-container" style="display:none; flex-direction:column;">
+                <label class="pse-label">${_T.lbl_anchor}</label>
+                <div class="pse-textarea-wrap">
+                  <textarea id="advanced_model_anchor_prompt" class="pse-textarea">${escapeHtml(configCache.advanced_model_anchor_prompt || "")}</textarea>
+                  <button id="advanced_model_anchor_prompt_expand" class="pse-expand-btn" type="button" aria-label="${_T.aria_expand}">
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 4H5a1 1 0 0 0-1 1v3"/><path d="M16 4h3a1 1 0 0 1 1 1v3"/><path d="M20 16v3a1 1 0 0 1-1 1h-3"/><path d="M4 16v3a1 1 0 0 0 1 1h3"/></svg>
+                  </button>
+                </div>
+                <label class="pse-label">${_T.lbl_prefill}</label>
+                <div class="pse-textarea-wrap">
+                  <textarea id="advanced_prefill_prompt" class="pse-textarea">${escapeHtml(configCache.advanced_prefill_prompt || "")}</textarea>
+                  <button id="advanced_prefill_prompt_expand" class="pse-expand-btn" type="button" aria-label="${_T.aria_expand}">
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 4H5a1 1 0 0 0-1 1v3"/><path d="M16 4h3a1 1 0 0 1 1 1v3"/><path d="M20 16v3a1 1 0 0 1-1 1h-3"/><path d="M4 16v3a1 1 0 0 0 1 1h3"/></svg>
+                  </button>
+                </div>
+                <label class="pse-label">${_T.lbl_prereply}</label>
+                <div class="pse-textarea-wrap">
+                  <textarea id="advanced_prereply_prompt" class="pse-textarea">${escapeHtml(configCache.advanced_prereply_prompt || "")}</textarea>
+                  <button id="advanced_prereply_prompt_expand" class="pse-expand-btn" type="button" aria-label="${_T.aria_expand}">
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 4H5a1 1 0 0 0-1 1v3"/><path d="M16 4h3a1 1 0 0 1 1 1v3"/><path d="M20 16v3a1 1 0 0 1-1 1h-3"/><path d="M4 16v3a1 1 0 0 0 1 1h3"/></svg>
+                  </button>
+                </div>
               </div>
             </div>
           </div>
 
           <div class="pse-page" data-page="5">
-            <div class="pse-section" style="border-left:4px solid var(--pse-accent-indigo); background:linear-gradient(180deg, rgba(79, 70, 229, 0.08) 0%, var(--pse-input-bg) 100%);">
-              <div class="pse-section-title">${_T.sec_vec}</div>
-              <select id="vector_search_enabled" class="pse-input">
-                <option value="1" ${Number(configCache.vector_search_enabled) === 1 ? "selected" : ""}>${_T.opt_vec_on}</option>
-                <option value="0" ${Number(configCache.vector_search_enabled) === 1 ? "" : "selected"}>${_T.opt_vec_off}</option>
-              </select>
+            <div class="pse-section" style="border-left:4px solid var(--pse-accent-indigo); background:linear-gradient(180deg, rgba(101, 31, 255, 0.1) 0%, var(--pse-input-bg) 100%);">
+              <div class="pse-section-title">${_T.preset1}</div>
               <label class="pse-label">${_T.lbl_query_rounds}</label>
               <input id="vector_search_query_dialogue_rounds" class="pse-input" type="number" min="1" value="${String(Math.max(1, toInt(configCache.vector_search_query_dialogue_rounds, DEFAULTS.vector_search_query_dialogue_rounds)))}" />
               <label class="pse-label">${_T.lbl_topk}</label>
@@ -4108,54 +4305,24 @@ Example: [{"id": "chk_0", "category": "information"}, {"id": "chk_1", "category"
               <label class="pse-label">${_T.lbl_minscore}</label>
               <input id="vector_search_min_score" class="pse-input" type="number" min="0" max="1" step="0.01" value="${String(Number(configCache.vector_search_min_score) || DEFAULTS.vector_search_min_score)}" />
             </div>
-
-            <div class="pse-section" style="border-left:4px solid var(--pse-accent-cyan); background:linear-gradient(180deg, rgba(8, 145, 178, 0.08) 0%, var(--pse-input-bg) 100%);">
-              <div class="pse-section-title">${_T.sec_classify}</div>
-              <label class="pse-label">${_T.lbl_use_model}</label>
-              <select id="init_bootstrap_target_model" class="pse-input">
-                <option value="A" ${safeTrim(configCache.init_bootstrap_target_model) === "B" ? "" : "selected"}>${_T.opt_main_model}</option>
-                <option value="B" ${safeTrim(configCache.init_bootstrap_target_model) === "B" ? "selected" : ""}>${_T.opt_aux_model}</option>
-              </select>
-              <label class="pse-label">${_T.lbl_classify_anchor}</label>
-              <div class="pse-textarea-wrap">
-                <textarea id="init_bootstrap_model_anchor_prompt" class="pse-textarea">${escapeHtml(String(configCache.init_bootstrap_model_anchor_prompt || DEFAULTS.init_bootstrap_model_anchor_prompt))}</textarea>
-                <button id="init_bootstrap_model_anchor_prompt_expand" class="pse-expand-btn" type="button" aria-label="${_T.aria_expand}">
-                  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 4H5a1 1 0 0 0-1 1v3"/><path d="M16 4h3a1 1 0 0 1 1 1v3"/><path d="M20 16v3a1 1 0 0 1-1 1h-3"/><path d="M4 16v3a1 1 0 0 0 1 1h3"/></svg>
-                </button>
-              </div>
+            <div class="pse-section" style="border-left:4px solid var(--pse-accent-green); background:linear-gradient(180deg, rgba(0, 230, 118, 0.08) 0%, var(--pse-input-bg) 100%);">
+              <div class="pse-section-title">${_T.preset2}</div>
+              <label class="pse-label">${_T.lbl_query_rounds}</label>
+              <input id="vector_search_query_dialogue_rounds_2" class="pse-input" type="number" min="1" value="${String(Math.max(1, toInt(configCache.vector_search_query_dialogue_rounds_2, DEFAULTS.vector_search_query_dialogue_rounds_2)))}" />
+              <label class="pse-label">${_T.lbl_topk}</label>
+              <input id="vector_search_top_k_2" class="pse-input" type="number" min="1" value="${String(Math.max(1, toInt(configCache.vector_search_top_k_2, DEFAULTS.vector_search_top_k_2)))}" />
+              <label class="pse-label">${_T.lbl_minscore}</label>
+              <input id="vector_search_min_score_2" class="pse-input" type="number" min="0" max="1" step="0.01" value="${String(Number(configCache.vector_search_min_score_2) || DEFAULTS.vector_search_min_score_2)}" />
             </div>
           </div>
 
           <div class="pse-page" data-page="6">
-            <div class="pse-section">
-              <div class="pse-section-title">${_T.sec_cache}</div>
-              <div class="pse-row" style="margin-bottom:8px;">
-                <button id="pse-embed-cache-refresh" class="pse-btn cache" type="button" style="flex:0 0 auto;">${_T.btn_refresh_cache}</button>
-                <button id="pse-embed-cache-clear-all" class="pse-btn" type="button" style="flex:0 0 auto;background:#b44;">${_T.btn_clear_cache}</button>
-              </div>
-              <div id="pse-embed-cache-list" class="pse-entry-list"></div>
+            <div style="display:flex;gap:8px;margin-bottom:10px;">
+              <button id="pse-refresh-cache" class="pse-btn cache" type="button" style="flex:1;padding:7px 12px;font-size:12px;">${_T.btn_refresh_cache}</button>
+              <button id="pse-clear-cache" class="pse-btn close" type="button" style="flex:1;padding:7px 12px;font-size:12px;">${_T.btn_clear_cache}</button>
             </div>
-          </div>
-
-          <div class="pse-page" data-page="7">
-            <div class="pse-section">
-              <div style="margin-bottom:10px;padding:10px 12px;border-radius:8px;border:1px solid rgba(220,38,38,0.45);background:rgba(220,38,38,0.12);color:#ffd7d7;font-weight:700;line-height:1.45;">
-                ${escapeHtml(_T.warn_cbs_unsupported)}
-              </div>
-              <div class="pse-row" style="margin-bottom:8px;align-items:center;justify-content:space-between;gap:12px;">
-                <button id="pse-reset-agent-defaults" class="pse-btn cache" type="button" style="flex:0 0 auto;">${_T.btn_reset}</button>
-                <div style="display:flex;align-items:center;gap:8px;flex:0 0 auto;">
-                  <label class="pse-label" for="read_mod_lorebook" style="margin:0;">${_T.lbl_read_mod_lorebook}</label>
-                  <select id="read_mod_lorebook" class="pse-input" style="min-width:96px;">
-                    <option value="1" ${Number(configCache.read_mod_lorebook) === 1 ? "selected" : ""}>${_T.yes}</option>
-                    <option value="0" ${Number(configCache.read_mod_lorebook) === 1 ? "" : "selected"}>${_T.no}</option>
-                  </select>
-                </div>
-              </div>
-              <div class="pse-assembly">
-                ${_T.help_html}
-              </div>
-            </div>
+            <div id="pse-embed-cache-list" class="pse-entry-list"></div>
+            <textarea id="init_bootstrap_model_anchor_prompt" style="display:none;">${escapeHtml(String(configCache.init_bootstrap_model_anchor_prompt || DEFAULTS.init_bootstrap_model_anchor_prompt))}</textarea>
           </div>
 
           <div class="pse-btn-row">
@@ -4169,17 +4336,54 @@ Example: [{"id": "chk_0", "category": "information"}, {"id": "chk_1", "category"
     const renderEmbeddingCacheList = async () => {
       const wrap = document.getElementById("pse-embed-cache-list");
       if (!wrap) return;
+
+      
       const store = await loadEmbeddingCacheStore();
-      const blocks = summarizeEmbeddingCacheBlocks(store);
-      if (!blocks.length) {
+      const vecBlocks = summarizeEmbeddingCacheBlocks(store);
+      const vecCardKeys = new Set(vecBlocks.map(b => b.cardKey));
+
+      
+      const classifyBlocks = [];
+      try {
+        const db = await Risuai.getDatabase();
+        const characters = Array.isArray(db?.characters) ? db.characters : [];
+        for (const c of characters) {
+          const scopeId = String(c?.chaId || c?.id || c?._id || "").replace(/[^0-9a-zA-Z_-]/g, "")
+            || (safeTrim(c?.name || "") ? `name_${simpleHash(safeTrim(c.name))}` : null);
+          if (!scopeId) continue;
+          const charName = safeTrim(c?.name || "");
+          const cardKey = scopeId;
+          if (vecCardKeys.has(cardKey)) continue; 
+          const step0Key = makeScopedStorageKey(STEP0_COMPLETE_KEY, scopeId);
+          const chunksKey = makeScopedStorageKey(STATIC_KNOWLEDGE_CHUNKS_KEY, scopeId);
+          const step0Done = await Risuai.pluginStorage.getItem(step0Key);
+          if (!step0Done) continue;
+          const chunksRaw = await Risuai.pluginStorage.getItem(chunksKey);
+          const chunks = chunksRaw ? (() => { try { return JSON.parse(chunksRaw); } catch { return []; } })() : [];
+          if (!chunks.length) continue;
+          classifyBlocks.push({ cardKey, cardName: charName || "(unknown)", chunkCount: chunks.length, scopeId, sizeBytes: getUtf8BytesLength(chunksRaw) });
+        }
+      } catch { }
+
+      if (!vecBlocks.length && !classifyBlocks.length) {
         wrap.innerHTML = `<div class="pse-assembly">${_T.no_cache}</div>`;
         return;
       }
-      wrap.innerHTML = blocks.map((b, idx) => `
+
+      const vecHtml = vecBlocks.map((b, idx) => `
         <div class="pse-entry-block" data-cache-card-key="${escapeHtml(b.cardKey)}" data-cache-parity="${idx % 2 === 0 ? "even" : "odd"}">
           <div class="pse-entry-grid" style="grid-template-columns:1fr auto;">
             <div>
-              <div><b>${_T.lbl_card}</b>: ${escapeHtml(b.cardName)}</div>
+              <div style="display:flex;align-items:center;flex-wrap:wrap;gap:4px;">
+                <b style="font-size:14px;">${escapeHtml(b.cardName)}</b>
+                <span style="display:inline-block;padding:2px 8px;border-radius:10px;font-size:10px;font-weight:700;background:rgba(41,121,255,0.1);color:var(--pse-accent-blue);border:1px solid rgba(41,121,255,0.3);margin-left:4px;">
+                  ${_T.tag_vector}
+                </span>
+                ${b.modelName ? `
+                <span style="display:inline-block;padding:2px 8px;border-radius:10px;font-size:10px;font-weight:700;background:rgba(0,230,118,0.1);color:var(--pse-accent-green);border:1px solid rgba(0,230,118,0.3);margin-left:2px;">
+                  ${escapeHtml(b.modelName)}
+                </span>` : ""}
+              </div>
               <div style="margin-top:4px;"><b>${_T.lbl_entries}</b>: ${escapeHtml(String(b.entryCount))}</div>
               <div style="margin-top:4px;"><b>${_T.lbl_filesize}</b>: ${escapeHtml(formatBytes(b.sizeBytes))}</div>
             </div>
@@ -4187,9 +4391,100 @@ Example: [{"id": "chk_0", "category": "information"}, {"id": "chk_1", "category"
           </div>
         </div>
       `).join("");
+
+      const classifyHtml = classifyBlocks.map((b, idx) => `
+        <div class="pse-entry-block" data-classify-scope-id="${escapeHtml(b.scopeId)}" data-cache-parity="${(vecBlocks.length + idx) % 2 === 0 ? "even" : "odd"}" style="opacity:0.8;">
+          <div class="pse-entry-grid" style="grid-template-columns:1fr auto;">
+            <div>
+              <div style="display:flex;align-items:center;flex-wrap:wrap;gap:4px;">
+                <b style="font-size:14px;">${escapeHtml(b.cardName)}</b>
+                <span style="display:inline-block;padding:2px 8px;border-radius:10px;font-size:10px;font-weight:700;background:rgba(255,171,0,0.1);color:var(--pse-accent-amber);border:1px solid rgba(255,171,0,0.3);margin-left:4px;">
+                  ${_T.tag_classify}
+                </span>
+              </div>
+              <div style="margin-top:4px;"><b>${_T.lbl_chunks}</b>: ${escapeHtml(String(b.chunkCount))}</div>
+              <div style="margin-top:4px;"><b>${_T.lbl_filesize}</b>: ${escapeHtml(formatBytes(b.sizeBytes))}</div>
+            </div>
+            <button class="pse-entry-remove" type="button" data-delete-classify-card="1">${_T.btn_delete}</button>
+          </div>
+        </div>
+      `).join("");
+
+      wrap.innerHTML = vecHtml + classifyHtml;
     };
 
     await renderEmbeddingCacheList();
+    document.getElementById("pse-refresh-cache")?.addEventListener("click", async () => {
+      await renderEmbeddingCacheList();
+    });
+    document.getElementById("pse-clear-cache")?.addEventListener("click", async () => {
+      if (!confirm(_T.confirm_clear_cache || "Clear all cache data?")) return;
+      await clearAllEmbeddingCache();
+      await renderEmbeddingCacheList();
+    });
+
+    
+    const renderCardEnableList = async () => {
+      const wrap = document.getElementById("pse-card-enable-list");
+      if (!wrap) return;
+      let cardSettings = {};
+      try { cardSettings = JSON.parse(configCache.card_enable_settings || "{}") || {}; } catch { }
+      try {
+        const db = await Risuai.getDatabase();
+        const characters = Array.isArray(db?.characters) ? db.characters : [];
+        if (characters.length === 0) {
+          wrap.innerHTML = `<div class="pse-assembly" style="color:var(--pse-muted);font-size:12px;">${_T.no_cards}</div>`;
+          return;
+        }
+        const makeOpts = (selected) => [
+          `<option value="off" ${selected === "off" ? "selected" : ""}>${_T.opt_off}</option>`,
+          `<option value="1" ${selected === "1" ? "selected" : ""}>${_T.opt_preset1}</option>`,
+          `<option value="2" ${selected === "2" ? "selected" : ""}>${_T.opt_preset2}</option>`,
+        ].join("");
+        wrap.innerHTML = characters.map((c, idx) => {
+          
+          const rawId = String(c?.chaId || c?.id || c?._id || "").replace(/[^0-9a-zA-Z_-]/g, "");
+          const cname = safeTrim(c?.name || `Card ${idx + 1}`);
+          const cid = rawId || `name_${simpleHash(cname)}`;
+          const cs = cardSettings[cid] || {};
+          const isEven = idx % 2 === 0;
+          const borderColor = isEven ? "var(--pse-accent-blue)" : "var(--pse-accent-green)";
+          const gradientColor = isEven ? "rgba(41, 121, 255, 0.08)" : "rgba(0, 230, 118, 0.08)";
+          const isDisabled = cs.card_disabled === 0 || cs.card_disabled === "0" || cs.card_disabled === false ? false : true;
+          return `
+            <div class="pse-entry-block" data-card-id="${escapeHtml(cid)}" style="border-left:4px solid ${borderColor};background:linear-gradient(180deg,${gradientColor} 0%,var(--pse-input-bg) 100%);">
+              <div style="font-weight:700;margin-bottom:6px;">${_T.lbl_card_name}：${escapeHtml(cname)}</div>
+              <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;padding:6px 8px;border-radius:6px;background:rgba(255,23,68,0.07);border:1px solid rgba(255,23,68,0.2);">
+                <input type="checkbox" class="pse-card-disabled" id="disabled_${escapeHtml(cid)}" ${isDisabled ? "checked" : ""} style="margin:0;flex-shrink:0;cursor:pointer;" />
+                <label for="disabled_${escapeHtml(cid)}" style="font-size:12px;font-weight:700;cursor:pointer;color:var(--pse-accent-rose);user-select:none;"> ${escapeHtml(_T.lbl_card_disabled)}</label>
+              </div>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;${isDisabled ? "opacity:0.35;pointer-events:none;" : ""}">
+                <div>
+                  <label class="pse-label" style="font-size:11px;">${_T.lbl_memory_extract}</label>
+                  <select class="pse-input pse-card-memory" style="font-size:12px;">${makeOpts(cs.memory_extract || "off")}</select>
+                </div>
+                <div>
+                  <label class="pse-label" style="font-size:11px;">${_T.lbl_vector_search_card}</label>
+                  <select class="pse-input pse-card-vector" style="font-size:12px;">${makeOpts(cs.vector_search || "off")}</select>
+                </div>
+              </div>
+            </div>`;
+        }).join("");
+      } catch (e) {
+        wrap.innerHTML = `<div class="pse-assembly" style="color:var(--pse-muted);font-size:12px;">Error: ${escapeHtml(String(e?.message || e))}</div>`;
+      }
+    };
+
+    await renderCardEnableList();
+
+    
+    document.getElementById("pse-card-enable-list")?.addEventListener("change", (e) => {
+      const cb = e.target?.closest?.(".pse-card-disabled");
+      if (!cb) return;
+      const block = cb.closest(".pse-entry-block");
+      const grid = block?.querySelector("div[style*='grid-template-columns']");
+      if (grid) grid.style.cssText = grid.style.cssText.replace(/opacity:[^;]+;?/g, "").replace(/pointer-events:[^;]+;?/g, "") + (cb.checked ? ";opacity:0.35;pointer-events:none;" : "");
+    });
 
     const setPage = (page) => {
       document.querySelectorAll(".pse-tab").forEach((el) => {
@@ -4207,51 +4502,53 @@ Example: [{"id": "chk_0", "category": "information"}, {"id": "chk_1", "category"
       });
     });
 
-    document.getElementById("pse-embed-cache-refresh")?.addEventListener("click", async () => {
-      await renderEmbeddingCacheList();
-      showStatus(_T.st_cache_refreshed, "info");
-    });
-
-    document.getElementById("pse-embed-cache-clear-all")?.addEventListener("click", async (e) => {
-      if (!confirm(_T.confirm_clear)) return;
-      await clearAllEmbeddingCache();
-      await renderEmbeddingCacheList();
-      showStatus(_T.st_cache_cleared, "ok");
-    });
-
     document.getElementById("pse-embed-cache-list")?.addEventListener("click", async (e) => {
-      const btn = e.target?.closest?.("[data-delete-cache-card]");
-      if (!btn) return;
-      const block = btn.closest?.("[data-cache-card-key]");
-      const cardKey = safeTrim(block?.getAttribute?.("data-cache-card-key") || "");
-      if (!cardKey) return;
-      const store = await loadEmbeddingCacheStore();
-      if (store.cards && store.cards[cardKey]) {
-        delete store.cards[cardKey];
-        embeddingCacheStore = null;
-        try { await Risuai.pluginStorage.removeItem(VCACHE_CARD_PREFIX + cardKey); } catch { }
-        await saveEmbeddingCacheStore(store);
-        try {
-          const { staticKeys, requestKeys, firstMessageHandledKey } = await getScopedKeysForCurrentChat();
-          try { await Risuai.pluginStorage.removeItem(staticKeys.staticKnowledgeChunks); } catch { }
-          try { await Risuai.pluginStorage.removeItem(staticKeys.staticDataHash); } catch { }
-          try { await Risuai.pluginStorage.removeItem(staticKeys.step0Complete); } catch { }
-          try { await Risuai.safeLocalStorage.removeItem(requestKeys.lastReqHash); } catch { }
-          try { await Risuai.safeLocalStorage.removeItem(requestKeys.lastCompletedReqHash); } catch { }
-          try { await Risuai.safeLocalStorage.removeItem(requestKeys.lastExtractedData); } catch { }
-          try { await Risuai.safeLocalStorage.removeItem(firstMessageHandledKey); } catch { }
-          sessionStep0HandledHashByScope.delete(staticKeys.scopeId);
-        } catch { }
-
-        // Legacy global keys for backward compatibility cleanup.
-        try { await Risuai.pluginStorage.removeItem(STATIC_KNOWLEDGE_CHUNKS_KEY); } catch { }
-        try { await Risuai.pluginStorage.removeItem(STATIC_DATA_HASH_KEY); } catch { }
-        try { await Risuai.pluginStorage.removeItem(STEP0_COMPLETE_KEY); } catch { }
-        embeddingVectorCache.clear();
-        sessionStep0HandledHashByScope.clear();
+      
+      const vecBtn = e.target?.closest?.("[data-delete-cache-card]");
+      if (vecBtn) {
+        const block = vecBtn.closest?.("[data-cache-card-key]");
+        const cardKey = safeTrim(block?.getAttribute?.("data-cache-card-key") || "");
+        if (!cardKey) return;
+        const store = await loadEmbeddingCacheStore();
+        if (store.cards && store.cards[cardKey]) {
+          delete store.cards[cardKey];
+          embeddingCacheStore = null;
+          try { await Risuai.pluginStorage.removeItem(VCACHE_CARD_PREFIX + cardKey); } catch { }
+          await saveEmbeddingCacheStore(store);
+          try {
+            const { staticKeys, requestKeys, firstMessageHandledKey } = await getScopedKeysForCurrentChat();
+            try { await Risuai.pluginStorage.removeItem(staticKeys.staticKnowledgeChunks); } catch { }
+            try { await Risuai.pluginStorage.removeItem(staticKeys.staticDataHash); } catch { }
+            try { await Risuai.pluginStorage.removeItem(staticKeys.step0Complete); } catch { }
+            try { await Risuai.safeLocalStorage.removeItem(requestKeys.lastReqHash); } catch { }
+            try { await Risuai.safeLocalStorage.removeItem(requestKeys.lastExtractedData); } catch { }
+            try { await Risuai.safeLocalStorage.removeItem(firstMessageHandledKey); } catch { }
+            sessionStep0HandledHashByScope.delete(staticKeys.scopeId);
+          } catch { }
+          try { await Risuai.pluginStorage.removeItem(STATIC_KNOWLEDGE_CHUNKS_KEY); } catch { }
+          try { await Risuai.pluginStorage.removeItem(STATIC_DATA_HASH_KEY); } catch { }
+          try { await Risuai.pluginStorage.removeItem(STEP0_COMPLETE_KEY); } catch { }
+          embeddingVectorCache.clear();
+          sessionStep0HandledHashByScope.clear();
+        }
+        await renderEmbeddingCacheList();
+        showStatus(_T.st_card_deleted, "ok");
+        return;
       }
-      await renderEmbeddingCacheList();
-      showStatus(_T.st_card_deleted, "ok");
+
+      
+      const clsBtn = e.target?.closest?.("[data-delete-classify-card]");
+      if (clsBtn) {
+        const block = clsBtn.closest?.("[data-classify-scope-id]");
+        const scopeId = safeTrim(block?.getAttribute?.("data-classify-scope-id") || "");
+        if (!scopeId) return;
+        try { await Risuai.pluginStorage.removeItem(makeScopedStorageKey(STATIC_KNOWLEDGE_CHUNKS_KEY, scopeId)); } catch { }
+        try { await Risuai.pluginStorage.removeItem(makeScopedStorageKey(STATIC_DATA_HASH_KEY, scopeId)); } catch { }
+        try { await Risuai.pluginStorage.removeItem(makeScopedStorageKey(STEP0_COMPLETE_KEY, scopeId)); } catch { }
+        sessionStep0HandledHashByScope.delete(scopeId);
+        await renderEmbeddingCacheList();
+        showStatus(_T.st_card_deleted, "ok");
+      }
     });
 
     const openPromptEditor = (textareaIdOrEl, title) => {
@@ -4301,6 +4598,7 @@ Example: [{"id": "chk_0", "category": "information"}, {"id": "chk_1", "category"
     bindPromptExpander("advanced_prefill_prompt_expand", "advanced_prefill_prompt", _T.expand_prefill);
     bindPromptExpander("advanced_prereply_prompt_expand", "advanced_prereply_prompt", _T.expand_prereply);
     bindPromptExpander("init_bootstrap_model_anchor_prompt_expand", "init_bootstrap_model_anchor_prompt", _T.expand_classify);
+    
 
     document.querySelector(".pse-card").addEventListener("click", (e) => {
       const btn = e.target.closest(".pse-expand-btn");
@@ -4316,7 +4614,11 @@ Example: [{"id": "chk_0", "category": "information"}, {"id": "chk_1", "category"
 
     const renderSelectOptions = (options, selected) => options.map((opt) => `<option value="${escapeHtml(opt.value)}" ${opt.value === selected ? "selected" : ""}>${escapeHtml(opt.label)}</option>`).join("");
     const modelCallListEl = document.getElementById("model_call_list");
-    let uiModelCalls = getModelCalls();
+    let uiActivePreset = toInt(configCache.active_preset, 1);
+    let uiSubTab = uiActivePreset;
+    let uiModelCalls1 = parseModelCalls(configCache.model_calls);
+    let uiModelCalls2 = parseModelCalls(configCache.model_calls_2);
+    let uiModelCalls = uiActivePreset === 2 ? uiModelCalls2 : uiModelCalls1;
 
     const renderCallEntries = (call, callIndex) => {
       const entries = Array.isArray(call.entries) && call.entries.length ? call.entries : [defaultOutputEntry(call.target_model)];
@@ -4362,10 +4664,6 @@ Example: [{"id": "chk_0", "category": "information"}, {"id": "chk_1", "category"
         return `
           <div class="pse-call-card" data-call-index="${callIndex}" data-call-target="${escapeHtml(call.target_model)}" data-call-parity="${callIndex % 2 === 0 ? "even" : "odd"}">
             <div class="pse-call-head">
-              <div class="pse-entry-col" style="display:flex;align-items:center;gap:6px;">
-                <input class="pse-call-allow-parallel" type="checkbox" ${call.allow_parallel ? "checked" : ""} title="${_T.parallel_title}" style="margin:0;flex-shrink:0;" />
-                <label class="pse-label" style="margin:0;cursor:pointer;white-space:nowrap;">${_T.lbl_parallel}</label>
-              </div>
               <div class="pse-entry-col"><label class="pse-label">${_T.lbl_call_note}</label><input class="pse-input pse-call-name" value="${escapeHtml(call.name)}" /></div>
               <div class="pse-entry-col">
                 <label class="pse-label">${_T.lbl_call_model}</label>
@@ -4400,7 +4698,6 @@ Example: [{"id": "chk_0", "category": "information"}, {"id": "chk_1", "category"
           id: safeTrim(uiModelCalls?.[i]?.id) || `call_${Date.now()}_${i}`, name: safeTrim(card.querySelector(".pse-call-name")?.value || ""),
           target_model: target, every_n_turns: Math.max(1, toInt(card.querySelector(".pse-call-frequency")?.value, 1)),
           read_dialogue_rounds: Math.max(0, toInt(card.querySelector(".pse-call-read-rounds")?.value, 4)), read_lorebook_names: String(card.querySelector(".pse-call-read-lorebook-names")?.value || ""),
-          allow_parallel: card.querySelector(".pse-call-allow-parallel")?.checked === true,
           entries: entries.length ? entries : [defaultOutputEntry(target)],
         }, i);
       });
@@ -4408,6 +4705,52 @@ Example: [{"id": "chk_0", "category": "information"}, {"id": "chk_1", "category"
     };
 
     const syncUiModelCalls = () => { uiModelCalls = readModelCallsFromUI(); };
+
+    const switchPreset = (newPreset) => {
+      const loreCont = document.getElementById("pse-lore-presets-container");
+      const commonCont = document.getElementById("pse-common-prompts-container");
+
+      if (newPreset === 'common') {
+        if (uiSubTab !== 'common') {
+          syncUiModelCalls();
+          if (uiSubTab === 1) uiModelCalls1 = uiModelCalls;
+          else if (uiSubTab === 2) uiModelCalls2 = uiModelCalls;
+        }
+        uiSubTab = 'common';
+
+        document.getElementById("pse-preset-common")?.classList.add("active");
+        document.getElementById("pse-preset-1")?.classList.remove("active");
+        document.getElementById("pse-preset-2")?.classList.remove("active");
+
+        if (loreCont) loreCont.style.display = "none";
+        if (commonCont) commonCont.style.display = "flex";
+        return;
+      }
+
+      if (uiSubTab === newPreset) return;
+      if (uiSubTab !== 'common') {
+        syncUiModelCalls();
+        if (uiSubTab === 1) uiModelCalls1 = uiModelCalls;
+        else if (uiSubTab === 2) uiModelCalls2 = uiModelCalls;
+      }
+
+      uiSubTab = newPreset;
+      uiActivePreset = newPreset; 
+      uiModelCalls = uiSubTab === 2 ? uiModelCalls2 : uiModelCalls1;
+
+      document.getElementById("pse-preset-common")?.classList.remove("active");
+      document.getElementById("pse-preset-1")?.classList.toggle("active", uiSubTab === 1);
+      document.getElementById("pse-preset-2")?.classList.toggle("active", uiSubTab === 2);
+
+      if (loreCont) loreCont.style.display = "block";
+      if (commonCont) commonCont.style.display = "none";
+
+      renderModelCalls();
+    };
+
+    document.getElementById("pse-preset-common")?.addEventListener("click", () => switchPreset('common'));
+    document.getElementById("pse-preset-1")?.addEventListener("click", () => switchPreset(1));
+    document.getElementById("pse-preset-2")?.addEventListener("click", () => switchPreset(2));
 
     renderModelCalls();
 
@@ -4477,28 +4820,48 @@ Example: [{"id": "chk_0", "category": "information"}, {"id": "chk_1", "category"
 
     document.getElementById("pse-reset-agent-defaults")?.addEventListener("click", async () => {
       try {
+        
+        
         const resetFormData = {
-          ...configCache, model_calls: DEFAULT_MODEL_CALLS, advanced_model_anchor_prompt: DEFAULTS.advanced_model_anchor_prompt,
-          advanced_prefill_prompt: DEFAULTS.advanced_prefill_prompt, advanced_prereply_prompt: DEFAULTS.advanced_prereply_prompt,
-          vector_search_query_dialogue_rounds: DEFAULTS.vector_search_query_dialogue_rounds, vector_search_top_k: DEFAULTS.vector_search_top_k,
-          vector_search_min_score: DEFAULTS.vector_search_min_score, vector_search_enabled: DEFAULTS.vector_search_enabled,
+          ...configCache,
+          
+          model_calls: JSON.stringify(DEFAULT_MODEL_CALLS),
+          model_calls_2: DEFAULTS.model_calls_2,
+          active_preset: 1,
+          advanced_model_anchor_prompt: DEFAULTS.advanced_model_anchor_prompt,
+          advanced_prefill_prompt: DEFAULTS.advanced_prefill_prompt,
+          advanced_prereply_prompt: DEFAULTS.advanced_prereply_prompt,
+          
+          vector_search_enabled: DEFAULTS.vector_search_enabled,
+          vector_search_query_dialogue_rounds: DEFAULTS.vector_search_query_dialogue_rounds,
+          vector_search_top_k: DEFAULTS.vector_search_top_k,
+          vector_search_min_score: DEFAULTS.vector_search_min_score,
+          vector_search_query_dialogue_rounds_2: DEFAULTS.vector_search_query_dialogue_rounds_2,
+          vector_search_top_k_2: DEFAULTS.vector_search_top_k_2,
+          vector_search_min_score_2: DEFAULTS.vector_search_min_score_2,
+          
           read_mod_lorebook: DEFAULTS.read_mod_lorebook,
-          init_bootstrap_target_model: DEFAULTS.init_bootstrap_target_model, init_bootstrap_model_anchor_prompt: DEFAULTS.init_bootstrap_model_anchor_prompt,
-          extractor_a_provider_model_map: DEFAULTS.extractor_a_provider_model_map, extractor_b_provider_model_map: DEFAULTS.extractor_b_provider_model_map,
-          embedding_provider_model_map: DEFAULTS.embedding_provider_model_map,
+          init_bootstrap_target_model: DEFAULTS.init_bootstrap_target_model,
+          init_bootstrap_model_anchor_prompt: DEFAULTS.init_bootstrap_model_anchor_prompt,
+          card_enable_settings: DEFAULTS.card_enable_settings,
         };
         await saveConfigFromUI(resetFormData);
         await refreshConfig();
-        uiModelCalls = getModelCalls();
-        uiEmbeddingProviderModelMap = parseSimpleStringMap(configCache.embedding_provider_model_map || "{}");
-        uiEmbeddingProviderKeyMap = parseSimpleStringMap(configCache.embedding_provider_key_map || "{}");
-        uiExtractorAProviderKeyMap = parseSimpleStringMap(configCache.extractor_a_provider_key_map || "{}");
-        uiExtractorBProviderKeyMap = parseSimpleStringMap(configCache.extractor_b_provider_key_map || "{}");
-        currentEmbeddingProvider = safeTrim(configCache.embedding_provider || "custom_api");
-        uiExtractorAProviderModelMap = parseSimpleStringMap(configCache.extractor_a_provider_model_map || "{}");
-        uiExtractorBProviderModelMap = parseSimpleStringMap(configCache.extractor_b_provider_model_map || "{}");
-        currentExtractorAProvider = safeTrim(configCache.extractor_a_provider || "custom_api");
-        currentExtractorBProvider = safeTrim(configCache.extractor_b_provider || "custom_api");
+
+        uiActivePreset = 1;
+        uiSubTab = 1;
+        uiModelCalls1 = parseModelCalls(configCache.model_calls);
+        uiModelCalls2 = parseModelCalls(configCache.model_calls_2);
+        uiModelCalls = uiModelCalls1;
+
+        document.getElementById("pse-preset-common")?.classList.remove("active");
+        document.getElementById("pse-preset-1")?.classList.add("active");
+        document.getElementById("pse-preset-2")?.classList.remove("active");
+        const loreCont = document.getElementById("pse-lore-presets-container");
+        const commonCont = document.getElementById("pse-common-prompts-container");
+        if (loreCont) loreCont.style.display = "block";
+        if (commonCont) commonCont.style.display = "none";
+
         renderModelCalls();
         const setVal = (id, value) => { const el = document.getElementById(id); if (el) el.value = String(value ?? ""); };
         setVal("advanced_model_anchor_prompt", configCache.advanced_model_anchor_prompt);
@@ -4507,9 +4870,13 @@ Example: [{"id": "chk_0", "category": "information"}, {"id": "chk_1", "category"
         setVal("vector_search_query_dialogue_rounds", configCache.vector_search_query_dialogue_rounds);
         setVal("vector_search_top_k", configCache.vector_search_top_k);
         setVal("vector_search_min_score", configCache.vector_search_min_score);
+        setVal("vector_search_query_dialogue_rounds_2", configCache.vector_search_query_dialogue_rounds_2);
+        setVal("vector_search_top_k_2", configCache.vector_search_top_k_2);
+        setVal("vector_search_min_score_2", configCache.vector_search_min_score_2);
         setVal("read_mod_lorebook", configCache.read_mod_lorebook);
         setVal("init_bootstrap_target_model", configCache.init_bootstrap_target_model);
         setVal("init_bootstrap_model_anchor_prompt", configCache.init_bootstrap_model_anchor_prompt);
+        await renderCardEnableList();
         showStatus(_T.st_reset, "ok");
       } catch (e) { showStatus(_T.st_reset_fail + (e?.message || String(e)), "err"); }
     });
@@ -4621,6 +4988,39 @@ Example: [{"id": "chk_0", "category": "information"}, {"id": "chk_1", "category"
     bindExtractorProviderModelMemory("extractor_a_provider", "extractor_a_model", "extractor_a_key", "A");
     bindExtractorProviderModelMemory("extractor_b_provider", "extractor_b_model", "extractor_b_key", "B");
 
+    
+    const THINKING_HINTS = {
+      claude: "Claude: budget_tokens — Low=1024, Medium=8000, High=32000",
+      google: "Gemini 3+: thinkingLevel — Low / Medium / High",
+      vertex: "Vertex Gemini 3+: thinking_level — Low / Medium / High",
+      openai: "OpenAI / OpenRouter: reasoning_effort — low / medium / high",
+    };
+    const updateThinkingHint = (formatId, hintId) => {
+      const formatEl = document.getElementById(formatId);
+      const hintEl = document.getElementById(hintId);
+      if (!formatEl || !hintEl) return;
+      const fmt = safeTrim(formatEl.value || "").toLowerCase();
+      hintEl.textContent = THINKING_HINTS[fmt] || THINKING_HINTS.openai;
+    };
+    const bindThinkingControls = (checkboxId, levelId, formatId, hintId) => {
+      const cb = document.getElementById(checkboxId);
+      const lvl = document.getElementById(levelId);
+      const hint = document.getElementById(hintId);
+      if (!cb || !lvl) return;
+      const sync = () => {
+        lvl.disabled = !cb.checked;
+        if (hint) hint.style.display = cb.checked ? "block" : "none";
+        updateThinkingHint(formatId, hintId);
+      };
+      cb.addEventListener("change", sync);
+      
+      const fmtEl = document.getElementById(formatId);
+      if (fmtEl) fmtEl.addEventListener("change", () => updateThinkingHint(formatId, hintId));
+      sync();
+    };
+    bindThinkingControls("extractor_a_thinking_enabled", "extractor_a_thinking_level", "extractor_a_format", "extractor_a_thinking_hint");
+    bindThinkingControls("extractor_b_thinking_enabled", "extractor_b_thinking_level", "extractor_b_format", "extractor_b_thinking_hint");
+
     let uiEmbeddingProviderModelMap = parseSimpleStringMap(configCache.embedding_provider_model_map || "{}");
     let uiEmbeddingProviderKeyMap = parseSimpleStringMap(configCache.embedding_provider_key_map || "{}");
     let uiExtractorAProviderKeyMap = parseSimpleStringMap(configCache.extractor_a_provider_key_map || "{}");
@@ -4710,7 +5110,11 @@ Example: [{"id": "chk_0", "category": "information"}, {"id": "chk_1", "category"
         if (embProv && embMod) uiEmbeddingProviderModelMap[embProv] = embMod;
         if (embProv && embKey) uiEmbeddingProviderKeyMap[embProv] = embKey;
 
-        const modelCallsForSave = readModelCallsFromUI();
+        if (uiSubTab !== 'common') {
+          syncUiModelCalls();
+          if (uiSubTab === 1) uiModelCalls1 = uiModelCalls;
+          else if (uiSubTab === 2) uiModelCalls2 = uiModelCalls;
+        }
 
         const formData = {
           extractor_a_provider: exAProv,
@@ -4741,21 +5145,48 @@ Example: [{"id": "chk_0", "category": "information"}, {"id": "chk_1", "category"
           })(),
           embedding_provider_model_map: JSON.stringify(uiEmbeddingProviderModelMap),
           embedding_provider_key_map: JSON.stringify(uiEmbeddingProviderKeyMap),
-          model_calls: JSON.stringify(modelCallsForSave),
+          model_calls: JSON.stringify(uiModelCalls1),
+          model_calls_2: JSON.stringify(uiModelCalls2),
+          active_preset: uiActivePreset,
           advanced_model_anchor_prompt: document.getElementById("advanced_model_anchor_prompt")?.value ?? "",
           advanced_prefill_prompt: document.getElementById("advanced_prefill_prompt")?.value ?? "",
           advanced_prereply_prompt: document.getElementById("advanced_prereply_prompt")?.value ?? "",
           read_mod_lorebook: toInt(document.getElementById("read_mod_lorebook")?.value, DEFAULTS.read_mod_lorebook) === 1 ? 1 : 0,
-          vector_search_enabled: toInt(document.getElementById("vector_search_enabled")?.value, 0) === 1 ? 1 : 0,
+          vector_search_enabled: (() => {
+            const cardList = document.querySelectorAll("#pse-card-enable-list .pse-entry-block");
+            let anyVec = false;
+            cardList.forEach(block => { if (block.querySelector(".pse-card-vector")?.value !== "off") anyVec = true; });
+            return anyVec ? 1 : 0;
+          })(),
           vector_search_query_dialogue_rounds: Math.max(1, toInt(document.getElementById("vector_search_query_dialogue_rounds")?.value, DEFAULTS.vector_search_query_dialogue_rounds)),
           vector_search_top_k: Math.max(1, toInt(document.getElementById("vector_search_top_k")?.value, DEFAULTS.vector_search_top_k)),
           vector_search_min_score: Math.max(0, Number(document.getElementById("vector_search_min_score")?.value || DEFAULTS.vector_search_min_score)),
+          vector_search_query_dialogue_rounds_2: Math.max(1, toInt(document.getElementById("vector_search_query_dialogue_rounds_2")?.value, DEFAULTS.vector_search_query_dialogue_rounds_2)),
+          vector_search_top_k_2: Math.max(1, toInt(document.getElementById("vector_search_top_k_2")?.value, DEFAULTS.vector_search_top_k_2)),
+          vector_search_min_score_2: Math.max(0, Number(document.getElementById("vector_search_min_score_2")?.value || DEFAULTS.vector_search_min_score_2)),
           init_bootstrap_target_model: safeTrim(document.getElementById("init_bootstrap_target_model")?.value || DEFAULTS.init_bootstrap_target_model) === "B" ? "B" : "A",
           init_bootstrap_model_anchor_prompt: document.getElementById("init_bootstrap_model_anchor_prompt")?.value ?? "",
+          extractor_a_thinking_enabled: document.getElementById("extractor_a_thinking_enabled")?.checked ? 1 : 0,
+          extractor_a_thinking_level: safeTrim(document.getElementById("extractor_a_thinking_level")?.value || "medium"),
+          extractor_b_thinking_enabled: document.getElementById("extractor_b_thinking_enabled")?.checked ? 1 : 0,
+          extractor_b_thinking_level: safeTrim(document.getElementById("extractor_b_thinking_level")?.value || "medium"),
           extractor_a_concurrency: toInt(document.getElementById("extractor_a_concurrency")?.value, 1),
           extractor_b_concurrency: toInt(document.getElementById("extractor_b_concurrency")?.value, 1),
-          embedding_concurrency: toInt(document.getElementById("embedding_concurrency")?.value, 1),
-          context_messages: configCache.context_messages, timeout_ms: configCache.timeout_ms, enable_cache: configCache.enable_cache,
+          context_messages: configCache.context_messages, timeout_ms: configCache.timeout_ms,
+          card_enable_settings: (() => {
+            const cardList = document.querySelectorAll("#pse-card-enable-list .pse-entry-block");
+            const cs = {};
+            cardList.forEach(block => {
+              const cid = block.getAttribute("data-card-id");
+              if (!cid) return;
+              cs[cid] = {
+                memory_extract: block.querySelector(".pse-card-memory")?.value || "off",
+                vector_search: block.querySelector(".pse-card-vector")?.value || "off",
+                card_disabled: block.querySelector(".pse-card-disabled")?.checked ? 1 : 0,
+              };
+            });
+            return JSON.stringify(cs);
+          })(),
         };
         await saveConfigFromUI(formData);
         showStatus(_T.st_saved, "ok");
@@ -4766,12 +5197,32 @@ Example: [{"id": "chk_0", "category": "information"}, {"id": "chk_1", "category"
   }
 
   async function initSettingEntry() {
-    const part = await Risuai.registerSetting(
-      "RisuAI Agent",
-      async () => { await Risuai.showContainer("fullscreen"); await renderSettingsUI(); },
-      "👤", "html"
-    );
-    uiIds.push(part.id);
+    
+    
+    const part = await Promise.resolve(
+      Risuai.registerSetting(
+        "RisuAI Agent",
+        async () => { await Risuai.showContainer("fullscreen"); await renderSettingsUI(); },
+        "👤", "html"
+      )
+    ).catch(() => null);
+    if (part?.id != null) uiIds.push(part.id);
+
+    
+    
+    
+    if (typeof Risuai.registerButton === "function") {
+      const btn = await Promise.resolve(
+        Risuai.registerButton({
+          name: "👤 AI Agent",
+          location: "hamburger"
+        }, async () => {
+          await Risuai.showContainer("fullscreen");
+          await renderSettingsUI();
+        })
+      ).catch(() => null);
+      if (btn?.id != null) uiIds.push(btn.id);
+    }
   }
 
   async function ensureReplacerRegistered() {
@@ -4810,19 +5261,30 @@ Example: [{"id": "chk_0", "category": "information"}, {"id": "chk_1", "category"
       await refreshConfig();
 
       if (type === "display") {
-        const { chat: displayChat } = await getCurrentCharAndChatSafe();
+        const { char: displayChar, chat: displayChat } = await getCurrentCharAndChatSafe();
         const displayMsgs = Array.isArray(displayChat?.message) ? displayChat.message : [];
         const displayUserMsgCount = displayMsgs.filter(m => m?.role === "user").length;
-        await applyRetentionCleanup(displayUserMsgCount);
+        let displayCardCalls;
+        try {
+          let displayCardSettings = {};
+          try { displayCardSettings = JSON.parse(configCache.card_enable_settings || "{}") || {}; } catch { }
+          const displayRawCharId = String(displayChar?.chaId || displayChar?.id || displayChar?._id || "").replace(/[^0-9a-zA-Z_-]/g, "");
+          const displayCharName = safeTrim(displayChar?.name || "");
+          const displayCharId = displayRawCharId || (displayCharName ? `name_${simpleHash(displayCharName)}` : "-1");
+          const displayCardCfg = displayCardSettings[displayCharId] || {};
+          const displayMemoryPreset = displayCardCfg.memory_extract || "off";
+          if (displayMemoryPreset !== "off") {
+            displayCardCalls = parseModelCalls(displayMemoryPreset === "2" ? configCache.model_calls_2 : configCache.model_calls);
+          }
+        } catch { }
+        await applyRetentionCleanup(displayUserMsgCount, displayCardCalls);
         return messages;
       }
-      // Only process the primary chat response flow.
-      // Secondary calls (e.g. Lua status/image generation) should not trigger prompt rewrite/extraction.
+
       if (type !== "model") {
         try { await Risuai.safeLocalStorage.setItem("last_extractor_mode", `skipped_non_model:${String(type ?? "")}`); } catch { }
         return messages;
       }
-
 
       await Risuai.safeLocalStorage.setItem("last_extractor_mode", "replacer_started");
 
@@ -4840,102 +5302,152 @@ Example: [{"id": "chk_0", "category": "information"}, {"id": "chk_1", "category"
         firstMessageHandled = String(await Risuai.safeLocalStorage.getItem(firstMessageHandledKey) || "") === firstMessageMarker;
       } catch { }
       if (userMsgCount > 1) {
-        // Reset stale marker after first turn to avoid cross-chat false matches on recycled chat index.
         try { await Risuai.safeLocalStorage.removeItem(firstMessageHandledKey); } catch { }
       }
 
       const gNoteData = await getGlobalNoteDataCached(char);
       const resolvedGlobalNote = safeTrim(gNoteData.replaceGlobalNote || gNoteData.globalNote);
-
       const currentStaticPayload = await getStaticDataPayload(char, chat, resolvedGlobalNote);
       const currentStaticHash = simpleHash(JSON.stringify(currentStaticPayload));
       const savedStaticHash = await Risuai.pluginStorage.getItem(staticKeys.staticDataHash);
 
-      const isVectorEnabled = configCache.vector_search_enabled === 1;
-      let needsStep0 = false;
-      let step0Reason = "";
+      let cardSettings = {};
+      try { cardSettings = JSON.parse(configCache.card_enable_settings || "{}") || {}; } catch { }
+      const rawCharId = String(char?.chaId || char?.id || char?._id || "").replace(/[^0-9a-zA-Z_-]/g, "");
+      const charName = safeTrim(char?.name || "");
+      const charId = rawCharId || (charName ? `name_${simpleHash(charName)}` : "-1");
+      const cardCfg = cardSettings[charId] || {};
+      const cardMemoryPreset = cardCfg.memory_extract || "off";
+      const vectorPresetNum = cardCfg.vector_search === "2" ? 2 : cardCfg.vector_search === "1" ? 1 : 0;
 
-      const step0Complete = await Risuai.pluginStorage.getItem(staticKeys.step0Complete);
-      const hashChanged = currentStaticHash !== savedStaticHash;
-      const sessionHandled = currentStaticHash === sessionStep0HandledHashByScope.get(staticKeys.scopeId);
-
-      if (!step0Complete) {
-        if (isVectorEnabled) {
-          const cacheHasAnyData = await checkCacheExists(char);
-          step0Reason = cacheHasAnyData ? "incomplete" : "new";
-        } else {
-          step0Reason = "new";
-        }
-        needsStep0 = true;
-      } else if (hashChanged && !sessionHandled) {
-        needsStep0 = true;
-        step0Reason = "changed";
+      const cardIsDisabled = cardCfg.card_disabled === true || cardCfg.card_disabled === 1 || cardCfg.card_disabled === "1";
+      if (cardIsDisabled) {
+        await Risuai.safeLocalStorage.setItem("last_extractor_mode", "card_disabled");
+        return messages;
       }
 
-      if (needsStep0 && type === "model") {
-        try {
-          const resumeMode = step0Reason === "incomplete";
+      const effectiveVecConfig = vectorPresetNum === 0
+        ? {
+          vector_search_enabled: configCache.vector_search_enabled,
+          vector_search_query_dialogue_rounds: configCache.vector_search_query_dialogue_rounds,
+          vector_search_top_k: configCache.vector_search_top_k,
+          vector_search_min_score: configCache.vector_search_min_score,
+        }
+        : {
+          vector_search_enabled: 1,
+          vector_search_query_dialogue_rounds: vectorPresetNum === 2
+            ? toInt(configCache.vector_search_query_dialogue_rounds_2, DEFAULTS.vector_search_query_dialogue_rounds_2)
+            : toInt(configCache.vector_search_query_dialogue_rounds, DEFAULTS.vector_search_query_dialogue_rounds),
+          vector_search_top_k: vectorPresetNum === 2
+            ? toInt(configCache.vector_search_top_k_2, DEFAULTS.vector_search_top_k_2)
+            : toInt(configCache.vector_search_top_k, DEFAULTS.vector_search_top_k),
+          vector_search_min_score: vectorPresetNum === 2
+            ? (Number(configCache.vector_search_min_score_2) || DEFAULTS.vector_search_min_score_2)
+            : (Number(configCache.vector_search_min_score) || DEFAULTS.vector_search_min_score),
+        };
+      const vecBackup = {
+        vector_search_enabled: configCache.vector_search_enabled,
+        vector_search_query_dialogue_rounds: configCache.vector_search_query_dialogue_rounds,
+        vector_search_top_k: configCache.vector_search_top_k,
+        vector_search_min_score: configCache.vector_search_min_score,
+      };
+      Object.assign(configCache, effectiveVecConfig);
+
+      try {
+        const isVectorEnabled = configCache.vector_search_enabled === 1;
+        let needsStep0 = false;
+        let step0Reason = "";
+
+        const step0Complete = await Risuai.pluginStorage.getItem(staticKeys.step0Complete);
+        const hashChanged = currentStaticHash !== savedStaticHash;
+        const sessionHandled = currentStaticHash === sessionStep0HandledHashByScope.get(staticKeys.scopeId);
+
+        if (!step0Complete) {
           if (isVectorEnabled) {
-            await Risuai.log(`${LOG} Starting background knowledge base initialization (Step 0)... Please wait.`);
+            const cacheHasAnyData = await checkCacheExists(char);
+            step0Reason = cacheHasAnyData ? "incomplete" : "new";
           } else {
-            await Risuai.log(`${LOG} Starting background knowledge base classification (Step 0, keyword mode)... Please wait.`);
+            step0Reason = "new";
           }
-          await runStep0Classification(char, chat, resolvedGlobalNote, currentStaticHash, staticKeys, resumeMode);
-          sessionStep0HandledHashByScope.set(staticKeys.scopeId, currentStaticHash);
-          await Risuai.log(`${LOG} Knowledge base initialization complete!`);
-        } catch (step0Err) {
-          const errMsg = step0Err?.message || String(step0Err);
-          await Risuai.log(`${LOG} ❌ Knowledge base initialization failed: ${errMsg}`);
-          if (isVectorEnabled) {
-            throw new Error(`[RisuAI Agent] Vector knowledge base build failed/timed out. Progress has been saved.\nError: ${errMsg}\nPlease wait a moment, then click "Regenerate/Send" to continue from where it left off.`);
-          } else {
-            console.warn(`${LOG} Step0 classification failed, using fallback (information): ${errMsg}`);
-            await Risuai.log(`${LOG} ⚠️ Knowledge base classification failed, continuing in fallback mode: ${errMsg}`);
+          needsStep0 = true;
+        } else if (hashChanged && !sessionHandled) {
+          needsStep0 = true;
+          step0Reason = "changed";
+        } else if (isVectorEnabled && !(await checkCacheExists(char))) {
+          needsStep0 = true;
+          step0Reason = "classify_done";
+        }
+
+        if (needsStep0) {
+          try {
+            const resumeMode = step0Reason === "incomplete";
+            const classifyDoneMode = step0Reason === "classify_done";
+            if (isVectorEnabled) {
+              if (classifyDoneMode) {
+                await Risuai.log(`${LOG} Classification already done. Building vector embeddings only (Step 0)... Please wait.`);
+              } else {
+                await Risuai.log(`${LOG} Starting background knowledge base initialization (Step 0)... Please wait.`);
+              }
+            } else {
+              await Risuai.log(`${LOG} Starting background knowledge base classification (Step 0, keyword mode)... Please wait.`);
+            }
+            await runStep0Classification(char, chat, resolvedGlobalNote, currentStaticHash, staticKeys, resumeMode, classifyDoneMode);
+            sessionStep0HandledHashByScope.set(staticKeys.scopeId, currentStaticHash);
+            await Risuai.log(`${LOG} Knowledge base initialization complete!`);
+          } catch (step0Err) {
+            const errMsg = step0Err?.message || String(step0Err);
+            await Risuai.log(`${LOG} ❌ Knowledge base initialization failed: ${errMsg}`);
+            if (isVectorEnabled) {
+              throw new Error(`[RisuAI Agent] Vector knowledge base build failed/timed out. Progress has been saved.\nError: ${errMsg}\nPlease wait a moment, then click "Regenerate/Send" to continue from where it left off.`);
+            } else {
+              console.warn(`${LOG} Step0 classification failed, using fallback (information): ${errMsg}`);
+              await Risuai.log(`${LOG} ⚠️ Knowledge base classification failed, continuing in fallback mode: ${errMsg}`);
+            }
           }
         }
-      }
 
-      await performChatCleanup(userMsgCount);
+        await performChatCleanup(userMsgCount);
 
-      if (isFirstMessage && !firstMessageHandled) {
-        try { await Risuai.safeLocalStorage.setItem(firstMessageHandledKey, firstMessageMarker); } catch { }
-        await Risuai.safeLocalStorage.setItem("last_extractor_mode", "skipped_first_message");
-        await Risuai.log(`${LOG} beforeRequest: skipping extraction on first message.`);
-        return await mergeToSystemPromptWithRewrite(messages, null, lastUserContent);
-      }
-
-      const baseConversation = await getConversationFromCurrentChat(Math.max(1, toInt(configCache.context_messages, 10)));
-      if (baseConversation.length === 0) {
-        await Risuai.safeLocalStorage.setItem("last_extractor_mode", "replacer_skipped");
-        await Risuai.safeLocalStorage.setItem("last_lore_sync_error", _T.no_conv);
-        await Risuai.log(`${LOG} beforeRequest: no usable conversation text.`);
-        return await mergeToSystemPromptWithRewrite(messages, null, lastUserContent);
-      }
-
-      const reqHash = simpleHash(JSON.stringify({ baseConversation, userMsgCount }));
-      let extractedData = null; let usedCache = false;
-
-      if (configCache.enable_cache === 1) {
-        const completedHash = await Risuai.safeLocalStorage.getItem(requestKeys.lastCompletedReqHash);
-        if (completedHash === reqHash) {
-          extractedData = await Risuai.safeLocalStorage.getItem(requestKeys.lastExtractedData);
-          usedCache = true;
+        if (isFirstMessage && !firstMessageHandled) {
+          try { await Risuai.safeLocalStorage.setItem(firstMessageHandledKey, firstMessageMarker); } catch { }
+          await Risuai.safeLocalStorage.setItem("last_extractor_mode", "skipped_first_message");
+          await Risuai.log(`${LOG} beforeRequest: skipping extraction on first message.`);
+          return await mergeToSystemPromptWithRewrite(messages, null, lastUserContent);
         }
-      }
 
-      if (!usedCache) {
+        const baseConversation = await getConversationFromCurrentChat(Math.max(1, toInt(configCache.context_messages, 10)));
+        if (baseConversation.length === 0) {
+          await Risuai.safeLocalStorage.setItem("last_extractor_mode", "replacer_skipped");
+          await Risuai.safeLocalStorage.setItem("last_lore_sync_error", _T.no_conv);
+          await Risuai.log(`${LOG} beforeRequest: no usable conversation text.`);
+          return await mergeToSystemPromptWithRewrite(messages, null, lastUserContent);
+        }
+
+        const reqHash = simpleHash(JSON.stringify({ baseConversation, userMsgCount }));
+        try { await Risuai.safeLocalStorage.removeItem(requestKeys.lastReqHash); } catch { }
         await Risuai.safeLocalStorage.setItem(requestKeys.lastReqHash, reqHash);
 
+        let extractedData = null;
         const roundIndex = userMsgCount;
         const resolved = resolveExtractorConfig();
-        const dueCalls = getModelCalls().filter((c) => isModelCallDue(c, userMsgCount));
+        const memoryEnabled = cardMemoryPreset !== "off";
+        const dueCalls = memoryEnabled
+          ? parseModelCalls(cardMemoryPreset === "2" ? configCache.model_calls_2 : configCache.model_calls)
+            .filter((c) => isModelCallDue(c, userMsgCount))
+          : [];
 
         if (dueCalls.length > 0) {
           await Risuai.log(`${LOG} Agent: Calling auxiliary model for analysis and data extraction...`);
 
           const PARALLEL_LIMIT = 3;
-          const parallelCalls = dueCalls.filter(c => c.allow_parallel);
-          const sequentialCalls = dueCalls.filter(c => !c.allow_parallel);
+          const parallelCalls = dueCalls.filter(c => {
+            const target = safeTrim(c.target_model) === "B" ? "B" : "A";
+            return target === "B" ? configCache.extractor_b_concurrency === 1 : configCache.extractor_a_concurrency === 1;
+          });
+          const sequentialCalls = dueCalls.filter(c => {
+            const target = safeTrim(c.target_model) === "B" ? "B" : "A";
+            return target === "B" ? configCache.extractor_b_concurrency !== 1 : configCache.extractor_a_concurrency !== 1;
+          });
 
           const executeCall = async (call) => {
             const extractedMessages = await buildScopedExtractorMessages(baseConversation, call);
@@ -4946,7 +5458,8 @@ Example: [{"id": "chk_0", "category": "information"}, {"id": "chk_1", "category"
                 result: await callExtractorStrict({
                   url: endpoint.url, apiKey: endpoint.key, model: endpoint.model, format: endpoint.format, temperature: endpoint.temperature,
                   messages: extractedMessages, timeoutMs: configCache.timeout_ms, mode: call.target_model,
-                })
+                  thinkingEnabled: endpoint.thinkingEnabled || false, thinkingLevel: endpoint.thinkingLevel || "",
+                }),
               };
             } catch (err) {
               throw new Error(buildAuxCallErrorLine(call, endpoint, err));
@@ -4973,42 +5486,36 @@ Example: [{"id": "chk_0", "category": "information"}, {"id": "chk_1", "category"
           }
 
           for (const res of results) {
-            if (res.status === "fulfilled") {
-              const { call, result } = res.value;
-              const parsed = result?.parsed || {};
-              if (Object.keys(parsed).length > 0) extractedData = { ...(extractedData || {}), ...parsed };
-              const raw = String(result?.raw || "").trim();
-              if (raw) {
-                try {
-                  await writeOutputsForCall(call, raw, result?.parsed, reqHash, roundIndex);
-                  if (!extractedData) extractedData = {};
-                } catch (e) {
-                  const endpoint = call.target_model === "B" ? resolved.b : resolved.a;
-                  await abortMainModelWithAuxError(_T.entry_save_failed + buildAuxCallErrorLine(call, endpoint, e));
-                }
-              }
+            if (res.status !== "fulfilled") continue;
+            const { call, result } = res.value;
+            const parsed = result?.parsed || {};
+            if (Object.keys(parsed).length > 0) extractedData = { ...(extractedData || {}), ...parsed };
+            const raw = String(result?.raw || "").trim();
+            if (!raw) continue;
+            try {
+              await writeOutputsForCall(call, raw, result?.parsed, roundIndex, dueCalls);
+              if (!extractedData) extractedData = {};
+            } catch (e) {
+              const endpoint = call.target_model === "B" ? resolved.b : resolved.a;
+              await abortMainModelWithAuxError(_T.entry_save_failed + buildAuxCallErrorLine(call, endpoint, e));
             }
           }
-          await Risuai.safeLocalStorage.setItem(requestKeys.lastCompletedReqHash, reqHash);
         }
 
         await Risuai.safeLocalStorage.setItem("last_extractor_mode", "replacer");
-        if (extractedData) await Risuai.safeLocalStorage.setItem(requestKeys.lastExtractedData, typeof extractedData === "object" ? JSON.stringify(extractedData) : String(extractedData));
-      }
-
-      if (!extractedData && !usedCache) {
-        const due = getModelCalls().filter((c) => isModelCallDue(c, userMsgCount));
-        if (due.length > 0) {
+        if (extractedData) {
+          await Risuai.safeLocalStorage.setItem(requestKeys.lastExtractedData, typeof extractedData === "object" ? JSON.stringify(extractedData) : String(extractedData));
+        }
+        if (!extractedData && dueCalls.length > 0) {
           await abortMainModelWithAuxError(`${_T.aux_failed || "Auxiliary model execution failed:\n"}No usable extraction result was produced by due calls.`);
         }
+
+        const allCardCalls = parseModelCalls(cardMemoryPreset === "2" ? configCache.model_calls_2 : configCache.model_calls);
+        await applyRetentionCleanup(userMsgCount, allCardCalls);
+        return await mergeToSystemPromptWithRewrite(messages, null, lastUserContent);
+      } finally {
+        Object.assign(configCache, vecBackup);
       }
-
-      // Enforce retention in model flow as well; relying on display hook alone is not stable.
-      await applyRetentionCleanup(userMsgCount);
-
-      const injectedMessages = await mergeToSystemPromptWithRewrite(messages, null, lastUserContent);
-
-      return injectedMessages;
     })(messages, type);
   }
 
@@ -5041,7 +5548,6 @@ Example: [{"id": "chk_0", "category": "information"}, {"id": "chk_1", "category"
     await Risuai.safeLocalStorage.removeItem("last_hook_ts");
     await Risuai.safeLocalStorage.removeItem("last_hook_type");
     await Risuai.safeLocalStorage.removeItem(LAST_REQ_HASH_KEY);
-    await Risuai.safeLocalStorage.removeItem(LAST_COMPLETED_REQ_HASH_KEY);
     await Risuai.safeLocalStorage.removeItem(LAST_EXTRACTED_DATA_KEY);
     await Risuai.safeLocalStorage.removeItem("last_lore_sync_hash");
     await Risuai.safeLocalStorage.removeItem("last_lore_sync_error");
