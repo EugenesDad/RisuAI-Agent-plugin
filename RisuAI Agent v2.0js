@@ -1,9 +1,9 @@
 //@name 👤 RisuAI Agent
-//@display-name 👤 RisuAI Agent v1.7.2
+//@display-name 👤 RisuAI Agent v2.0
 //@author penguineugene@protonmail.com
 //@link https://github.com/EugenesDad/RisuAI-Agent-plugin
 //@api 3.0
-//@version 1.7.2
+//@version 2.0
 
 (async () => {
   function _mapLangCode(raw) {
@@ -42,8 +42,9 @@
   const _I18N = {
     en: {
       append: "Append", overwrite: "Overwrite",
-      tab_help: "Instructions", tab_model: "Pre-Model Settings", tab_vector: "Vector Search",
-      tab_entry: "Information Extraction", tab_cache: "Cache Warehouse", tab_enable: "Enable Settings",
+      tab_help: "Instructions", tab_model: "Pre-Model Settings", tab_vector: "Temporarily Closed",
+      tab_entry: "Information Extraction", tab_cache: "Temporarily Closed", tab_enable: "Enable Settings",
+      tab_closed: "Temporarily Closed",
       tab_common: "Common Prompts",
       sec_a: "Main Model", sec_b: "Auxiliary Model",
       sec_embed_title: "Embedding Model",
@@ -54,6 +55,7 @@
       opt_concurrent: "Concurrent (allow multiple simultaneous requests)",
       opt_sequential: "Sequential (single-threaded requests only)",
       sec_lore_calls: "Lorebook Write Call Settings",
+      tag_temp_closed: "Temporarily Closed",
       lore_warn: "⚠️ Do not manually edit the Lorebook while Agent is running, as it may be automatically overwritten.",
       btn_add_call: "Add Call Task",
       lbl_anchor: "System Anchor Prompt", lbl_prefill: "Assistant Prefill", lbl_prereply: "Assistant Pre-Reply Prompt",
@@ -140,48 +142,45 @@
       warn_parse_failed: "⚠️ Unable to parse static_knowledge_chunks. Please check if Step 0 has completed.",
       warn_no_chunks: "⚠️ No available chunks. Knowledge injection skipped. Please check if Step 0 has completed.",
       copilot_refresh: "Copilot token refresh",
-      help_html: `<b>▌ Core Role: Information Extraction &amp; Vector Search</b><br/>
-                &bull; <code>Information Extraction</code>: Before the main model replies, precursor models extract valid information from the conversation, helping the main model respond more brilliantly.<br/>
-                &bull; <code>Vector Search</code>: Reorganizes bot data, replacing traditional keyword triggers with vector search to increase the amount of relevant information.<br/><br/>
+      help_html: `<b>▌ Core Role: Information Extraction</b><br/>
+                &bull; Information Extraction: Before the main model replies, precursor models extract valid information from the conversation, helping the main model respond more brilliantly.<br/>
+                &bull; Difference between Preset 1 and Preset 2: Preset 1 is for general bots; Preset 2 is for epic narrative bots with complex plots.<br/>
+                &bull; Vector Search is temporarily closed: Will be re-enabled after plugin V3 supports CBS.<br/><br/>
 
                 <b>▌ Plugin Constraints</b><br/>
-                &bull; ❌ <b>Cannot resume non-plugin chats</b>: To continue previous non-plugin chat history, please summarize it first and start a new conversation.<br/>
-                &bull; ❌ <b>Cannot toggle on/off repeatedly</b>: The internal state (e.g., Long-Term Memory, World Encyclopedia) will become disconnected from the current plot if disabled.<br/>
-                &bull; ✅ <b>Switch system prompts (presets) mid-story</b>: As long as the plugin remains enabled, you can freely switch between different system prompts during your roleplay.<br/>
-                &bull; ✅ <b>Disabling the plugin</b>: You can transition from a plugin-enabled session to a non-plugin session (remember to change your system prompt), but the state maintained by the Agent will stop updating.<br/><br/>
+                &bull; ⚠️ Need to modify your preset<br/>
+                &bull; ❌ Cannot resume non-plugin chats: To continue previous non-plugin chat history, please summarize it first and start a new conversation.<br/>
+                &bull; ❌ Cannot toggle on/off repeatedly: The internal state (e.g., Long-Term Memory, World Encyclopedia) will become disconnected from the current plot if disabled.<br/>
+                &bull; ✅ Switch presets mid-story: As long as the plugin remains enabled, you can freely switch between different presets during your roleplay.<br/>
+                &bull; ✅ Disabling the plugin: You can transition from a plugin-enabled session to a non-plugin session (remember to change your preset), but the state maintained by the Agent will stop updating.<br/><br/>
+
+                <b>▌ How to modify the Preset</b><br/>
+                1. Delete Supa/HypaMemory field<br/>
+                2. Click Advanced in chat, adjust Range Start to -10<br/><br/>
 
                 <b>▌ Precursor Model Settings: The Core Supporting the Plugin</b><br/>
-                &bull; <code>Main Model</code>: A powerful model capable of effectively processing large amounts of data.<br/>
-                &bull; <code>Auxiliary Model</code>: A non-coding model capable of understanding the play language and processing 1k~5k content.<br/>
-                &bull; <code>Embedding Model</code>: If the play language differs from the bot language, be sure to select a model that supports cross-lingual search.<br/><br/>
+                &bull; Main Model: A powerful model capable of effectively processing large amounts of data.<br/>
+                &bull; Auxiliary Model: A non-coding model capable of understanding the play language and processing 1k~5k content.<br/><br/>
 
                 <b>▌ Expected Model Call Frequency</b><br/>
                 <b>[At Start of Conversation]</b><br/>
-                &bull; <code>Main Model</code>: 0 times.<br/>
-                &bull; <code>Auxiliary Model</code>: Called several times to break down bot data and build the classification system.<br/>
-                &bull; <code>Embedding Model</code>: If cache search is enabled, called several times to build the vector index.<br/>
+                &bull; Main Model: 0 times.<br/>
+                &bull; Auxiliary Model: Called several times to break down bot data and build the classification system.<br/>
+                &bull; Embedding Model: If cache search is enabled, called several times to build the vector index.<br/>
                 <b>[Subsequent Turns: Setting 1]</b><br/>
-                &bull; <code>Main Model</code>: Once every 10 / 15 turns.<br/>
-                &bull; <code>Auxiliary Model</code>: Twice every turn, once every 3 turns.<br/>
-                &bull; <code>Embedding Model</code>: Once every turn if cache search is enabled.<br/>
+                &bull; Main Model: Once every 10 / 15 turns.<br/>
+                &bull; Auxiliary Model: Twice every turn, once every 3 turns.<br/>
+                &bull; Embedding Model: Once every turn if cache search is enabled.<br/>
                 <b>[Subsequent Turns: Setting 2]</b><br/>
-                &bull; <code>Main Model</code>: Once every 3 / 10 / 15 turns.<br/>
-                &bull; <code>Auxiliary Model</code>: Three times every turn, once every 2 turns, once every 3 turns.<br/>
-                &bull; <code>Embedding Model</code>: Once every turn if cache search is enabled.<br/><br/>
-
-                <b>▌ Enable Settings: Individual configuration for each bot</b><br/>
-                &bull; <code>Classification Model</code>: Breaks down bot data into three categories and places them in the most effective positions within the prompt.<br/>
-                &bull; <code>Read Mod Lorebook</code>: Currently, plugin v3 does not support CBS syntax parsing. Disabling this prevents Lorebook entries from mods from polluting the response quality.<br/>
-                &bull; <code>Preset 1 vs Preset 2</code>: Preset 1 is for general bots; Preset 2 is for epic narrative bots with complex plots.<br/><br/>
-
-                <b>▌ Cache Warehouse: Where each bot's data is stored</b><br/>
-                &bull; <code>Classification</code>: Index built by the classification model.<br/>
-                &bull; <code>Vector</code>: Cache index built by the vector (embedding) model.`,
+                &bull; Main Model: Once every 3 / 10 / 15 turns.<br/>
+                &bull; Auxiliary Model: Three times every turn, once every 2 turns, once every 3 turns.<br/>
+                &bull; Embedding Model: Once every turn if cache search is enabled.`,
     },
     ko: {
       append: "추가", overwrite: "덮어쓰기",
-      tab_help: "설정 안내", tab_model: "전도 모델 설정", tab_vector: "벡터 검색",
-      tab_entry: "정보 추출", tab_cache: "캐시 창고", tab_enable: "활성화 설정",
+      tab_help: "설정 안내", tab_model: "전도 모델 설정", tab_vector: "일시적으로 닫힘",
+      tab_entry: "정보 추출", tab_cache: "일시적으로 닫힘", tab_enable: "활성화 설정",
+      tab_closed: "일시적으로 닫힘",
       tab_common: "공통 프롬프트",
       sec_a: "메인 모델", sec_b: "보조 모델",
       sec_embed_title: "임베딩 모델 (Embedding Model)",
@@ -192,6 +191,7 @@
       opt_concurrent: "병렬 (복수 요청 동시 발송 허용)",
       opt_sequential: "순차 (단일 스레드 요청만 가능)",
       sec_lore_calls: "로어북 쓰기 호출 설정",
+      tag_temp_closed: "일시적으로 닫힘",
       lore_warn: "⚠️ Agent 작동 중에는 로어북을 수동으로 편집하지 마세요. 시스템에 의해 자동으로 덮어쓰일 수 있습니다.",
       btn_add_call: "호출 작업 추가",
       lbl_anchor: "시스템 앵커 프롬프트 (System Prompt)", lbl_prefill: "어시스턴트 프리필 (Assistant Prefill)", lbl_prereply: "사전 응답 프롬프트 (Assistant Pre-Reply)",
@@ -278,48 +278,45 @@
       warn_parse_failed: "⚠️ 정적 지식 청크를 파싱할 수 없습니다. Step 0이 완료되었는지 확인하십시오.",
       warn_no_chunks: "⚠️ 사용 가능한 청크가 없습니다. 지식 주입을 건너뜜. Step 0이 완료되었는지 확인하십시오.",
       copilot_refresh: "Copilot 토큰 갱신",
-      help_html: `<b>▌ 핵심 역할: 정보 추출 및 벡터 검색</b><br/>
-                &bull; <code>정보 추출</code>: 메인 모델이 응답하기 전, 전도 모델을 통해 대화에서 유효한 정보를 추출하여 메인 모델이 더 멋지게 응답할 수 있도록 돕습니다.<br/>
-                &bull; <code>벡터 검색</code>: 봇 데이터를 재구성하여 전통적인 키워드 트리거 대신 벡터 검색을 사용하여 유효 정보량을 높입니다.<br/><br/>
+      help_html: `<b>▌ 핵심 역할: 정보 추출</b><br/>
+                &bull; 정보 추출: 메인 모델이 응답하기 전, 전도 모델을 통해 대화에서 유효한 정보를 추출하여 메인 모델이 더 멋지게 응답할 수 있도록 돕습니다.<br/>
+                &bull; 설정 1과 설정 2의 차이: 설정 1은 일반적인 봇에 적합하며, 설정 2는 복잡한 줄거리의 대서사시형 봇에 적합합니다.<br/>
+                &bull; 벡터 검색은 일시적으로 비활성화됨: 플러그인 V3가 CBS를 지원하면 다시 활성화됩니다.<br/><br/>
 
                 <b>▌ 플러그인 제한 사항</b><br/>
-                &bull; ❌ <b>일반 채팅 기록과 직접 호환 불가</b>: 플러그인을 사용하지 않은 이전 기록을 가져오려면 내용을 요약한 뒤 새 대화를 시작해 주세요.<br/>
-                &bull; ❌ <b>반복적인 On/Off 불가</b>: 플러그인을 비활성화하면 내부 상태(장기 기억, 세계 백과사전 등)가 현재 줄거리와 동떨어지게 됩니다.<br/>
-                &bull; ✅ <b>도중 시스템 프롬프트(프리셋) 교체</b>: 플러그인이 활성화된 상태라면 플레이 도중 언제든지 다른 시스템 프롬프트로 자유롭게 전환할 수 있습니다.<br/>
-                &bull; ✅ <b>플러그인 비활성화</b>: 플러그인 사용 모드에서 일반 모드로 전환하는 것이 가능하지만(시스템 프롬프트 교체 필요), 에이전트가 기록하는 상태 정보는 더 이상 업데이트되지 않습니다.<br/><br/>
+                &bull; ⚠️ 사용 중인 프리셋 수정 필요<br/>
+                &bull; ❌ 일반 채팅 기록과 직접 호환 불가: 플러그인을 사용하지 않은 이전 기록을 가져오려면 내용을 요약한 뒤 새 대화를 시작해 주세요.<br/>
+                &bull; ❌ 반복적인 On/Off 불가: 플러그인을 비활성화하면 내부 상태(장기 기억, 세계 백과사전 등)가 현재 줄거리와 동떨어지게 됩니다.<br/>
+                &bull; ✅ 도중 프리셋 교체: 플러그인이 활성화된 상태라면 플레이 도중 언제든지 다른 프리셋으로 자유롭게 전환할 수 있습니다.<br/>
+                &bull; ✅ 플러그인 비활성화: 플러그인 사용 모드에서 일반 모드로 전환하는 것이 가능하지만(프리셋 교체 필요), 에이전트가 기록하는 상태 정보는 더 이상 업데이트되지 않습니다.<br/><br/>
+
+                <b>▌ 프리셋 수정 방법</b><br/>
+                1. Supa/HypaMemory 필드 삭제<br/>
+                2. 채팅에서 고급(Advanced) 클릭 후, 범위 시작을 -10으로 조정<br/><br/>
 
                 <b>▌ 전도 모델 설정: 플러그인 작동을 지원하는 핵심</b><br/>
-                &bull; <code>메인 모델</code>: 강력한 성능으로 대량의 데이터를 효과적으로 처리할 수 있는 모델입니다.<br/>
-                &bull; <code>보조 모델</code>: 플레이 언어를 이해하고 1k~5k의 내용을 처리할 수 있는 비코딩 모델입니다.<br/>
-                &bull; <code>임베딩 모델</code>: 플레이 언어와 봇 언어가 다를 경우, 반드시 교차 언어 검색이 가능한 모델을 선택하세요.<br/><br/>
+                &bull; 메인 모델: 강력한 성능으로 대량의 데이터를 효과적으로 처리할 수 있는 모델입니다.<br/>
+                &bull; 보조 모델: 플레이 언어를 이해하고 1k~5k의 내용을 처리할 수 있는 비코딩 모델입니다.<br/><br/>
 
                 <b>▌ 예상 모델 호출 빈도</b><br/>
                 <b>【대화 시작 시】</b><br/>
-                &bull; <code>메인 모델</code>: 0회.<br/>
-                &bull; <code>보조 모델</code>: 봇 데이터를 분해하고 분류 시스템을 구축하기 위해 수 회 호출됩니다.<br/>
-                &bull; <code>임베딩 모델</code>: 캐시 검색이 활성화된 경우 벡터 인덱스를 생성하기 위해 수 회 호출됩니다.<br/>
+                &bull; 메인 모델: 0회.<br/>
+                &bull; 보조 모델: 봇 데이터를 분해하고 분류 시스템을 구축하기 위해 수 회 호출됩니다.<br/>
+                &bull; 임베딩 모델: 캐시 검색이 활성화된 경우 벡터 인덱스를 생성하기 위해 수 회 호출됩니다.<br/>
                 <b>【이후 대화: 설정 1】</b><br/>
-                &bull; <code>메인 모델</code>: 10 / 15 턴마다 1회.<br/>
-                &bull; <code>보조 모델</code>: 매 턴 2회, 3턴마다 1회.<br/>
-                &bull; <code>임베딩 모델</code>: 캐시 검색이 활성화된 경우 매 턴 1회.<br/>
+                &bull; 메인 모델: 10 / 15 턴마다 1회.<br/>
+                &bull; 보조 모델: 매 턴 2회, 3턴마다 1회.<br/>
+                &bull; 임베딩 모델: 캐시 검색이 활성화된 경우 매 턴 1회.<br/>
                 <b>【이후 대화: 설정 2】</b><br/>
-                &bull; <code>메인 모델</code>: 3 / 10 / 15 턴마다 1회.<br/>
-                &bull; <code>보조 모델</code>: 매 턴 3회, 2턴마다 1회, 3턴마다 1회.<br/>
-                &bull; <code>임베딩 모델</code>: 캐시 검색이 활성화된 경우 매 턴 1회.<br/><br/>
-
-                <b>▌ 활성화 설정: 각 봇별 개별 설정</b><br/>
-                &bull; <code>분류 모델</code>: 봇 데이터를 분해하여 세 가지 카테고리로 분류한 뒤, 프롬프트에서 가장 효과적인 위치에 배치합니다.<br/>
-                &bull; <code>모듈 로어북 읽기 여부</code>: 현재 플러그인 v3는 CBS 문법 파싱을 지원하지 않으므로, 이를 비활성화하면 모듈의 로어북 항목이 응답 품질을 저해하는 것을 방지할 수 있습니다.<br/>
-                &bull; <code>설정 1 vs 설정 2</code>: 설정 1은 일반적인 봇에 적합하며, 설정 2는 복잡한 줄거리의 대서사시형 봇에 적합합니다.<br/><br/>
-
-                <b>▌ 캐시 창고: 각 봇의 데이터가 저장되는 곳</b><br/>
-                &bull; <code>분류</code>: 분류 모델에 의해 생성된 인덱스입니다.<br/>
-                &bull; <code>벡터</code>: 벡터(임베딩) 모델에 의해 생성된 캐시 인덱스입니다.`,
+                &bull; 메인 모델: 3 / 10 / 15 턴마다 1회.<br/>
+                &bull; 보조 모델: 매 턴 3회, 2턴마다 1회, 3턴마다 1회.<br/>
+                &bull; 임베딩 모델: 캐시 검색이 활성화된 경우 매 턴 1회.`,
     },
     tc: {
       append: "添加", overwrite: "覆蓋",
-      tab_help: "設定說明", tab_model: "前導模型設定", tab_vector: "向量搜尋",
-      tab_entry: "資訊萃取", tab_cache: "快取倉庫", tab_enable: "啟用設置",
+      tab_help: "設定說明", tab_model: "前導模型設定", tab_vector: "暫時關閉中",
+      tab_entry: "資訊萃取", tab_cache: "暫時關閉中", tab_enable: "啟用設置",
+      tab_closed: "暫時關閉中",
       tab_common: "共同提示詞",
       sec_a: "主要模型", sec_b: "輔助模型",
       sec_embed_title: "嵌入模型",
@@ -330,6 +327,7 @@
       opt_concurrent: "併發 (允許同時發送複數請求)",
       opt_sequential: "序列 (僅能單線請求)",
       sec_lore_calls: "Lorebook 寫入呼叫設定",
+      tag_temp_closed: "暫時關閉中",
       lore_warn: "⚠️ Agent 運作期間，請勿手動編輯Lorebook，以免被系統自動覆蓋。",
       btn_add_call: "新增呼叫任務",
       lbl_anchor: "系統定位提示詞 (System Prompt)", lbl_prefill: "助理預填充 (Assistant Prefill)", lbl_prereply: "預回覆提示詞 (Assistant Pre-Reply)",
@@ -416,43 +414,39 @@
       warn_parse_failed: "⚠️ 無法解析靜態知識分塊。請檢查 Step 0 是否已完成。",
       warn_no_chunks: "⚠️ 無可用分塊。已跳過知識注入。請檢查 Step 0 是否已完成。",
       copilot_refresh: "Copilot token refresh",
-      help_html: `<b>▌ 核心作用：資訊萃取與向量搜尋</b><br/>
-                &bull; <code>資訊萃取</code>：主要模型回覆之前，先透過前導模型從對話中萃取有效資訊，輔助主要模型回應得更精彩。<br/>
-                &bull; <code>向量搜尋</code>：重組卡片資料，以向量搜尋取代傳統的關鍵字觸發，提高有效資訊量。<br/><br/>
+      help_html: `<b>▌ 核心作用：資訊萃取</b><br/>
+                &bull; 資訊萃取：主要模型回覆之前，先透過前導模型從對話中萃取有效資訊，輔助主要模型回應得更精彩。<br/>
+                &bull; 設定1與設定2的差異：設定1適用於一般卡片；設定2適合劇情複雜的史詩型卡片。<br/>
+                &bull; 向量搜尋暫時關閉中：等到plugin V3支援CBS後再開啟。<br/><br/>
 
                 <b>▌ 本外掛限制</b><br/>
-                &bull; ❌ <b>無法銜接無外掛對話</b>：若要延續先前無外掛的遊玩記錄，請將記錄彙整後，重新開啟一段新對話。<br/>
-                &bull; ❌ <b>外掛無法時開時關</b>：因為外掛內的狀態（如長期記憶、世界百科）會在關閉時與當前劇情脫節。<br/>
-                &bull; ✅ <b>外掛途中切換提示詞 (preset)</b>：只要持續啟用此外掛，就可以在遊玩途中自由切換不同的提示詞。<br/>
-                &bull; ✅ <b>關閉外掛</b>：可從有外掛模式接軌至切換至無外掛模式 (記得換提示詞)，但外掛紀錄的狀態將停止更新。<br/><br/>
+                &bull; ⚠️ 需要修改你所使用的preset<br/>
+                &bull; ❌ 無法銜接無外掛對話：若要延續先前無外掛的遊玩記錄，請將記錄彙整後，重新開啟一段新對話。<br/>
+                &bull; ❌ 外掛無法時開時關：因為外掛內的狀態（如長期記憶、世界百科）會在關閉時與當前劇情脫節。<br/>
+                &bull; ✅ 外掛途中切換提示詞 (preset)：只要持續啟用此外掛，就可以在遊玩途中自由切換不同的提示詞。<br/>
+                &bull; ✅ 關閉外掛：可從有外掛模式接軌至切換至無外掛模式 (記得preset也要轉換)，但外掛紀錄的狀態將停止更新。<br/><br/>
+
+                <b>▌ 修改Preset的方式</b><br/>
+                1. 刪除Supa/HypaMemory欄位<br/>
+                2. 聊天點選進階，將範圍開始調整至-10<br/><br/>
 
                 <b>▌ 前導模型設定：支持外掛運作的核心</b><br/>
-                &bull; <code>主要模型</code>：功能強大、能夠有效處理大量資料的模型。<br/>
-                &bull; <code>輔助模型</code>：能夠理解遊玩語言、處理 1k~5k 內容的非編程模型。<br/>
-                &bull; <code>嵌入模型</code>：若遊玩語言與卡片語言不同，請務必要選用可跨語言搜尋的模型。<br/><br/>
+                &bull; 主要模型：功能強大、能夠有效處理大量資料的模型。<br/>
+                &bull; 輔助模型：能夠理解遊玩語言、處理 1k~5k 內容的非編程模型。<br/><br/>
 
                 <b>▌ 預期呼叫模型的頻率</b><br/>
                 <b>【啟動對話時】</b><br/>
-                &bull; <code>主要模型</code>：0 次。<br/>
-                &bull; <code>輔助模型</code>：呼叫數次，將卡片資料拆散建立分類系統。<br/>
-                &bull; <code>嵌入模型</code>：若開啟快取搜尋則呼叫數次，建立向量索引。<br/>
+                &bull; 主要模型：0 次。<br/>
+                &bull; 輔助模型：呼叫數次，將卡片資料拆散建立分類系統。<br/>
+                &bull; 嵌入模型：若開啟快取搜尋則呼叫數次，建立向量索引。<br/>
                 <b>【之後對話：設定 1】</b><br/>
-                &bull; <code>主要模型</code>：每 10 / 15 回合 1 次。<br/>
-                &bull; <code>輔助模型</code>：每回合 2 次、每 3 回合 1 次。<br/>
-                &bull; <code>嵌入模型</code>：若開啟快取搜尋，每回合 1 次。<br/>
+                &bull; 主要模型：每 10 / 15 回合 1 次。<br/>
+                &bull; 輔助模型：每回合 2 次、每 3 回合 1 次。<br/>
+                &bull; 嵌入模型：若開啟快取搜尋，每回合 1 次。<br/>
                 <b>【之後對話：設定 2】</b><br/>
-                &bull; <code>主要模型</code>：每 3 / 10 / 15 回合 1 次。<br/>
-                &bull; <code>輔助模型</code>：每回合 3 次、每 2 回合 1 次、每 3 回合 1 次。<br/>
-                &bull; <code>嵌入模型</code>：若開啟快取搜尋，每回合 1 次。<br/><br/>
-
-                <b>▌ 啟用設置：為每張卡片進行個別設置</b><br/>
-                &bull; <code>分類模型</code>：將卡片資料拆散後分成三類，放進提示詞中最有效的位置。<br/>
-                &bull; <code>是否讀取模組 Lorebook</code>：目前外掛 v3 不支援解析 CBS 語法，因此關閉後，可以避免模組中的 Lorebook 條目污染回覆品質。<br/>
-                &bull; <code>設定1與設定2的差異</code>：設定1適用於一般卡片；設定2適合劇情複雜的史詩型卡片。<br/><br/>
-
-                <b>▌ 快取倉庫：儲存每張卡片資料之處</b><br/>
-                &bull; <code>分類</code>：分類模型建立的索引。<br/>
-                &bull; <code>向量</code>：向量模型建立的快取索引。`,
+                &bull; 主要模型：每 3 / 10 / 15 回合 1 次。<br/>
+                &bull; 輔助模型：每回合 3 次、每 2 回合 1 次、每 3 回合 1 次。<br/>
+                &bull; 嵌入模型：若開啟快取搜尋，每回合 1 次。`,
     },
   };
 
@@ -460,8 +454,9 @@
   let _langInitialized = false;
 
   const PLUGIN_NAME = "👤 RisuAI Agent";
-  const PLUGIN_VER = "1.7.2";
+  const PLUGIN_VER = "2.0";
   const LOG = "[RisuAIAgent]";
+  const HARD_FREEZE_KB_FEATURES = true;
   const SYSTEM_INJECT_TAG = "PLUGIN_PARALLEL_STATUS";
   const SYSTEM_REWRITE_TAG = "PLUGIN_PARALLEL_REWRITE";
   const KNOWLEDGE_BLOCK_TAG = "PSE_INJECTED_KNOWLEDGE";
@@ -1547,6 +1542,19 @@ Example: [{"id": "chk_0", "category": "information"}, {"id": "chk_1", "category"
     next.vector_search_min_score_2 = Number.isFinite(minScore2) ? Math.max(0, minScore2) : DEFAULTS.vector_search_min_score_2;
     next.init_bootstrap_target_model = safeTrim(next.init_bootstrap_target_model) === "B" ? "B" : "A";
     next.init_bootstrap_model_anchor_prompt = String(next.init_bootstrap_model_anchor_prompt || DEFAULTS.init_bootstrap_model_anchor_prompt);
+    if (HARD_FREEZE_KB_FEATURES) {
+      next.vector_search_enabled = 0;
+      try {
+        const raw = JSON.parse(String(next.card_enable_settings || "{}"));
+        if (raw && typeof raw === "object" && !Array.isArray(raw)) {
+          for (const cfg of Object.values(raw)) {
+            if (!cfg || typeof cfg !== "object") continue;
+            cfg.vector_search = "off";
+          }
+          next.card_enable_settings = JSON.stringify(raw);
+        }
+      } catch { }
+    }
 
     next.timeout_ms = FIXED_TIMEOUT_MS;
     await Risuai.safeLocalStorage.setItem(SETTING_KEYS.timeout_ms, String(FIXED_TIMEOUT_MS));
@@ -2485,7 +2493,7 @@ Example: [{"id": "chk_0", "category": "information"}, {"id": "chk_1", "category"
     const loreNames = parseLorebookNames(modelCall?.read_lorebook_names || "");
     let loreContext = "";
     if (loreNames.length > 0) {
-      if (configCache.vector_search_enabled === 1) {
+      if (!HARD_FREEZE_KB_FEATURES && configCache.vector_search_enabled === 1) {
         loreContext = await getLorebookContextByVector(loreNames, scopedConversation);
         if (!safeTrim(loreContext)) loreContext = await getLorebookContextByNames(loreNames);
       } else {
@@ -3025,6 +3033,7 @@ Example: [{"id": "chk_0", "category": "information"}, {"id": "chk_1", "category"
     const cleanInput = messages.filter(m =>
       !(m?.role === "system" && typeof m?.content === "string" && m.content.startsWith(`<${KNOWLEDGE_BLOCK_TAG}>`))
     );
+    if (HARD_FREEZE_KB_FEATURES) return cleanInput;
     const isChatRole = (role) => role === "user" || role === "assistant" || role === "char";
 
     
@@ -3273,6 +3282,12 @@ Example: [{"id": "chk_0", "category": "information"}, {"id": "chk_1", "category"
   }
 
   async function runStep0Classification(char, chat, resolvedGlobalNote, staticDataHash, staticKeys, resumeMode = false, classifyDoneMode = false) {
+    if (HARD_FREEZE_KB_FEATURES) {
+      try { await Risuai.pluginStorage.setItem(staticKeys.staticKnowledgeChunks, "[]"); } catch { }
+      try { await Risuai.pluginStorage.setItem(staticKeys.staticDataHash, staticDataHash); } catch { }
+      try { await Risuai.pluginStorage.setItem(staticKeys.step0Complete, "1"); } catch { }
+      return;
+    }
     await Risuai.pluginStorage.setItem(staticKeys.step0Complete, "");
     const chunks = [];
     let chunkId = 0;
@@ -3997,6 +4012,11 @@ Example: [{"id": "chk_0", "category": "information"}, {"id": "chk_1", "category"
         border-radius:8px; padding:8px 10px; font-size:var(--pse-font-size-body); font-weight:700; cursor:pointer;
       }
       .pse-tab.active { background:var(--pse-tab-active-bg); color:var(--pse-tab-active-text); border-color:var(--pse-tab-active-bg); }
+      .pse-tab.frozen {
+        cursor:not-allowed;
+        opacity:0.55;
+        pointer-events:none;
+      }
       .pse-page { display:none; }
       .pse-page.active { display:block; }
       .pse-label { display:block; margin:6px 0 4px; font-size:var(--pse-font-size-body); color:var(--pse-muted); font-weight:600; }
@@ -4064,6 +4084,29 @@ Example: [{"id": "chk_0", "category": "information"}, {"id": "chk_1", "category"
       .pse-model-suggestion-item:hover { background:rgba(128,128,128,0.2); }
       .pse-entry-remove { border:1px solid var(--pse-section-border); background:var(--pse-input-bg); color:var(--pse-card-text); border-radius:6px; height:34px; min-width:34px; cursor:pointer; }
       .pse-add-entry { margin-top:8px; border:1px dashed var(--pse-section-border); background:var(--pse-input-bg); color:var(--pse-card-text); border-radius:8px; padding:8px 10px; font-size:12px; font-weight:700; cursor:pointer; }
+      .pse-frozen-wrap { position:relative; }
+      .pse-frozen-badge {
+        display:inline-block;
+        margin-bottom:8px;
+        padding:2px 8px;
+        border-radius:999px;
+        font-size:11px;
+        font-weight:700;
+        background:rgba(255,171,0,0.14);
+        color:var(--pse-accent-amber);
+        border:1px solid rgba(255,171,0,0.35);
+      }
+      .pse-frozen-fields {
+        opacity:0.5;
+        pointer-events:none;
+        user-select:none;
+      }
+      .pse-frozen-fields select,
+      .pse-frozen-fields input,
+      .pse-frozen-fields textarea,
+      .pse-frozen-fields button {
+        pointer-events:none;
+      }
       .pse-editor-overlay { position:fixed; inset:0; background:rgba(0,0,0,0.85); z-index:10000; }
       .pse-editor-modal { width:100vw; height:100vh; background:var(--pse-card-bg); color:var(--pse-card-text); padding:20px; box-sizing:border-box; display:flex; flex-direction:column; gap:10px; }
       .pse-editor-head { display:flex; align-items:center; justify-content:space-between; gap:8px; }
@@ -4158,19 +4201,19 @@ Example: [{"id": "chk_0", "category": "information"}, {"id": "chk_1", "category"
     document.body.innerHTML = `
       <div class="pse-body">
         <div class="pse-card">
-          <h1 class="pse-title">👤 RisuAI Agent v1.7.2</h1>
+          <h1 class="pse-title">👤 RisuAI Agent v2.0</h1>
           <div id="pse-status" class="pse-status"></div>
           ${renderModelDatalists()}
 
           <div class="pse-tabs">
             ${`<button class="pse-tab active" data-page="7">${_T.tab_help}</button>
             <button class="pse-tab" data-page="8">${_T.tab_enable}</button>
-            <button class="pse-tab" data-page="6">${_T.tab_cache}</button>`}
+            <button class="pse-tab frozen" data-page="6">${_T.tab_closed}</button>`}
           </div>
           <div class="pse-tabs pse-tabs-secondary">
             ${`<button class="pse-tab" data-page="1">${_T.tab_model}</button>
             <button class="pse-tab" data-page="2">${_T.tab_entry}</button>
-            <button class="pse-tab" data-page="5">${_T.tab_vector}</button>`}
+            <button class="pse-tab frozen" data-page="5">${_T.tab_closed}</button>`}
           </div>
 
           <div class="pse-page active" data-page="7">
@@ -4185,10 +4228,12 @@ Example: [{"id": "chk_0", "category": "information"}, {"id": "chk_1", "category"
           </div>
 
           <div class="pse-page" data-page="8">
-            <div style="margin-bottom:10px;padding:10px 12px;border-radius:8px;border:1px solid rgba(255,23,68,0.4);background:rgba(255,23,68,0.1);color:var(--pse-accent-rose);font-weight:700;line-height:1.45;">
-              ${escapeHtml(_T.warn_cbs_unsupported)}
+            <div class="pse-section" style="border-left:4px solid var(--pse-accent-blue); background:linear-gradient(180deg, rgba(41, 121, 255, 0.1) 0%, var(--pse-input-bg) 100%); padding:10px 12px;">
+              <button id="pse-reset-agent-defaults" class="pse-btn cache" type="button" style="padding:8px 14px;font-size:12px;white-space:nowrap;width:100%;">${_T.btn_reset}</button>
             </div>
-            <div class="pse-section" style="border-left:4px solid var(--pse-accent-cyan); background:linear-gradient(180deg, rgba(0, 229, 255, 0.1) 0%, var(--pse-input-bg) 100%); padding:10px 12px;">
+            <div class="pse-section pse-frozen-wrap" style="border-left:4px solid var(--pse-accent-cyan); background:linear-gradient(180deg, rgba(0, 229, 255, 0.1) 0%, var(--pse-input-bg) 100%); padding:10px 12px;">
+              <div class="pse-frozen-badge">${_T.tag_temp_closed}</div>
+              <div class="pse-frozen-fields">
               <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
                 <div style="display:flex;align-items:center;gap:8px;flex:1;min-width:200px;">
                   <label class="pse-label" style="margin:0;white-space:nowrap;">${_T.lbl_classify_model}</label>
@@ -4204,7 +4249,7 @@ Example: [{"id": "chk_0", "category": "information"}, {"id": "chk_1", "category"
                     <option value="0" ${Number(configCache.read_mod_lorebook) === 1 ? "" : "selected"}>${_T.no}</option>
                   </select>
                 </div>
-                <button id="pse-reset-agent-defaults" class="pse-btn cache" type="button" style="padding:6px 14px;font-size:12px;white-space:nowrap;margin-left:auto;">${_T.btn_reset}</button>
+              </div>
               </div>
             </div>
             <div id="pse-card-enable-list" class="pse-entry-list" style="margin-top:8px;">
@@ -4282,6 +4327,8 @@ Example: [{"id": "chk_0", "category": "information"}, {"id": "chk_1", "category"
                 ${_T.sec_embed_title}
                 <span style="font-size:12px; color:var(--pse-accent-rose); font-weight:normal; display:block; margin-top:4px;">${_T.embed_warn}</span>
               </div>
+              <div class="pse-frozen-badge">${_T.tag_temp_closed}</div>
+              <div class="pse-frozen-fields">
               <label class="pse-label">${_T.lbl_provider}</label>
               <select id="embedding_provider" class="pse-input">${renderEmbeddingProviderOptions(configCache.embedding_provider)}</select>
               <label class="pse-label">${_T.lbl_format}</label>
@@ -4296,6 +4343,7 @@ Example: [{"id": "chk_0", "category": "information"}, {"id": "chk_1", "category"
                 <div id="embedding_model_suggestions" class="pse-model-suggestions"></div>
               </div>
               <input id="embedding_request_model" type="hidden" value="${String(configCache.embedding_request_model || "").replace(/"/g, "&quot;")}" />
+              </div>
             </div>
           </div>
 
@@ -4477,7 +4525,11 @@ Example: [{"id": "chk_0", "category": "information"}, {"id": "chk_1", "category"
           wrap.innerHTML = `<div class="pse-assembly" style="color:var(--pse-muted);font-size:12px;">${_T.no_cards}</div>`;
           return;
         }
-        const makeOpts = (selected) => [
+        const makeMemoryOpts = (selected) => [
+          `<option value="1" ${selected === "1" ? "selected" : ""}>${_T.opt_preset1}</option>`,
+          `<option value="2" ${selected === "2" ? "selected" : ""}>${_T.opt_preset2}</option>`,
+        ].join("");
+        const makeVectorOpts = (selected) => [
           `<option value="off" ${selected === "off" ? "selected" : ""}>${_T.opt_off}</option>`,
           `<option value="1" ${selected === "1" ? "selected" : ""}>${_T.opt_preset1}</option>`,
           `<option value="2" ${selected === "2" ? "selected" : ""}>${_T.opt_preset2}</option>`,
@@ -4494,7 +4546,7 @@ Example: [{"id": "chk_0", "category": "information"}, {"id": "chk_1", "category"
           const isDisabled = cs.card_disabled === 0 || cs.card_disabled === "0" || cs.card_disabled === false ? false : true;
           return `
             <div class="pse-entry-block" data-card-id="${escapeHtml(cid)}" style="border-left:4px solid ${borderColor};background:linear-gradient(180deg,${gradientColor} 0%,var(--pse-input-bg) 100%);">
-              <div style="font-weight:700;margin-bottom:6px;">${_T.lbl_card_name}：${escapeHtml(cname)}</div>
+              <div style="font-weight:700;margin-bottom:6px;">${escapeHtml(cname)}</div>
               <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;padding:6px 8px;border-radius:6px;background:rgba(255,23,68,0.07);border:1px solid rgba(255,23,68,0.2);">
                 <input type="checkbox" class="pse-card-disabled" id="disabled_${escapeHtml(cid)}" ${isDisabled ? "checked" : ""} style="margin:0;flex-shrink:0;cursor:pointer;" />
                 <label for="disabled_${escapeHtml(cid)}" style="font-size:12px;font-weight:700;cursor:pointer;color:var(--pse-accent-rose);user-select:none;"> ${escapeHtml(_T.lbl_card_disabled)}</label>
@@ -4502,11 +4554,12 @@ Example: [{"id": "chk_0", "category": "information"}, {"id": "chk_1", "category"
               <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;${isDisabled ? "opacity:0.35;pointer-events:none;" : ""}">
                 <div>
                   <label class="pse-label" style="font-size:11px;">${_T.lbl_memory_extract}</label>
-                  <select class="pse-input pse-card-memory" style="font-size:12px;">${makeOpts(cs.memory_extract || "off")}</select>
+                  <select class="pse-input pse-card-memory" style="font-size:12px;">${makeMemoryOpts(cs.memory_extract === "2" ? "2" : "1")}</select>
                 </div>
-                <div>
+                <div class="pse-frozen-wrap">
                   <label class="pse-label" style="font-size:11px;">${_T.lbl_vector_search_card}</label>
-                  <select class="pse-input pse-card-vector" style="font-size:12px;">${makeOpts(cs.vector_search || "off")}</select>
+                  <div class="pse-frozen-badge">${_T.tag_temp_closed}</div>
+                  <select class="pse-input pse-card-vector" style="font-size:12px;" disabled>${makeVectorOpts(cs.vector_search || "off")}</select>
                 </div>
               </div>
             </div>`;
@@ -4537,6 +4590,7 @@ Example: [{"id": "chk_0", "category": "information"}, {"id": "chk_1", "category"
     };
     document.querySelectorAll(".pse-tab").forEach((el) => {
       el.addEventListener("click", () => {
+        if (el.classList.contains("frozen")) return;
         const page = el.getAttribute("data-page");
         if (!page) return;
         setPage(page);
@@ -5193,7 +5247,7 @@ Example: [{"id": "chk_0", "category": "information"}, {"id": "chk_1", "category"
           advanced_prefill_prompt: document.getElementById("advanced_prefill_prompt")?.value ?? "",
           advanced_prereply_prompt: document.getElementById("advanced_prereply_prompt")?.value ?? "",
           read_mod_lorebook: toInt(document.getElementById("read_mod_lorebook")?.value, DEFAULTS.read_mod_lorebook) === 1 ? 1 : 0,
-          vector_search_enabled: (() => {
+          vector_search_enabled: HARD_FREEZE_KB_FEATURES ? 0 : (() => {
             const cardList = document.querySelectorAll("#pse-card-enable-list .pse-entry-block");
             let anyVec = false;
             cardList.forEach(block => { if (block.querySelector(".pse-card-vector")?.value !== "off") anyVec = true; });
@@ -5222,7 +5276,7 @@ Example: [{"id": "chk_0", "category": "information"}, {"id": "chk_1", "category"
               if (!cid) return;
               cs[cid] = {
                 memory_extract: block.querySelector(".pse-card-memory")?.value || "off",
-                vector_search: block.querySelector(".pse-card-vector")?.value || "off",
+                vector_search: HARD_FREEZE_KB_FEATURES ? "off" : (block.querySelector(".pse-card-vector")?.value || "off"),
                 card_disabled: block.querySelector(".pse-card-disabled")?.checked ? 1 : 0,
               };
             });
@@ -5359,7 +5413,7 @@ Example: [{"id": "chk_0", "category": "information"}, {"id": "chk_1", "category"
       const charId = rawCharId || (charName ? `name_${simpleHash(charName)}` : "-1");
       const cardCfg = cardSettings[charId] || {};
       const cardMemoryPreset = cardCfg.memory_extract || "off";
-      const vectorPresetNum = cardCfg.vector_search === "2" ? 2 : cardCfg.vector_search === "1" ? 1 : 0;
+      const vectorPresetNum = HARD_FREEZE_KB_FEATURES ? 0 : (cardCfg.vector_search === "2" ? 2 : cardCfg.vector_search === "1" ? 1 : 0);
 
       const cardIsDisabled = cardCfg.card_disabled === true || cardCfg.card_disabled === 1 || cardCfg.card_disabled === "1";
       if (cardIsDisabled) {
@@ -5367,7 +5421,14 @@ Example: [{"id": "chk_0", "category": "information"}, {"id": "chk_1", "category"
         return messages;
       }
 
-      const effectiveVecConfig = vectorPresetNum === 0
+      const effectiveVecConfig = HARD_FREEZE_KB_FEATURES
+        ? {
+          vector_search_enabled: 0,
+          vector_search_query_dialogue_rounds: configCache.vector_search_query_dialogue_rounds,
+          vector_search_top_k: configCache.vector_search_top_k,
+          vector_search_min_score: configCache.vector_search_min_score,
+        }
+        : vectorPresetNum === 0
         ? {
           vector_search_enabled: configCache.vector_search_enabled,
           vector_search_query_dialogue_rounds: configCache.vector_search_query_dialogue_rounds,
@@ -5403,7 +5464,11 @@ Example: [{"id": "chk_0", "category": "information"}, {"id": "chk_1", "category"
         const hashChanged = currentStaticHash !== savedStaticHash;
         const sessionHandled = currentStaticHash === sessionStep0HandledHashByScope.get(staticKeys.scopeId);
 
-        if (!step0Complete) {
+        if (HARD_FREEZE_KB_FEATURES) {
+          try { await Risuai.pluginStorage.setItem(staticKeys.step0Complete, "1"); } catch { }
+          try { await Risuai.pluginStorage.setItem(staticKeys.staticDataHash, currentStaticHash); } catch { }
+          needsStep0 = false;
+        } else if (!step0Complete) {
           if (isVectorEnabled) {
             const cacheHasAnyData = await checkCacheExists(char);
             step0Reason = cacheHasAnyData ? "incomplete" : "new";
