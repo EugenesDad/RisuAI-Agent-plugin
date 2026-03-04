@@ -8,7 +8,7 @@
 
 <p align="center">
 
-![Version](https://img.shields.io/badge/version-v1.7-8b5cf6)
+![Version](https://img.shields.io/badge/version-v1.7.2-8b5cf6)
 ![Status](https://img.shields.io/badge/status-active-success)
 ![License](https://img.shields.io/badge/GPL-3.0-blue)
 ![RisuAI](https://img.shields.io/badge/platform-RisuAI-6366f1)
