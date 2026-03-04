@@ -6,9 +6,11 @@
   🇬🇧 English | 🇹🇼 Traditional Chinese | 🇰🇷 Korean
 </p>
 
+### Since Curly Braced Syntax (CBS, e.g. {{ }}) is not supported, the vector retrieval function is temporarily closed.
+
 <p align="center">
 
-![Version](https://img.shields.io/badge/version-v1.7.2-8b5cf6)
+![Version](https://img.shields.io/badge/version-v2.0-8b5cf6)
 ![Status](https://img.shields.io/badge/status-active-success)
 ![License](https://img.shields.io/badge/GPL-3.0-blue)
 ![RisuAI](https://img.shields.io/badge/platform-RisuAI-6366f1)
@@ -25,10 +27,10 @@
 It enhances roleplay with:
 
 * 🧠 Contract-based memory discipline
-* 🔍 Semantic vector retrieval
+* 🔍 Semantic vector retrieval (temporarily closed)
 * ⚖️ Automatic contradiction enforcement
 * 📉 Major token consumption reduction
-* 🧩 Modular task orchestration
+* 🧩 Modular task orchestration (temporarily closed)
 
 Unlike traditional presets, this system separates responsibilities into parallel task groups, dramatically increasing narrative stability and logical rigor.
 
@@ -40,25 +42,8 @@ Unlike traditional presets, this system separates responsibilities into parallel
 * **Auxiliary model delegation** for structured reasoning
 * Fully automated memory lifecycle
 * Works with your preferred preset
-* Does not modify original character bot
+* Does not modify the original character bot
 * Clean reset when starting a new chat
-
----
-
-## 🏗 System Architecture
-
-### Step 0 — Automatic Vector Database Initialization
-
-On first load, the system:
-
-1. Classifies content into:
-
-   * RP Instructions
-   * World Knowledge
-   * Output Formatting
-2. Builds a semantic vector cache
-3. Synchronizes automatically with Lorebook updates
-4. Repositions structured data for optimal model performance
 
 ---
 
@@ -72,25 +57,12 @@ On first load, the system:
 | **Longterm** | Every 10 turns | Extracts major plot threads                     |
 | **World**    | Every 15 turns | Maintains global world encyclopedia             |
 
-This distributed task design reduces main model cognitive load while increasing narrative coherence.
+This distributed task design reduces the main model's cognitive load while increasing narrative coherence.
+Another default: for a complex bot like The Song of Ice and Fire.
 
 ---
 
-### 🔍 Vector Intelligent Retrieval (Optional but Recommended)
-
-Designed for heavy 20k+ token RPG Bots.
-
-Instead of keyword matching:
-
-* Entries are vectorized
-* Semantic similarity search is used
-* Inactive data is dynamically retrieved
-
-Result:
-
-* Lower token load
-* Higher contextual precision
-* Stable long-term memory
+### 🔍 Vector Intelligent Retrieval (temporarily closed)
 
 ---
 
@@ -104,7 +76,7 @@ Result:
 
 ### Main Model
 
-* Flash-level models sufficient for short sessions
+* Flash-level models are sufficient for short sessions
 * Upgrade to Pro-tier models for 50–100+ turn sessions
 
 ---
@@ -115,27 +87,17 @@ Result:
 
 Main and auxiliary models can use separate API providers.
 
-### Embedding Support
-
-* Google
-* VoyageAI
-* OpenRouter
-
 ### Customizable Agent Frequencies
 
 * Modify execution intervals
 * Adjust turn read depth
 * Enable/disable parallel execution
 
-### Cache Management
-
-Per-bot vector cache inspection and deletion.
-
 ---
 
 ## 📦 Installation
 
-1. Install plugin from RisuAI plugin page.
+1. Install the plugin from the RisuAI plugin page.
 2. Configure API credentials.
 3. Apply preset adjustments (see below).
 
@@ -147,9 +109,6 @@ Per-bot vector cache inspection and deletion.
 
 Remove from your preset:
 
-* Character Description
-* Lorebook
-* Global Notes
 * Supa / HypaMemory fields
 
 Plugin regenerates them automatically.
@@ -158,11 +117,7 @@ Plugin regenerates them automatically.
 
 ### Chat Range Adjustment
 
-Set chat range in Advanced, Range Start around:
-
-```
--6 to -10
-```
+Set chat range in Advanced, Range Start to `-10`:
 
 ---
 
@@ -185,16 +140,8 @@ Insert below system prompt:
 
 ## ⚠ Limitations
 
-* Initial load may take time (heavy bots up to ~5 minutes)
 * Auxiliary model invoked multiple times per turn
 * New Chat ONLY. Old chats cannot be continued directly
-
----
-
-## 🚨 Known Issue
-
-### Curly Braced Syntax (CBS, e.g. {{ }}) is not supported. 
-That means some bots may not run smoothly with this plugin.
 
 ---
 
