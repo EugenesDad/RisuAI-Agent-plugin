@@ -1,9 +1,9 @@
 //@name 👤 RisuAI Agent
-//@display-name 👤 RisuAI Agent v2.0
+//@display-name 👤 RisuAI Agent v2.0.1
 //@author penguineugene@protonmail.com
 //@link https://github.com/EugenesDad/RisuAI-Agent-plugin
 //@api 3.0
-//@version 2.0
+//@version 2.0.1
 
 (async () => {
   function _mapLangCode(raw) {
@@ -17,25 +17,12 @@
   }
 
   async function _detectLang() {
+    // Priority 1: User-selected language in plugin settings (most reliable)
     try {
-      const db = await Risuai.getDatabase();
-      const fromDb = _mapLangCode(db?.language);
-      if (fromDb) return fromDb;
+      const saved = String(await Risuai.safeLocalStorage.getItem("pse_ui_language") || "").trim();
+      if (saved === "en" || saved === "ko" || saved === "tc") return saved;
     } catch { }
-    try {
-      const rootDoc = await Risuai.getRootDocument();
-      const nav = rootDoc?.defaultView?.navigator;
-      const fromNavigator = _mapLangCode(nav?.language) || _mapLangCode(Array.isArray(nav?.languages) ? nav.languages[0] : "");
-      if (fromNavigator) return fromNavigator;
-      const settingsRoot = await (rootDoc?.querySelector?.(".rs-setting-cont") || null);
-      const settingsText = String(await (settingsRoot?.textContent?.() || "")).trim();
-      if (settingsText) {
-        if (settingsText.includes("外掛程式") || settingsText.includes("介面語言") || settingsText.includes("中文(繁體)")) return "tc";
-        if (settingsText.includes("插件") || settingsText.includes("界面语言")) return "tc";
-        if (settingsText.includes("Plugin") || settingsText.includes("UI Language")) return "en";
-        if (/[가-힣]/.test(settingsText) || settingsText.includes("플러그인") || settingsText.includes("한국어")) return "ko";
-      }
-    } catch { }
+    // Priority 2: English default
     return "en";
   }
 
@@ -454,7 +441,7 @@
   let _langInitialized = false;
 
   const PLUGIN_NAME = "👤 RisuAI Agent";
-  const PLUGIN_VER = "2.0";
+  const PLUGIN_VER = "2.0.1";
   const LOG = "[RisuAIAgent]";
   const HARD_FREEZE_KB_FEATURES = true;
   const SYSTEM_INJECT_TAG = "PLUGIN_PARALLEL_STATUS";
@@ -561,6 +548,7 @@ Example: [{"id": "chk_0", "category": "information"}, {"id": "chk_1", "category"
     embedding_concurrency: 1,
     model_calls_2: atob("W3siaWQiOiJjYWxsX3N0YXRlIiwibmFtZSI6IlN0YXRlIiwidGFyZ2V0X21vZGVsIjoiQiIsImV2ZXJ5X25fdHVybnMiOjEsInJlYWRfZGlhbG9ndWVfcm91bmRzIjoyLCJyZWFkX2xvcmVib29rX25hbWVzIjoicmVjZW50X3R1cm5fbG9nLCByZWNlbnRfY2hhcmFjdGVyX3N0YXRlcywgc3lzdGVtX2RpcmVjdG9yLCBzdHJhdGVnaWNfYW5hbHlzaXMiLCJlbnRyaWVzIjpbeyJsb3JlYm9va19uYW1lIjoicmVjZW50X3R1cm5fbG9nIiwid3JpdGVfbW9kZSI6ImFwcGVuZCIsImFsd2F5c19hY3RpdmUiOnRydWUsIm91dHB1dF9mb3JtYXQiOiJTQ0hFTUE6XG57XG4gIFwicmVjZW50X3R1cm5fbG9nXCI6IHtcbiAgICBcInNjZW5lXCI6IFwiPGxvY2F0aW9uICsgb25lIHNlbnNvcnkgY3VlLCA8PTEyIHdvcmRzPlwiLFxuICAgIFwidGltZV9hbmNob3JcIjogXCI8ZXhwbGljaXQgaW4tc3RvcnkgdGltZSBwb3NpdGlvbj5cIixcbiAgICBcImVsYXBzZWRfc2luY2VfcHJldlwiOiBcIjxzYW1lIG1vbWVudCAvICsyaCAvICszZCAvIGV0Yy47ICd1bnNwZWNpZmllZF9jb250aW51YXRpb24nIGlmIHVua25vd24+XCIsXG4gICAgXCJ1c2VyX2FjdGlvblwiOiBcIjxwbGF5ZXIgYWN0aW9uLCA8PTEyIHdvcmRzPlwiLFxuICAgIFwibmFycmF0aXZlX2V2ZW50XCI6IFwiPHN0b3J5IHJlc3VsdCwgPD0xNSB3b3Jkcz5cIixcbiAgICBcInNoaWZ0XCI6IFwiPHRvbmUvc3Rha2VzIGNoYW5nZSA8PTggd29yZHMsIG9yIG51bGw+XCIsXG4gICAgXCJ1c2VyX3NjZW5lX2NoYW5nZVwiOiBmYWxzZVxuICB9XG59XG5cbkZJRUxEIFJVTEVTOlxuLSBBbGwgc3RyaW5nIHZhbHVlcyA8PTE1IHdvcmRzLiBLZXl3b3JkcyBwcmVmZXJyZWQuIiwicmV0ZW50aW9uX2VuYWJsZWQiOnRydWUsInJldGVudGlvbl9hZnRlciI6MTAsInJldGVudGlvbl9rZWVwIjoyfSx7ImxvcmVib29rX25hbWUiOiJyZWNlbnRfY2hhcmFjdGVyX3N0YXRlcyIsIndyaXRlX21vZGUiOiJhcHBlbmQiLCJhbHdheXNfYWN0aXZlIjp0cnVlLCJvdXRwdXRfZm9ybWF0IjoiU0NIRU1BOlxue1xuICBcInJlY2VudF9jaGFyYWN0ZXJfc3RhdGVzXCI6IHtcbiAgICBcImxvY2F0aW9uXCI6IFwiIDxwbGFjZSArIG9uZSBhdG1vc3BoZXJpYyBkZXRhaWwsIDw9MTAgd29yZHM+XCIsXG4gICAgXCJwbGF5ZXJfc3RhdGVcIjogXCI8Y29uZGl0aW9uICsga2V5IGl0ZW1zLCA8PTE1IHdvcmRzPlwiLFxuICAgIFwibnBjc1wiOltcbiAgICAgIHtcbiAgICAgICAgXCJuYW1lXCI6IFwiPE5QQyBuYW1lPlwiLFxuICAgICAgICBcInBoeXNpY2FsX3N0YXRlXCI6IFwiPGFwcGVhcmFuY2UsIDw9MTIgd29yZHM+XCIsXG4gICAgICAgIFwiaW50ZXJuYWxfc3RhdGVcIjogXCI8dHJ1ZSBtb3RpdmUvZmVlbGluZywgPD0xMiB3b3Jkcz5cIixcbiAgICAgICAgXCJyZWxhdGlvbl90b19wbGF5ZXJcIjogXCI8Y3VycmVudCBzdGFuY2UsIDw9MTAgd29yZHMsIG9yIG51bGw+XCJcbiAgICAgIH1cbiAgICBdXG4gIH1cbn1cblxuRklFTEQgUlVMRVM6XG4tIEtleXdvcmRzIG9ubHksIG5vIGZ1bGwgc2VudGVuY2VzLiIsInJldGVudGlvbl9lbmFibGVkIjp0cnVlLCJyZXRlbnRpb25fYWZ0ZXIiOjEwLCJyZXRlbnRpb25fa2VlcCI6Mn0seyJsb3JlYm9va19uYW1lIjoic3lzdGVtX2RpcmVjdG9yIiwid3JpdGVfbW9kZSI6Im92ZXJ3cml0ZSIsImFsd2F5c19hY3RpdmUiOnRydWUsIm91dHB1dF9mb3JtYXQiOiJTQ0hFTUE6XG57XG4gIFwic3lzdGVtX2RpcmVjdG9yXCI6IHtcbiAgICBcInN0YWxlbmVzc19sZXZlbFwiOiAwLFxuICAgIFwic3RyYXRlZ2ljX3N0YWduYXRpb25cIjogZmFsc2UsXG4gICAgXCJnbG9iYWxfc3RhZ25hdGlvblwiOiBmYWxzZSxcbiAgICBcImVudmlyb25tZW50X2ludGVydmVudGlvblwiOiBudWxsXG4gIH1cbn1cblxuRklFTEQgUlVMRVM6XG4tIFNjb3JlIHN0YWxlbmVzc19sZXZlbCAw4oCTMTAuIn1dfSx7ImlkIjoiY2FsbF90cmFja2VyX2siLCJuYW1lIjoiVHJhY2tlci1LIiwidGFyZ2V0X21vZGVsIjoiQiIsImV2ZXJ5X25fdHVybnMiOjEsInJlYWRfZGlhbG9ndWVfcm91bmRzIjoyLCJyZWFkX2xvcmVib29rX25hbWVzIjoia25vd2xlZGdlX21hdHJpeCwga25vd2xlZGdlX2Fubm90YXRpb25zLCBrbm93bGVkZ2VfYXJjaGl2ZSIsImVudHJpZXMiOlt7ImxvcmVib29rX25hbWUiOiJrbm93bGVkZ2VfbWF0cml4Iiwid3JpdGVfbW9kZSI6Im92ZXJ3cml0ZSIsImFsd2F5c19hY3RpdmUiOnRydWUsIm91dHB1dF9mb3JtYXQiOiJTQ0hFTUE6XG57XG4gIFwia25vd2xlZGdlX21hdHJpeFwiOiB7XG4gICAgXCJjaGFuZ2VkX2lkc1wiOiBbXSxcbiAgICBcImVudHJpZXNcIjogW1xuICAgICAge1xuICAgICAgICBcImlkXCI6IFwiSzAwMVwiLFxuICAgICAgICBcInN1YmplY3RcIjogXCI8ZmFjdCBvciBzZWNyZXQsIDw9MTUgd29yZHM+XCIsXG4gICAgICAgIFwidHJ1ZV9hbnN3ZXJcIjogXCI8YWN0dWFsIHRydXRoLCA8PTE1IHdvcmRzPlwiLFxuICAgICAgICBcImtub3dlcnNcIjogW10sXG4gICAgICAgIFwidW5rbm93bl90b1wiOiBbXSxcbiAgICAgICAgXCJwdWJsaWNfc3RhdHVzXCI6IFwicHVibGljIHwgc2VjcmV0XCIsXG4gICAgICAgIFwic3RhYmlsaXR5XCI6IFwibG9ja2VkIHwgZnJhZ2lsZVwiXG4gICAgICB9XG4gICAgXVxuICB9XG59In1dfSx7ImlkIjoiY2FsbF90cmFja2VyX3MiLCJuYW1lIjoiVHJhY2tlci1TIiwidGFyZ2V0X21vZGVsIjoiQiIsImV2ZXJ5X25fdHVybnMiOjIsInJlYWRfZGlhbG9ndWVfcm91bmRzIjoyLCJyZWFkX2xvcmVib29rX25hbWVzIjoiYWN0aXZlX3N0cmF0ZWdpY19sYXllciwgc3RyYXRlZ2ljX2FuYWx5c2lzLCBzdHJhdGVnaWNfYXJjaGl2ZSIsImVudHJpZXMiOlt7ImxvcmVib29rX25hbWUiOiJhY3RpdmVfc3RyYXRlZ2ljX2xheWVyIiwid3JpdGVfbW9kZSI6Im92ZXJ3cml0ZSIsImFsd2F5c19hY3RpdmUiOnRydWUsIm91dHB1dF9mb3JtYXQiOiJTQ0hFTUE6XG57XG4gIFwiYWN0aXZlX3N0cmF0ZWdpY19sYXllclwiOiB7XG4gICAgXCJwbGF5ZXJfc3RyYXRlZ3lcIjoge1xuICAgICAgXCJwcmltYXJ5X2dvYWxcIjogXCI8Z29hbCwgPD0xNSB3b3Jkcz5cIixcbiAgICAgIFwib3BlcmF0aW9uc1wiOiBbXVxuICAgIH0sXG4gICAgXCJyaXZhbF9zdHJhdGVnaWVzXCI6IFtdXG4gIH1cbn0ifV19LHsiaWQiOiJjYWxsX2xvZ2ljIiwibmFtZSI6IkxvZ2ljIiwidGFyZ2V0X21vZGVsIjoiQiIsImV2ZXJ5X25fdHVybnMiOjEsInJlYWRfZGlhbG9ndWVfcm91bmRzIjozLCJyZWFkX2xvcmVib29rX25hbWVzIjoidW5zb2x2ZWRfcXVlc3RzLCByZWNlbnRfY2hhcmFjdGVyX3N0YXRlcywgcmVjZW50X3R1cm5fbG9nLCBrbm93bGVkZ2VfbWF0cml4LCBrbm93bGVkZ2VfYW5ub3RhdGlvbnMsIGFjdGl2ZV9zdHJhdGVnaWNfbGF5ZXIsIHN0cmF0ZWdpY19hbmFseXNpcyIsImVudHJpZXMiOlt7ImxvcmVib29rX25hbWUiOiJrbm93bl9jb250cmFkaWN0aW9ucyIsIndyaXRlX21vZGUiOiJvdmVyd3JpdGUiLCJhbHdheXNfYWN0aXZlIjp0cnVlLCJvdXRwdXRfZm9ybWF0IjoiU0NIRU1BOlxue1xuICBcImtub3duX2NvbnRyYWRpY3Rpb25zXCI6IHtcbiAgICBcImxvZ2ljX3Zpb2xhdGlvblwiOiBcIjxkZXNjcmliZSBjb250cmFkaWN0aW9uLCBvciBudWxsPlwiLFxuICAgIFwic3RyaWN0X2RpcmVjdGl2ZVwiOiBcIjxzZWUgYWxsb3dlZCB2YWx1ZXM+XCJcbiAgfVxufSJ9LHsibG9yZWJvb2tfbmFtZSI6InVuc29sdmVkX3F1ZXN0cyIsIndyaXRlX21vZGUiOiJvdmVyd3JpdGUiLCJhbHdheXNfYWN0aXZlIjp0cnVlLCJvdXRwdXRfZm9ybWF0IjoiU0NIRU1BOlxue1xuICBcInVuc29sdmVkX3F1ZXN0c1wiOiB7XG4gICAgXCJhY3RpdmVfdGhyZWFkc1wiOiBbXSxcbiAgICBcInJlc29sdmVkX3RoaXNfdHVyblwiOiBbXVxuICB9XG59In1dfSx7ImlkIjoiY2FsbF9zdHJhdGVneV9hbmFseXN0IiwibmFtZSI6IlN0cmF0ZWd5LUFuYWx5c3QiLCJ0YXJnZXRfbW9kZWwiOiJBIiwiZXZlcnlfbl90dXJucyI6MywicmVhZF9kaWFsb2d1ZV9yb3VuZHMiOjUsInJlYWRfbG9yZWJvb2tfbmFtZXMiOiJrbm93bGVkZ2VfbWF0cml4LCBrbm93bGVkZ2VfYW5ub3RhdGlvbnMsIGFjdGl2ZV9zdHJhdGVnaWNfbGF5ZXIsIHJlY2VudF90dXJuX2xvZywgcmVjZW50X2NoYXJhY3Rlcl9zdGF0ZXMsIHVuc29sdmVkX3F1ZXN0cywgc3RyYXRlZ2ljX2FuYWx5c2lzIiwiZW50cmllcyI6W3sibG9yZWJvb2tfbmFtZSI6InN0cmF0ZWdpY19hbmFseXNpcyIsIndyaXRlX21vZGUiOiJvdmVyd3JpdGUiLCJhbHdheXNfYWN0aXZlIjp0cnVlLCJvdXRwdXRfZm9ybWF0IjoiU0NIRU1BOlxue1xuICBcInN0cmF0ZWdpY19hbmFseXNpc1wiOiB7XG4gICAgXCJhbmFseXN0X3N0cmF0ZWd5X292ZXJyaWRlc1wiOiB7fSxcbiAgICBcImNvZ25pdGlvbl92aW9sYXRpb25zXCI6IFtdXG4gIH1cbn0ifSx7ImxvcmVib29rX25hbWUiOiJrbm93bGVkZ2VfYW5ub3RhdGlvbnMiLCJ3cml0ZV9tb2RlIjoib3ZlcndyaXRlIiwiYWx3YXlzX2FjdGl2ZSI6dHJ1ZSwib3V0cHV0X2Zvcm1hdCI6IlNDSEVNQTpcbntcbiAgXCJrbm93bGVkZ2VfYW5ub3RhdGlvbnNcIjoge1xuICAgIFwiZW50cmllc1wiOiBbXVxuICB9XG59In1dfSx7ImlkIjoiY2FsbF9xdWFsaXR5IiwibmFtZSI6IlF1YWxpdHkiLCJ0YXJnZXRfbW9kZWwiOiJCIiwiZXZlcnlfbl90dXJucyI6MywicmVhZF9kaWFsb2d1ZV9yb3VuZHMiOjUsInJlYWRfbG9yZWJvb2tfbmFtZXMiOiJyZWNlbnRfd29ybGRfZW50cmllcywgd29ybGRfZW5jeWNsb3BlZGlhLCByZWNlbnRfdHVybl9sb2ciLCJlbnRyaWVzIjpbeyJsb3JlYm9va19uYW1lIjoicmVwZXRpdGlvbl9ndWFyZCIsIndyaXRlX21vZGUiOiJvdmVyd3JpdGUiLCJhbHdheXNfYWN0aXZlIjp0cnVlLCJvdXRwdXRfZm9ybWF0IjoiU0NIRU1BOlxue1xuICBcInJlcGV0aXRpb25fZ3VhcmRcIjoge1xuICAgIFwiZmxhZ2dlZF9jbGljaGVzXCI6IFtdLCBcImxhc3RfdHN1a2tvbWlcIjogbnVsbCwgXCJiYW5uZWRfcGhyYXNlc1wiOiBbXVxuICB9XG59In0seyJsb3JlYm9va19uYW1lIjoicmVjZW50X3dvcmxkX2VudHJpZXMiLCJ3cml0ZV9tb2RlIjoiYXBwZW5kIiwiYWx3YXlzX2FjdGl2ZSI6dHJ1ZSwib3V0cHV0X2Zvcm1hdCI6IlNDSEVNQTpcbntcbiAgXCJyZWNlbnRfd29ybGRfZW50cmllc1wiOiB7XG4gICAgXCJlbnRyaWVzXCI6IFsgXCI8TmFtZS4gS2V5IGZhY3QuIDw9MjAgd29yZHMuPlwiIF1cbiAgfVxufSIsInJldGVudGlvbl9lbmFibGVkIjp0cnVlLCJyZXRlbnRpb25fYWZ0ZXIiOjE1LCJyZXRlbnRpb25fa2VlcCI6MX1dfSx7ImlkIjoiY2FsbF9sb25ndGVybSIsIm5hbWUiOiJMb25ndGVybSIsInRhcmdldF9tb2RlbCI6IkEiLCJldmVyeV9uX3R1cm5zIjoxMCwicmVhZF9kaWFsb2d1ZV9yb3VuZHMiOjEsInJlYWRfbG9yZWJvb2tfbmFtZXMiOiJyZWNlbnRfdHVybl9sb2csIHJlY2VudF9jaGFyYWN0ZXJfc3RhdGVzLCB1bnNvbHZlZF9xdWVzdHMsIHN0b3J5X3R1cm5pbmdfcG9pbnRzLCBzdG9yeV9hcmNfc3VtbWFyeSwgYWN0aXZlX3N0cmF0ZWdpY19sYXllciwgc3RyYXRlZ2ljX2FuYWx5c2lzIiwiZW50cmllcyI6W3sibG9yZWJvb2tfbmFtZSI6InN0b3J5X3R1cm5pbmdfcG9pbnRzIiwid3JpdGVfbW9kZSI6ImFwcGVuZCIsImFsd2F5c19hY3RpdmUiOnRydWUsIm91dHB1dF9mb3JtYXQiOiJTQ0hFTUE6IFtdIiwicmV0ZW50aW9uX2VuYWJsZWQiOmZhbHNlLCJyZXRlbnRpb25fYWZ0ZXIiOjAsInJldGVudGlvbl9rZWVwIjowfSx7ImxvcmVib29rX25hbWUiOiJzdG9yeV9hcmNfc3VtbWFyeSIsIndyaXRlX21vZGUiOiJhcHBlbmQiLCJhbHdheXNfYWN0aXZlIjp0cnVlLCJvdXRwdXRfZm9ybWF0IjoiU0NIRU1BOiBbXSIsInJldGVudGlvbl9lbmFibGVkIjpmYWxzZSwicmV0ZW50aW9uX2FmdGVyIjowLCJyZXRlbnRpb25fa2VlcCI6MH0seyJsb3JlYm9va19uYW1lIjoia25vd2xlZGdlX2FyY2hpdmUiLCJ3cml0ZV9tb2RlIjoib3ZlcndyaXRlIiwiYWx3YXlzX2FjdGl2ZSI6dHJ1ZSwib3V0cHV0X2Zvcm1hdCI6IlNDSEVNQToge1wiZW50cmllc1wiOltdfSJ9LHsibG9yZWJvb2tfbmFtZSI6InN0cmF0ZWdpY19hcmNoaXZlIiwid3JpdGVfbW9kZSI6Im92ZXJ3cml0ZSIsImFsd2F5c19hY3RpdmUiOnRydWUsIm91dHB1dF9mb3JtYXQiOiJTQ0hFTUE6IHtcImVudHJpZXNcIjpbXX0ifV19LHsiaWQiOiJjYWxsX3dvcmxkIiwibmFtZSI6IldvcmxkIiwidGFyZ2V0X21vZGVsIjoiQiIsImV2ZXJ5X25fdHVybnMiOjE1LCJyZWFkX2RpYWxvZ3VlX3JvdW5kcyI6MSwicmVhZF9sb3JlYm9va19uYW1lcyI6InJlY2VudF93b3JsZF9lbnRyaWVzLCB3b3JsZF9lbmN5Y2xvcGVkaWEsIHN0b3J5X2FyY19zdW1tYXJ5LCBrbm93bGVkZ2VfYXJjaGl2ZSIsImVudHJpZXMiOlt7ImxvcmVib29rX25hbWUiOiJ3b3JsZF9lbmN5Y2xvcGVkaWEiLCJ3cml0ZV9tb2RlIjoib3ZlcndyaXRlIiwiYWx3YXlzX2FjdGl2ZSI6dHJ1ZSwib3V0cHV0X2Zvcm1hdCI6IlNDSEVNQTpcbntcbiAgXCJ3b3JsZF9lbmN5Y2xvcGVkaWFcIjoge1xuICAgIFwiZ2VvZ3JhcGh5XCI6IFtdLCBcIm5wY3NcIjogW10sIFwibG9yZVwiOiBbXVxuICB9XG59In1dfV0="),
     active_preset: 1,
+    ui_language: "en",
     card_enable_settings: "{}",
     vector_search_query_dialogue_rounds_2: 2,
     vector_search_top_k_2: 10,
@@ -618,6 +606,7 @@ Example: [{"id": "chk_0", "category": "information"}, {"id": "chk_1", "category"
     vector_search_query_dialogue_rounds_2: "pse_vector_search_query_dialogue_rounds_2",
     vector_search_top_k_2: "pse_vector_search_top_k_2",
     vector_search_min_score_2: "pse_vector_search_min_score_2",
+    ui_language: "pse_ui_language",
   };
 
   const MODEL_PROVIDER_OPTIONS = [
@@ -4201,7 +4190,7 @@ Example: [{"id": "chk_0", "category": "information"}, {"id": "chk_1", "category"
     document.body.innerHTML = `
       <div class="pse-body">
         <div class="pse-card">
-          <h1 class="pse-title">👤 RisuAI Agent v2.0</h1>
+          <h1 class="pse-title">👤 RisuAI Agent v2.0.1</h1>
           <div id="pse-status" class="pse-status"></div>
           ${renderModelDatalists()}
 
@@ -4217,6 +4206,16 @@ Example: [{"id": "chk_0", "category": "information"}, {"id": "chk_1", "category"
           </div>
 
           <div class="pse-page active" data-page="7">
+            <div class="pse-section" style="border-left:4px solid var(--pse-accent-blue);background:linear-gradient(180deg,rgba(41,121,255,0.08) 0%,var(--pse-input-bg) 100%);">
+              <label class="pse-label" style="margin-bottom:6px;">🌐 Language / 語言 / 언어</label>
+              <div style="display:flex;gap:8px;">
+                ${["en","tc","ko"].map(code => {
+                  const labels = {en:"English", tc:"繁體中文", ko:"한국어"};
+                  const active = (configCache?.ui_language || "en") === code;
+                  return `<button class="pse-btn pse-lang-btn${active?" pse-lang-active":""}" data-lang="${code}" type="button" style="flex:1;padding:7px 0;font-size:13px;${active?"background:var(--pse-accent-blue);color:#fff;border-color:var(--pse-accent-blue);":"color:#111 !important;"}">${labels[code]}</button>`;
+                }).join("")}
+              </div>
+            </div>
             <div class="pse-section">
               <div style="margin-bottom:6px;padding:7px 10px;border-radius:6px;background:rgba(255,171,0,0.1);border:1px solid rgba(255,171,0,0.3);font-size:var(--pse-font-size-small);color:var(--pse-accent-amber);">
                 ${escapeHtml(_T.lore_warn)}
@@ -4503,6 +4502,16 @@ Example: [{"id": "chk_0", "category": "information"}, {"id": "chk_1", "category"
     };
 
     await renderEmbeddingCacheList();
+    // Language selector buttons
+    document.querySelectorAll(".pse-lang-btn").forEach(btn => {
+      btn.addEventListener("click", async () => {
+        const lang = btn.dataset.lang;
+        if (!lang) return;
+        await Risuai.safeLocalStorage.setItem("pse_ui_language", lang);
+        await renderSettingsUI();
+      });
+    });
+
     document.getElementById("pse-refresh-cache")?.addEventListener("click", async () => {
       await renderEmbeddingCacheList();
     });
