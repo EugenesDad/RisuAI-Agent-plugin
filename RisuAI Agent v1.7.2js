@@ -1,9 +1,9 @@
 //@name 👤 RisuAI Agent
-//@display-name 👤 RisuAI Agent v1.7
+//@display-name 👤 RisuAI Agent v1.7.2
 //@author penguineugene@protonmail.com
 //@link https://github.com/EugenesDad/RisuAI-Agent-plugin
 //@api 3.0
-//@version 1.7
+//@version 1.7.2
 
 (async () => {
   function _mapLangCode(raw) {
@@ -460,7 +460,7 @@
   let _langInitialized = false;
 
   const PLUGIN_NAME = "👤 RisuAI Agent";
-  const PLUGIN_VER = "1.7";
+  const PLUGIN_VER = "1.7.2";
   const LOG = "[RisuAIAgent]";
   const SYSTEM_INJECT_TAG = "PLUGIN_PARALLEL_STATUS";
   const SYSTEM_REWRITE_TAG = "PLUGIN_PARALLEL_REWRITE";
@@ -895,9 +895,17 @@ Example: [{"id": "chk_0", "category": "information"}, {"id": "chk_1", "category"
   async function readResponseErrorText(res) {
     if (!res || typeof res !== "object") return "";
     if (typeof res.text === "function") {
-      try { return String(await res.text()); } catch { }
+      try {
+        const txt = String(await res.text());
+        // Guard against "[object Object]" from Windows Chrome structured-clone
+        if (txt.startsWith("[object ")) return "";
+        return txt;
+      } catch { }
     }
-    if (typeof res.data === "string") return res.data;
+    if (typeof res.data === "string") {
+      if (res.data.startsWith("[object ")) return "";
+      return res.data;
+    }
     if (res.data && typeof res.data === "object") {
       try { return JSON.stringify(res.data); } catch { }
     }
@@ -915,8 +923,12 @@ Example: [{"id": "chk_0", "category": "information"}, {"id": "chk_1", "category"
     }
     if (Object.prototype.hasOwnProperty.call(res, "data")) {
       if (typeof res.data === "string") {
+        // Guard against "[object Object]" string from Windows Chrome structured-clone issue
+        if (res.data.startsWith("[object ")) return null;
         try { return JSON.parse(res.data); } catch { return res.data; }
       }
+      // data is already an object (risuFetch on Windows Chrome sometimes returns parsed object directly)
+      if (res.data && typeof res.data === "object") return res.data;
       return res.data;
     }
     return null;
@@ -1426,14 +1438,25 @@ Example: [{"id": "chk_0", "category": "information"}, {"id": "chk_1", "category"
   }
 
   async function safeGetArgument(key) {
-    if (typeof Risuai.getArgument === "function") return await Risuai.getArgument(key);
-    if (typeof Risuai.getArg === "function") return await Risuai.getArg(key);
-    return undefined;
+    try {
+      let val;
+      if (typeof Risuai.getArgument === "function") val = await Risuai.getArgument(key);
+      else if (typeof Risuai.getArg === "function") val = await Risuai.getArg(key);
+      else return undefined;
+      // Normalize to string to prevent [object Object] JSON.parse crash on Windows Chrome
+      if (val === undefined || val === null) return undefined;
+      if (typeof val === "object") return JSON.stringify(val);
+      return String(val);
+    } catch { return undefined; }
   }
 
   async function safeSetArgument(key, value) {
-    if (typeof Risuai.setArgument === "function") await Risuai.setArgument(key, value);
-    else if (typeof Risuai.setArg === "function") await Risuai.setArg(key, value);
+    try {
+      // Always pass strings to avoid structured-clone issues on Windows Chrome
+      const strVal = (value === undefined || value === null) ? "" : (typeof value === "object" ? JSON.stringify(value) : String(value));
+      if (typeof Risuai.setArgument === "function") await Risuai.setArgument(key, strVal);
+      else if (typeof Risuai.setArg === "function") await Risuai.setArg(key, strVal);
+    } catch { }
   }
 
   async function refreshConfig() {
@@ -1441,7 +1464,13 @@ Example: [{"id": "chk_0", "category": "information"}, {"id": "chk_1", "category"
     for (const key of Object.keys(DEFAULTS)) {
       const argValue = await safeGetArgument(key);
       const localValue = await Risuai.safeLocalStorage.getItem(SETTING_KEYS[key]);
-      const merged = argValue ?? localValue ?? DEFAULTS[key];
+      // Normalize any value to string to prevent [object Object] being passed to JSON.parse
+      const normalizeVal = (v) => {
+        if (v === undefined || v === null) return undefined;
+        if (typeof v === "object") return JSON.stringify(v);
+        return String(v);
+      };
+      const merged = normalizeVal(argValue) ?? normalizeVal(localValue) ?? DEFAULTS[key];
       next[key] = merged;
     }
 
@@ -1568,8 +1597,10 @@ Example: [{"id": "chk_0", "category": "information"}, {"id": "chk_1", "category"
     for (const [key, storageKey] of Object.entries(SETTING_KEYS)) {
       if (formData[key] !== undefined) {
         const value = formData[key];
-        await Risuai.safeLocalStorage.setItem(storageKey, String(value ?? ""));
-        await safeSetArgument(key, value);
+        // Always stringify to avoid [object Object] stored in localStorage (Windows Chrome bug)
+        const strVal = (value === undefined || value === null) ? "" : (typeof value === "object" ? JSON.stringify(value) : String(value));
+        await Risuai.safeLocalStorage.setItem(storageKey, strVal);
+        await safeSetArgument(key, strVal);
       }
     }
     await refreshConfig();
@@ -2419,13 +2450,23 @@ Example: [{"id": "chk_0", "category": "information"}, {"id": "chk_1", "category"
   }
 
   function parseModelCalls(raw) {
+    const defaultCalls = (() => {
+      try {
+        const base = Array.isArray(DEFAULT_MODEL_CALLS)
+          ? DEFAULT_MODEL_CALLS
+          : (typeof DEFAULT_MODEL_CALLS === "string" ? JSON.parse(DEFAULT_MODEL_CALLS) : []);
+        if (!Array.isArray(base)) return [];
+        return base.map((x, i) => normalizeModelCall(x, i));
+      } catch { return []; }
+    })();
+
     try {
       const parsed = typeof raw === "string" ? JSON.parse(raw) : raw;
-      if (!Array.isArray(parsed)) return JSON.parse(DEFAULT_MODEL_CALLS).map((x, i) => normalizeModelCall(x, i));
+      if (!Array.isArray(parsed)) return defaultCalls;
       if (parsed.length === 0) return [];
       const normalized = parsed.map((x, i) => normalizeModelCall(x, i));
       return normalized;
-    } catch { return JSON.parse(DEFAULT_MODEL_CALLS).map((x, i) => normalizeModelCall(x, i)); }
+    } catch { return defaultCalls; }
   }
 
   function getModelCalls() {
@@ -4117,7 +4158,7 @@ Example: [{"id": "chk_0", "category": "information"}, {"id": "chk_1", "category"
     document.body.innerHTML = `
       <div class="pse-body">
         <div class="pse-card">
-          <h1 class="pse-title">👤 RisuAI Agent v1.7</h1>
+          <h1 class="pse-title">👤 RisuAI Agent v1.7.2</h1>
           <div id="pse-status" class="pse-status"></div>
           ${renderModelDatalists()}
 
