@@ -1,9 +1,9 @@
 //@name 👤 RisuAI Agent
-//@display-name 👤 RisuAI Agent v2.0.1
+//@display-name 👤 RisuAI Agent v2.0.2
 //@author penguineugene@protonmail.com
 //@link https://github.com/EugenesDad/RisuAI-Agent-plugin
 //@api 3.0
-//@version 2.0.1
+//@version 2.0.2
 
 (async () => {
   function _mapLangCode(raw) {
@@ -441,7 +441,7 @@
   let _langInitialized = false;
 
   const PLUGIN_NAME = "👤 RisuAI Agent";
-  const PLUGIN_VER = "2.0.1";
+  const PLUGIN_VER = "2.0.2";
   const LOG = "[RisuAIAgent]";
   const HARD_FREEZE_KB_FEATURES = true;
   const SYSTEM_INJECT_TAG = "PLUGIN_PARALLEL_STATUS";
@@ -3952,7 +3952,8 @@ Example: [{"id": "chk_0", "category": "information"}, {"id": "chk_1", "category"
         line-height: 1.4;
         color: var(--pse-card-text);
         background:var(--pse-overlay);
-        min-height:100vh;
+        min-height:100%;
+        height:100%;
         display:flex;
         justify-content:center;
         align-items:center;
@@ -4187,10 +4188,21 @@ Example: [{"id": "chk_0", "category": "information"}, {"id": "chk_1", "category"
     await refreshConfig();
     injectStyles();
 
-    document.body.innerHTML = `
+    // Remove any existing overlay to avoid duplicates
+    const existing = document.getElementById("pse-overlay-root");
+    if (existing) existing.remove();
+
+    // Create an overlay div instead of replacing document.body.
+    // Replacing document.body destroys the host framework's (Svelte) reactive
+    // bindings and event listeners, which causes the UI to freeze in local dev.
+    const overlayRoot = document.createElement("div");
+    overlayRoot.id = "pse-overlay-root";
+    overlayRoot.style.cssText = "position:fixed;inset:0;z-index:9999;overflow:auto;";
+
+    overlayRoot.innerHTML = `
       <div class="pse-body">
         <div class="pse-card">
-          <h1 class="pse-title">👤 RisuAI Agent v2.0.1</h1>
+          <h1 class="pse-title">👤 RisuAI Agent v2.0.2</h1>
           <div id="pse-status" class="pse-status"></div>
           ${renderModelDatalists()}
 
@@ -4420,6 +4432,11 @@ Example: [{"id": "chk_0", "category": "information"}, {"id": "chk_1", "category"
         </div>
       </div>
     `;
+
+    // Mount the overlay on top of the existing DOM tree without destroying it.
+    // Replacing document.body destroys Svelte's reactive bindings in local dev,
+    // causing all buttons outside the plugin panel to stop working.
+    document.body.appendChild(overlayRoot);
 
     const renderEmbeddingCacheList = async () => {
       const wrap = document.getElementById("pse-embed-cache-list");
@@ -4986,13 +5003,35 @@ Example: [{"id": "chk_0", "category": "information"}, {"id": "chk_1", "category"
     });
 
     const bindProviderAutoUrl = (providerId, urlId) => {
+      // Persist the user's custom_api URL separately so it survives provider switches
+      let savedCustomUrl = safeTrim(document.getElementById(urlId)?.value || "");
+      let prevProvider = safeTrim(document.getElementById(providerId)?.value || "custom_api");
+
       document.getElementById(providerId)?.addEventListener("change", () => {
-        const provider = safeTrim(document.getElementById(providerId)?.value);
+        const nextProvider = safeTrim(document.getElementById(providerId)?.value);
         const urlEl = document.getElementById(urlId);
         if (!urlEl) return;
-        const current = safeTrim(urlEl.value);
-        const next = PROVIDER_DEFAULT_URL[provider] ?? "";
-        if (!current || Object.values(PROVIDER_DEFAULT_URL).includes(current)) urlEl.value = next;
+
+        // When leaving custom_api, save whatever the user typed
+        if (prevProvider === "custom_api") {
+          savedCustomUrl = safeTrim(urlEl.value || "");
+        }
+
+        if (nextProvider === "custom_api") {
+          // Restore the user's own URL when switching back to custom_api
+          urlEl.value = savedCustomUrl;
+        } else {
+          // For every named provider, always apply its preset URL
+          urlEl.value = PROVIDER_DEFAULT_URL[nextProvider] ?? "";
+        }
+        prevProvider = nextProvider;
+      });
+
+      // Keep savedCustomUrl in sync when the user edits the URL while on custom_api
+      document.getElementById(urlId)?.addEventListener("input", () => {
+        if (safeTrim(document.getElementById(providerId)?.value || "") === "custom_api") {
+          savedCustomUrl = safeTrim(document.getElementById(urlId)?.value || "");
+        }
       });
     };
     bindProviderAutoUrl("extractor_a_provider", "extractor_a_url");
@@ -5297,7 +5336,12 @@ Example: [{"id": "chk_0", "category": "information"}, {"id": "chk_1", "category"
       } catch (e) { showStatus(_T.st_save_fail + (e?.message || String(e)), "err"); }
     });
 
-    document.getElementById("pse-close")?.addEventListener("click", async () => { await Risuai.hideContainer(); });
+    document.getElementById("pse-close")?.addEventListener("click", async () => {
+      // Remove our overlay so the underlying framework regains full control
+      const overlay = document.getElementById("pse-overlay-root");
+      if (overlay) overlay.remove();
+      try { await Risuai.hideContainer(); } catch { }
+    });
   }
 
   async function initSettingEntry() {
