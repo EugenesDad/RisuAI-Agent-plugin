@@ -1,9 +1,9 @@
 //@name 👤 RisuAI Agent
-//@display-name 👤 RisuAI Agent v2.0.2
+//@display-name 👤 RisuAI Agent v2.0.3
 //@author penguineugene@protonmail.com
 //@link https://github.com/EugenesDad/RisuAI-Agent-plugin
 //@api 3.0
-//@version 2.0.2
+//@version 2.0.3
 
 (async () => {
   function _mapLangCode(raw) {
@@ -17,12 +17,10 @@
   }
 
   async function _detectLang() {
-    // Priority 1: User-selected language in plugin settings (most reliable)
     try {
       const saved = String(await Risuai.safeLocalStorage.getItem("pse_ui_language") || "").trim();
       if (saved === "en" || saved === "ko" || saved === "tc") return saved;
     } catch { }
-    // Priority 2: English default
     return "en";
   }
 
@@ -441,7 +439,7 @@
   let _langInitialized = false;
 
   const PLUGIN_NAME = "👤 RisuAI Agent";
-  const PLUGIN_VER = "2.0.2";
+  const PLUGIN_VER = "2.0.3";
   const LOG = "[RisuAIAgent]";
   const HARD_FREEZE_KB_FEATURES = true;
   const SYSTEM_INJECT_TAG = "PLUGIN_PARALLEL_STATUS";
@@ -473,7 +471,7 @@
   const COPILOT_MODELS_CACHE_TS_KEY = "copilot_models_cache_ts_v1";
   const COPILOT_TOKEN_URL = "https://api.github.com/copilot_internal/v2/token";
   const OPENROUTER_MODELS_CACHE_TTL_MS = 6 * 60 * 60 * 1000;
-  const FIXED_TIMEOUT_MS = 120000;
+  const FIXED_TIMEOUT_MS = 300000;
 
   const EMBEDDING_VECTOR_CACHE_VERSION = 1;
   const EMBEDDING_VECTOR_CACHE_MAX_PER_CARD = 300;
@@ -486,6 +484,7 @@
     extractor_a_key: "",
     extractor_a_model: "",
     extractor_a_provider_model_map: "{}",
+    extractor_a_provider_url_map: "{}",
     extractor_a_temperature: 0.2,
     extractor_b_provider: "custom_api",
     extractor_b_format: "openai",
@@ -493,6 +492,7 @@
     extractor_b_key: "",
     extractor_b_model: "",
     extractor_b_provider_model_map: "{}",
+    extractor_b_provider_url_map: "{}",
     extractor_b_temperature: 0.2,
     embedding_provider: "custom_api",
     embedding_format: "openai",
@@ -501,6 +501,7 @@
     embedding_key: "",
     embedding_request_model: "",
     embedding_provider_model_map: "{}",
+    embedding_provider_url_map: "{}",
     embedding_provider_key_map: "{}",
     extractor_a_provider_key_map: "{}",
     extractor_b_provider_key_map: "{}",
@@ -562,6 +563,7 @@ Example: [{"id": "chk_0", "category": "information"}, {"id": "chk_1", "category"
     extractor_a_key: "pse_extractor_a_key",
     extractor_a_model: "pse_extractor_a_model",
     extractor_a_provider_model_map: "pse_extractor_a_provider_model_map",
+    extractor_a_provider_url_map: "pse_extractor_a_provider_url_map",
     extractor_a_temperature: "pse_extractor_a_temperature",
     extractor_b_provider: "pse_extractor_b_provider",
     extractor_b_format: "pse_extractor_b_format",
@@ -569,6 +571,7 @@ Example: [{"id": "chk_0", "category": "information"}, {"id": "chk_1", "category"
     extractor_b_key: "pse_extractor_b_key",
     extractor_b_model: "pse_extractor_b_model",
     extractor_b_provider_model_map: "pse_extractor_b_provider_model_map",
+    extractor_b_provider_url_map: "pse_extractor_b_provider_url_map",
     extractor_b_temperature: "pse_extractor_b_temperature",
     embedding_provider: "pse_embedding_provider",
     embedding_format: "pse_embedding_format",
@@ -577,6 +580,7 @@ Example: [{"id": "chk_0", "category": "information"}, {"id": "chk_1", "category"
     embedding_key: "pse_embedding_key",
     embedding_request_model: "pse_embedding_request_model",
     embedding_provider_model_map: "pse_embedding_provider_model_map",
+    embedding_provider_url_map: "pse_embedding_provider_url_map",
     embedding_provider_key_map: "pse_embedding_provider_key_map",
     extractor_a_provider_key_map: "pse_extractor_a_provider_key_map",
     extractor_b_provider_key_map: "pse_extractor_b_provider_key_map",
@@ -727,8 +731,6 @@ Example: [{"id": "chk_0", "category": "information"}, {"id": "chk_1", "category"
     const currentReloadKeys = char?.reloadKeys || 0;
 
     
-    
-    
     const isCacheValid =
       cachedGlobalNoteData.charId !== null &&
       cachedGlobalNoteData.charId === charId &&
@@ -839,7 +841,14 @@ Example: [{"id": "chk_0", "category": "information"}, {"id": "chk_1", "category"
   async function fetchWithFallback(url, options, timeoutMs, timeoutMessagePrefix, preferRisuFirst = false) {
     const deadline = Date.now() + Math.max(1, Number(timeoutMs) || 1);
     const remainingMs = () => Math.max(1, deadline - Date.now());
-    const orders = preferRisuFirst ? ["risuFetch", "nativeFetch"] : ["nativeFetch", "risuFetch"];
+    // In a sandboxed iframe (RisuAI plugin v3 environment), window.origin is the string "null".
+    // Sandboxed iframes without allow-same-origin cannot make cross-origin requests via the
+    // browser's native fetch — CORS will silently hang the request until the full timeout elapses
+    // before the fallback risuFetch is tried. Detect this and skip nativeFetch entirely.
+    const isSandboxedIframe = (typeof window !== "undefined" && window.origin === "null");
+    const orders = isSandboxedIframe
+      ? ["risuFetch"]
+      : preferRisuFirst ? ["risuFetch", "nativeFetch"] : ["nativeFetch", "risuFetch"];
     let firstError = null;
 
     for (const via of orders) {
@@ -970,6 +979,7 @@ Example: [{"id": "chk_0", "category": "information"}, {"id": "chk_1", "category"
   const LAST_REQ_HASH_KEY = "last_req_hash";
   const LAST_EXTRACTED_DATA_KEY = "last_extracted_data";
   const FIRST_MESSAGE_HANDLED_KEY = "first_message_handled";
+  const REGEN_SKIP_KEY = "regen_skip";
 
   function getScopeCharId(char) {
     return String(char?.chaId || char?.id || char?._id || "-1").replace(/[^0-9a-zA-Z_-]/g, "") || "-1";
@@ -999,6 +1009,7 @@ Example: [{"id": "chk_0", "category": "information"}, {"id": "chk_1", "category"
       scopeId,
       lastReqHash: makeScopedStorageKey(LAST_REQ_HASH_KEY, scopeId),
       lastExtractedData: makeScopedStorageKey(LAST_EXTRACTED_DATA_KEY, scopeId),
+      regenSkip: makeScopedStorageKey(REGEN_SKIP_KEY, scopeId),
     };
   }
 
@@ -1105,6 +1116,7 @@ Example: [{"id": "chk_0", "category": "information"}, {"id": "chk_1", "category"
       try { await Risuai.pluginStorage.removeItem(staticKeys.step0Complete); } catch { }
       try { await Risuai.safeLocalStorage.removeItem(requestKeys.lastReqHash); } catch { }
       try { await Risuai.safeLocalStorage.removeItem(requestKeys.lastExtractedData); } catch { }
+      try { await Risuai.safeLocalStorage.removeItem(requestKeys.regenSkip); } catch { }
       try { await Risuai.safeLocalStorage.removeItem(firstMessageHandledKey); } catch { }
     } catch { }
 
@@ -1824,7 +1836,6 @@ Example: [{"id": "chk_0", "category": "information"}, {"id": "chk_1", "category"
 
     const pool = [];
 
-    // charLore (static) goes first as baseline
     for (const entry of charLore) {
       const name = safeTrim(entry?.comment || "");
       if (!wanted.has(name)) continue;
@@ -1838,7 +1849,6 @@ Example: [{"id": "chk_0", "category": "information"}, {"id": "chk_1", "category"
       }
     }
 
-    // localLore (agent-written dynamic data) overrides charLore for same entry names
     for (const entry of localLore) {
       const name = safeTrim(entry?.comment || "");
       if (!wanted.has(name)) continue;
@@ -2113,7 +2123,6 @@ Example: [{"id": "chk_0", "category": "information"}, {"id": "chk_1", "category"
     const localMap = new Map();
 
     
-    
     for (const entry of charLore) {
       const name = safeTrim(entry?.comment || "");
       if (!wanted.has(name)) continue;
@@ -2195,7 +2204,6 @@ Example: [{"id": "chk_0", "category": "information"}, {"id": "chk_1", "category"
           .map((item, idx) => ({ ...item, score: cosineSimilarity(queryVec, vectors[idx]) }))
           .filter((x) => Number.isFinite(x.score)).sort((a, b) => b.score - a.score);
         const picked = scored.filter((x) => x.score >= minScore).slice(0, topK);
-        
         
         
         topInactiveList = picked.length ? picked : scored.filter((x) => x.score >= 0).slice(0, topK);
@@ -2495,7 +2503,6 @@ Example: [{"id": "chk_0", "category": "information"}, {"id": "chk_1", "category"
   function formatLoreOutput(raw, parsed, outputFormat, lorebookName, totalEntries) {
     
     
-    
     let normalizedParsed = parsed;
     if (Array.isArray(parsed)) {
       const merged = {};
@@ -2529,7 +2536,6 @@ Example: [{"id": "chk_0", "category": "information"}, {"id": "chk_1", "category"
         if (typeof val === "string") return val.trim();
         try { return JSON.stringify(val); } catch { return String(val || "").trim(); }
       }
-      
       
       
       try { return JSON.stringify(normalizedParsed); } catch { return String(raw || "").trim(); }
@@ -2616,7 +2622,6 @@ Example: [{"id": "chk_0", "category": "information"}, {"id": "chk_1", "category"
   async function applyRetentionCleanup(userMsgCount, callsOverride) {
     
     
-    
     const calls = callsOverride || getModelCalls();
     const retentionEntries = [];
     for (const call of calls) {
@@ -2670,9 +2675,6 @@ Example: [{"id": "chk_0", "category": "information"}, {"id": "chk_1", "category"
     const target = modelCall.target_model === "B" ? "B" : "A";
 
     
-    
-    
-    
     const alignedParsed = alignParsedObjectToEntries(raw, parsed, entries);
 
     const pendingWrites = [];
@@ -2686,7 +2688,6 @@ Example: [{"id": "chk_0", "category": "information"}, {"id": "chk_1", "category"
       
       let content = formatLoreOutput(raw, alignedParsed, outputFormat, loreName, entries.length);
 
-      
       
       if (!safeTrim(content) && entries.length > 1 && parsed && typeof parsed === "object") {
         
@@ -2731,7 +2732,6 @@ Example: [{"id": "chk_0", "category": "information"}, {"id": "chk_1", "category"
   }
 
   
-  
   function thinkingLevelToClaudeBudget(level) {
     switch (safeTrim(level).toLowerCase()) {
       case "low": return 1024;
@@ -2772,19 +2772,20 @@ Example: [{"id": "chk_0", "category": "information"}, {"id": "chk_1", "category"
       method: "POST", headers,
       body: JSON.stringify({
         model: finalModel,
+        stream: false,
         ...(Number.isFinite(Number(temperature)) ? { temperature: Math.max(0, Math.min(2, Number(temperature))) } : {}),
         ...(thinkingEnabled && thinkingLevel ? { reasoning_effort: thinkingLevelToOpenAIEffort(thinkingLevel) } : {}),
         response_format: { type: "json_object" },
         messages
       }),
-    }, timeoutMs, "Extractor", isOpenRouterUrl(finalUrl));
+    }, timeoutMs, "Extractor", true);
 
     if (!isResponseLike(res) || !res.ok) {
       const errText = await readResponseErrorText(res);
       throw new Error(`HTTP ${isResponseLike(res) ? res.status : 0}: ${String(errText || "").slice(0, 500)}`);
     }
 
-    const data = await readResponseJson(res);
+    const data = await withTimeout(readResponseJson(res), timeoutMs, "Extractor body read timeout");
     const contentRaw = data?.choices?.[0]?.message?.content ?? data?.choices?.[0]?.text;
     const content = typeof contentRaw === "string" ? contentRaw : Array.isArray(contentRaw) ? contentRaw.map((p) => (typeof p === "string" ? p : typeof p?.text === "string" ? p.text : "")).filter(Boolean).join("\n") : "";
     if (!content || typeof content !== "string") throw new Error("Extractor returned empty content.");
@@ -2849,12 +2850,12 @@ Example: [{"id": "chk_0", "category": "information"}, {"id": "chk_1", "category"
         { category: "HARM_CATEGORY_DANGEROUS_CONTENT", threshold: "BLOCK_NONE" },
       ],
     };
-    const { res } = await fetchWithFallback(finalUrl, { method: "POST", headers, body: JSON.stringify(body) }, timeoutMs, "Google extractor", false);
+    const { res } = await fetchWithFallback(finalUrl, { method: "POST", headers, body: JSON.stringify(body) }, timeoutMs, "Google extractor", true);
     if (!isResponseLike(res) || !res.ok) {
       const errText = await readResponseErrorText(res);
       throw new Error(`HTTP ${isResponseLike(res) ? res.status : 0}: ${String(errText || "").slice(0, 500)}`);
     }
-    const data = await readResponseJson(res);
+    const data = await withTimeout(readResponseJson(res), timeoutMs, "Google extractor body read timeout");
     const content = (data?.candidates?.[0]?.content?.parts || []).map((p) => safeTrim(p?.text)).filter(Boolean).join("\n").trim();
     if (!content) throw new Error("Google extractor returned empty content.");
     return { parsed: parsePossiblyWrappedJson(content), raw: content };
@@ -2880,12 +2881,12 @@ Example: [{"id": "chk_0", "category": "information"}, {"id": "chk_1", "category"
         { category: "HARM_CATEGORY_DANGEROUS_CONTENT", threshold: "BLOCK_NONE" },
       ],
     };
-    const { res } = await fetchWithFallback(finalUrl, { method: "POST", headers, body: JSON.stringify(body) }, timeoutMs, "Vertex extractor", false);
+    const { res } = await fetchWithFallback(finalUrl, { method: "POST", headers, body: JSON.stringify(body) }, timeoutMs, "Vertex extractor", true);
     if (!isResponseLike(res) || !res.ok) {
       const errText = await readResponseErrorText(res);
       throw new Error(`HTTP ${isResponseLike(res) ? res.status : 0}: ${String(errText || "").slice(0, 500)}`);
     }
-    const data = await readResponseJson(res);
+    const data = await withTimeout(readResponseJson(res), timeoutMs, "Vertex extractor body read timeout");
     const content = (data?.candidates?.[0]?.content?.parts || []).map((p) => safeTrim(p?.text)).filter(Boolean).join("\n").trim();
     if (!content) throw new Error("Vertex extractor returned empty content.");
     return { parsed: parsePossiblyWrappedJson(content), raw: content };
@@ -2909,6 +2910,7 @@ Example: [{"id": "chk_0", "category": "information"}, {"id": "chk_1", "category"
       : {};
     const basePayload = {
       model,
+      stream: false,
       max_tokens: thinkingEnabled && thinkingLevel ? Math.max(4096, thinkingLevelToClaudeBudget(thinkingLevel) + 1024) : 4096,
       ...(Number.isFinite(Number(temperature)) ? { temperature: Math.max(0, Math.min(2, Number(temperature))) } : {}),
       ...(system ? { system } : {}),
@@ -2917,6 +2919,7 @@ Example: [{"id": "chk_0", "category": "information"}, {"id": "chk_1", "category"
     };
     const toolPayload = {
       ...basePayload,
+      stream: false,
       tools: [{
         name: "emit_json",
         description: "Return the extraction result as a single JSON object.",
@@ -2932,7 +2935,7 @@ Example: [{"id": "chk_0", "category": "information"}, {"id": "chk_1", "category"
     const firstTry = await fetchWithFallback(finalUrl, {
       method: "POST", headers,
       body: JSON.stringify(toolPayload),
-    }, timeoutMs, "Claude extractor", false);
+    }, timeoutMs, "Claude extractor", true);
     resObj = firstTry?.res;
 
     if (!isResponseLike(resObj) || !resObj.ok) {
@@ -2946,7 +2949,7 @@ Example: [{"id": "chk_0", "category": "information"}, {"id": "chk_1", "category"
       const fallbackTry = await fetchWithFallback(finalUrl, {
         method: "POST", headers,
         body: JSON.stringify(basePayload),
-      }, timeoutMs, "Claude extractor (fallback)", false);
+      }, timeoutMs, "Claude extractor (fallback)", true);
       resObj = fallbackTry?.res;
       if (!isResponseLike(resObj) || !resObj.ok) {
         const fallbackErrText = await readResponseErrorText(resObj);
@@ -2954,7 +2957,7 @@ Example: [{"id": "chk_0", "category": "information"}, {"id": "chk_1", "category"
       }
     }
 
-    data = await readResponseJson(resObj);
+    data = await withTimeout(readResponseJson(resObj), timeoutMs, "Claude extractor body read timeout");
     const contentBlocks = Array.isArray(data?.content) ? data.content : [];
     const toolUse = contentBlocks.find((x) => x?.type === "tool_use" && x?.name === "emit_json" && x?.input && typeof x.input === "object");
     if (toolUse && !usedFallback) {
@@ -3560,8 +3563,6 @@ Example: [{"id": "chk_0", "category": "information"}, {"id": "chk_1", "category"
       const originalContent = entry.content;
 
       
-      
-      
       const owMatch = originalContent.match(/^## .*?\n<!-- written_at_turn: (\d+) -->/m);
       if (owMatch) {
         const writtenAt = Number(owMatch[1]);
@@ -3687,7 +3688,7 @@ Example: [{"id": "chk_0", "category": "information"}, {"id": "chk_1", "category"
     try {
       let headers = { Accept: "application/json" };
       if (apiKey) headers.Authorization = `Bearer ${apiKey}`;
-      const { res } = await fetchWithFallback(url, { method: "GET", headers }, 12000, `${provider} model list`, false);
+      const { res } = await fetchWithFallback(url, { method: "GET", headers }, 12000, `${provider} model list`, true);
       const status = Number(res?.status ?? res?.statusCode ?? 200);
       if (Number.isFinite(status) && status >= 400) return staleCache;
       let data = await readResponseJson(res);
@@ -4177,6 +4178,7 @@ Example: [{"id": "chk_0", "category": "information"}, {"id": "chk_1", "category"
       const { requestKeys } = await getScopedKeysForCurrentChat();
       try { await Risuai.safeLocalStorage.removeItem(requestKeys.lastReqHash); } catch { }
       try { await Risuai.safeLocalStorage.removeItem(requestKeys.lastExtractedData); } catch { }
+      try { await Risuai.safeLocalStorage.removeItem(requestKeys.regenSkip); } catch { }
     } catch { }
     try { await Risuai.safeLocalStorage.removeItem(LAST_REQ_HASH_KEY); } catch { }
     throw new Error(`[RisuAI Agent Error] ${msg}\n(${suffix})`);
@@ -4188,13 +4190,9 @@ Example: [{"id": "chk_0", "category": "information"}, {"id": "chk_1", "category"
     await refreshConfig();
     injectStyles();
 
-    // Remove any existing overlay to avoid duplicates
     const existing = document.getElementById("pse-overlay-root");
     if (existing) existing.remove();
 
-    // Create an overlay div instead of replacing document.body.
-    // Replacing document.body destroys the host framework's (Svelte) reactive
-    // bindings and event listeners, which causes the UI to freeze in local dev.
     const overlayRoot = document.createElement("div");
     overlayRoot.id = "pse-overlay-root";
     overlayRoot.style.cssText = "position:fixed;inset:0;z-index:9999;overflow:auto;";
@@ -4202,7 +4200,7 @@ Example: [{"id": "chk_0", "category": "information"}, {"id": "chk_1", "category"
     overlayRoot.innerHTML = `
       <div class="pse-body">
         <div class="pse-card">
-          <h1 class="pse-title">👤 RisuAI Agent v2.0.2</h1>
+          <h1 class="pse-title">👤 RisuAI Agent v2.0.3</h1>
           <div id="pse-status" class="pse-status"></div>
           ${renderModelDatalists()}
 
@@ -4433,9 +4431,6 @@ Example: [{"id": "chk_0", "category": "information"}, {"id": "chk_1", "category"
       </div>
     `;
 
-    // Mount the overlay on top of the existing DOM tree without destroying it.
-    // Replacing document.body destroys Svelte's reactive bindings in local dev,
-    // causing all buttons outside the plugin panel to stop working.
     document.body.appendChild(overlayRoot);
 
     const renderEmbeddingCacheList = async () => {
@@ -4518,8 +4513,7 @@ Example: [{"id": "chk_0", "category": "information"}, {"id": "chk_1", "category"
       wrap.innerHTML = vecHtml + classifyHtml;
     };
 
-    await renderEmbeddingCacheList();
-    // Language selector buttons
+    try { await renderEmbeddingCacheList(); } catch { }
     document.querySelectorAll(".pse-lang-btn").forEach(btn => {
       btn.addEventListener("click", async () => {
         const lang = btn.dataset.lang;
@@ -4595,17 +4589,8 @@ Example: [{"id": "chk_0", "category": "information"}, {"id": "chk_1", "category"
       }
     };
 
-    await renderCardEnableList();
-
-    
-    document.getElementById("pse-card-enable-list")?.addEventListener("change", (e) => {
-      const cb = e.target?.closest?.(".pse-card-disabled");
-      if (!cb) return;
-      const block = cb.closest(".pse-entry-block");
-      const grid = block?.querySelector("div[style*='grid-template-columns']");
-      if (grid) grid.style.cssText = grid.style.cssText.replace(/opacity:[^;]+;?/g, "").replace(/pointer-events:[^;]+;?/g, "") + (cb.checked ? ";opacity:0.35;pointer-events:none;" : "");
-    });
-
+    // Bind tab navigation and close/save BEFORE any async call that might hang,
+    // so the UI is always interactive even if getDatabase() is slow or pending.
     const setPage = (page) => {
       document.querySelectorAll(".pse-tab").forEach((el) => {
         el.classList.toggle("active", el.getAttribute("data-page") === page);
@@ -4621,6 +4606,16 @@ Example: [{"id": "chk_0", "category": "information"}, {"id": "chk_1", "category"
         if (!page) return;
         setPage(page);
       });
+    });
+
+    try { await renderCardEnableList(); } catch { }
+
+    document.getElementById("pse-card-enable-list")?.addEventListener("change", (e) => {
+      const cb = e.target?.closest?.(".pse-card-disabled");
+      if (!cb) return;
+      const block = cb.closest(".pse-entry-block");
+      const grid = block?.querySelector("div[style*='grid-template-columns']");
+      if (grid) grid.style.cssText = grid.style.cssText.replace(/opacity:[^;]+;?/g, "").replace(/pointer-events:[^;]+;?/g, "") + (cb.checked ? ";opacity:0.35;pointer-events:none;" : "");
     });
 
     document.getElementById("pse-embed-cache-list")?.addEventListener("click", async (e) => {
@@ -4643,6 +4638,7 @@ Example: [{"id": "chk_0", "category": "information"}, {"id": "chk_1", "category"
             try { await Risuai.pluginStorage.removeItem(staticKeys.step0Complete); } catch { }
             try { await Risuai.safeLocalStorage.removeItem(requestKeys.lastReqHash); } catch { }
             try { await Risuai.safeLocalStorage.removeItem(requestKeys.lastExtractedData); } catch { }
+            try { await Risuai.safeLocalStorage.removeItem(requestKeys.regenSkip); } catch { }
             try { await Risuai.safeLocalStorage.removeItem(firstMessageHandledKey); } catch { }
             sessionStep0HandledHashByScope.delete(staticKeys.scopeId);
           } catch { }
@@ -5002,9 +4998,12 @@ Example: [{"id": "chk_0", "category": "information"}, {"id": "chk_1", "category"
       } catch (e) { showStatus(_T.st_reset_fail + (e?.message || String(e)), "err"); }
     });
 
-    const bindProviderAutoUrl = (providerId, urlId) => {
-      // Persist the user's custom_api URL separately so it survives provider switches
-      let savedCustomUrl = safeTrim(document.getElementById(urlId)?.value || "");
+    const bindProviderAutoUrl = (providerId, urlId, urlMapKey) => {
+      // Build the in-memory map from persisted storage key (loaded into configCache at init)
+      let uiProviderUrlMap = parseSimpleStringMap(configCache[urlMapKey] || "{}");
+
+      // Initialise savedCustomUrl from the map so it survives UI re-renders
+      let savedCustomUrl = safeTrim(uiProviderUrlMap["custom_api"] || document.getElementById(urlId)?.value || "");
       let prevProvider = safeTrim(document.getElementById(providerId)?.value || "custom_api");
 
       document.getElementById(providerId)?.addEventListener("change", () => {
@@ -5012,9 +5011,10 @@ Example: [{"id": "chk_0", "category": "information"}, {"id": "chk_1", "category"
         const urlEl = document.getElementById(urlId);
         if (!urlEl) return;
 
-        // When leaving custom_api, save whatever the user typed
+        // When leaving custom_api, save whatever the user typed to both memory and the map
         if (prevProvider === "custom_api") {
           savedCustomUrl = safeTrim(urlEl.value || "");
+          uiProviderUrlMap["custom_api"] = savedCustomUrl;
         }
 
         if (nextProvider === "custom_api") {
@@ -5027,15 +5027,19 @@ Example: [{"id": "chk_0", "category": "information"}, {"id": "chk_1", "category"
         prevProvider = nextProvider;
       });
 
-      // Keep savedCustomUrl in sync when the user edits the URL while on custom_api
+      // Keep savedCustomUrl and the map in sync when the user edits the URL while on custom_api
       document.getElementById(urlId)?.addEventListener("input", () => {
         if (safeTrim(document.getElementById(providerId)?.value || "") === "custom_api") {
           savedCustomUrl = safeTrim(document.getElementById(urlId)?.value || "");
+          uiProviderUrlMap["custom_api"] = savedCustomUrl;
         }
       });
+
+      // Expose a getter so the save handler can persist the map
+      return () => uiProviderUrlMap;
     };
-    bindProviderAutoUrl("extractor_a_provider", "extractor_a_url");
-    bindProviderAutoUrl("extractor_b_provider", "extractor_b_url");
+    const getUrlMapA = bindProviderAutoUrl("extractor_a_provider", "extractor_a_url", "extractor_a_provider_url_map");
+    const getUrlMapB = bindProviderAutoUrl("extractor_b_provider", "extractor_b_url", "extractor_b_provider_url_map");
 
     const refreshExtractorModelOptions = async (providerId, datalistId) => {
       const provider = safeTrim(document.getElementById(providerId)?.value || "");
@@ -5164,6 +5168,7 @@ Example: [{"id": "chk_0", "category": "information"}, {"id": "chk_1", "category"
     bindThinkingControls("extractor_a_thinking_enabled", "extractor_a_thinking_level", "extractor_a_format", "extractor_a_thinking_hint");
     bindThinkingControls("extractor_b_thinking_enabled", "extractor_b_thinking_level", "extractor_b_format", "extractor_b_thinking_hint");
 
+    let uiEmbeddingProviderUrlMap = parseSimpleStringMap(configCache.embedding_provider_url_map || "{}");
     let uiEmbeddingProviderModelMap = parseSimpleStringMap(configCache.embedding_provider_model_map || "{}");
     let uiEmbeddingProviderKeyMap = parseSimpleStringMap(configCache.embedding_provider_key_map || "{}");
     let uiExtractorAProviderKeyMap = parseSimpleStringMap(configCache.extractor_a_provider_key_map || "{}");
@@ -5186,6 +5191,11 @@ Example: [{"id": "chk_0", "category": "information"}, {"id": "chk_1", "category"
         if (prevModel) uiEmbeddingProviderModelMap[currentEmbeddingProvider] = prevModel;
         const prevKey = safeTrim(keyEl?.value || "");
         if (prevKey) uiEmbeddingProviderKeyMap[currentEmbeddingProvider] = prevKey;
+        // Save custom_api URL before leaving it
+        if (currentEmbeddingProvider === "custom_api") {
+          const prevUrl = safeTrim(urlEl?.value || "");
+          if (prevUrl) uiEmbeddingProviderUrlMap["custom_api"] = prevUrl;
+        }
       }
 
       modelEl.disabled = false;
@@ -5215,12 +5225,22 @@ Example: [{"id": "chk_0", "category": "information"}, {"id": "chk_1", "category"
       formatEl.value = safeTrim(preset.format || "openai");
       if (provider !== "custom_api") {
         urlEl.value = safeTrim(preset.url || "");
+      } else {
+        // Restore the user's saved custom_api URL when switching back
+        const remembered = safeTrim(uiEmbeddingProviderUrlMap["custom_api"] || "");
+        if (remembered) urlEl.value = remembered;
       }
       if (provider !== "custom_api") requestModelEl.value = safeTrim(EMBEDDING_MODEL_TO_REQUEST[safeTrim(modelEl.value)] || preset.requestModel || "");
       else requestModelEl.value = "";
     };
 
     document.getElementById("embedding_provider")?.addEventListener("change", () => { refreshEmbeddingPresetByProvider(true).catch(() => { }); });
+    // Keep uiEmbeddingProviderUrlMap in sync when editing URL on custom_api
+    document.getElementById("embedding_url")?.addEventListener("input", () => {
+      if (safeTrim(document.getElementById("embedding_provider")?.value || "") === "custom_api") {
+        uiEmbeddingProviderUrlMap["custom_api"] = safeTrim(document.getElementById("embedding_url")?.value || "");
+      }
+    });
     document.getElementById("embedding_model")?.addEventListener("input", () => {
       const provider = safeTrim(document.getElementById("embedding_provider")?.value || "custom_api");
       const selectedModel = safeTrim(document.getElementById("embedding_model")?.value || "");
@@ -5266,6 +5286,7 @@ Example: [{"id": "chk_0", "category": "information"}, {"id": "chk_1", "category"
           extractor_a_key: exAKey,
           extractor_a_model: exAMod,
           extractor_a_provider_model_map: JSON.stringify(uiExtractorAProviderModelMap),
+          extractor_a_provider_url_map: JSON.stringify(getUrlMapA()),
           extractor_a_provider_key_map: JSON.stringify(uiExtractorAProviderKeyMap),
           extractor_a_temperature: Math.max(0, Math.min(2, Number(document.getElementById("extractor_a_temperature")?.value || 0))),
           extractor_b_provider: exBProv,
@@ -5274,6 +5295,7 @@ Example: [{"id": "chk_0", "category": "information"}, {"id": "chk_1", "category"
           extractor_b_key: exBKey,
           extractor_b_model: exBMod,
           extractor_b_provider_model_map: JSON.stringify(uiExtractorBProviderModelMap),
+          extractor_b_provider_url_map: JSON.stringify(getUrlMapB()),
           extractor_b_provider_key_map: JSON.stringify(uiExtractorBProviderKeyMap),
           extractor_b_temperature: Math.max(0, Math.min(2, Number(document.getElementById("extractor_b_temperature")?.value || 0))),
           embedding_provider: embProv,
@@ -5287,6 +5309,7 @@ Example: [{"id": "chk_0", "category": "information"}, {"id": "chk_1", "category"
             return safeTrim(EMBEDDING_MODEL_TO_REQUEST[embMod] || embMod || preset.requestModel || "");
           })(),
           embedding_provider_model_map: JSON.stringify(uiEmbeddingProviderModelMap),
+          embedding_provider_url_map: JSON.stringify(uiEmbeddingProviderUrlMap),
           embedding_provider_key_map: JSON.stringify(uiEmbeddingProviderKeyMap),
           model_calls: JSON.stringify(uiModelCalls1),
           model_calls_2: JSON.stringify(uiModelCalls2),
@@ -5356,8 +5379,6 @@ Example: [{"id": "chk_0", "category": "information"}, {"id": "chk_1", "category"
     ).catch(() => null);
     if (part?.id != null) uiIds.push(part.id);
 
-    
-    
     
     if (typeof Risuai.registerButton === "function") {
       const btn = await Promise.resolve(
@@ -5565,7 +5586,7 @@ Example: [{"id": "chk_0", "category": "information"}, {"id": "chk_1", "category"
           }
         }
 
-        await performChatCleanup(userMsgCount);
+        const loreModified = await performChatCleanup(userMsgCount);
 
         if (isFirstMessage && !firstMessageHandled) {
           try { await Risuai.safeLocalStorage.setItem(firstMessageHandledKey, firstMessageMarker); } catch { }
@@ -5582,9 +5603,26 @@ Example: [{"id": "chk_0", "category": "information"}, {"id": "chk_1", "category"
           return await mergeToSystemPromptWithRewrite(messages, null, lastUserContent);
         }
 
+        // Regen skip: key = hash(userMsgCount + lastUserMsg + chatIndex)
+        // Invalidated when performChatCleanup removes stale lore (undo/revert detected)
+        const regenSkipKey = requestKeys.regenSkip;
+        const regenSkipToken = simpleHash(JSON.stringify({ userMsgCount, lastUserContent, chatIndex }));
+        if (loreModified) {
+          try { await Risuai.safeLocalStorage.removeItem(regenSkipKey); } catch { }
+        }
+
         const reqHash = simpleHash(JSON.stringify({ baseConversation, userMsgCount }));
         try { await Risuai.safeLocalStorage.removeItem(requestKeys.lastReqHash); } catch { }
         await Risuai.safeLocalStorage.setItem(requestKeys.lastReqHash, reqHash);
+
+        // Check if this is a plain regenerate (same turn, same user message, no lore change)
+        let savedRegenToken = null;
+        try { savedRegenToken = await Risuai.safeLocalStorage.getItem(regenSkipKey); } catch { }
+        if (!loreModified && savedRegenToken === regenSkipToken) {
+          await Risuai.safeLocalStorage.setItem("last_extractor_mode", "skipped_regen");
+          await Risuai.log(`${LOG} beforeRequest: regenerate detected — skipping extraction (same turn, same user message).`);
+          return await mergeToSystemPromptWithRewrite(messages, null, lastUserContent);
+        }
 
         let extractedData = null;
         const roundIndex = userMsgCount;
@@ -5671,6 +5709,14 @@ Example: [{"id": "chk_0", "category": "information"}, {"id": "chk_1", "category"
 
         const allCardCalls = parseModelCalls(cardMemoryPreset === "2" ? configCache.model_calls_2 : configCache.model_calls);
         await applyRetentionCleanup(userMsgCount, allCardCalls);
+
+        // Mark this turn+message as successfully extracted so regenerates can skip.
+        // Only set when dueCalls actually ran — turns with no due calls must not
+        // block the next extraction cycle from running.
+        if (dueCalls.length > 0) {
+          try { await Risuai.safeLocalStorage.setItem(regenSkipKey, regenSkipToken); } catch { }
+        }
+
         return await mergeToSystemPromptWithRewrite(messages, null, lastUserContent);
       } finally {
         Object.assign(configCache, vecBackup);
