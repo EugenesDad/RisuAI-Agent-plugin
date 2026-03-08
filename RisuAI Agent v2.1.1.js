@@ -1,9 +1,9 @@
 //@name 👤 RisuAI Agent
-//@display-name 👤 RisuAI Agent v2.0.3
+//@display-name 👤 RisuAI Agent v2.1.1
 //@author penguineugene@protonmail.com
 //@link https://github.com/EugenesDad/RisuAI-Agent-plugin
 //@api 3.0
-//@version 2.0.3
+//@version 2.1.1
 
 (async () => {
   function _mapLangCode(raw) {
@@ -29,6 +29,7 @@
       append: "Append", overwrite: "Overwrite",
       tab_help: "Instructions", tab_model: "Pre-Model Settings", tab_vector: "Temporarily Closed",
       tab_entry: "Information Extraction", tab_cache: "Temporarily Closed", tab_enable: "Enable Settings",
+      tab_vector_open: "Vector Search", tab_cache_open: "Cache Hub",
       tab_closed: "Temporarily Closed",
       tab_common: "Common Prompts",
       sec_a: "Main Model", sec_b: "Auxiliary Model",
@@ -41,6 +42,8 @@
       opt_sequential: "Sequential (single-threaded requests only)",
       sec_lore_calls: "Lorebook Write Call Settings",
       tag_temp_closed: "Temporarily Closed",
+      warn_kb_feature_enable: "⚠️ After enabling Card Reorganization and Vector Search, the preset structure differs from the disabled mode, and CBS cannot be parsed. Before use, read the setup instructions, adjust your default preset, then enable it.",
+      lbl_kb_feature_enable: "(Checkbox) Enable Card Reorganization and Vector Search",
       lore_warn: "⚠️ Do not manually edit the Lorebook while Agent is running, as it may be automatically overwritten.",
       btn_add_call: "Add Call Task",
       lbl_anchor: "System Anchor Prompt", lbl_prefill: "Assistant Prefill", lbl_prereply: "Assistant Pre-Reply Prompt",
@@ -127,44 +130,89 @@
       warn_parse_failed: "⚠️ Unable to parse static_knowledge_chunks. Please check if Step 0 has completed.",
       warn_no_chunks: "⚠️ No available chunks. Knowledge injection skipped. Please check if Step 0 has completed.",
       copilot_refresh: "Copilot token refresh",
-      help_html: `<b>▌ Core Role: Information Extraction</b><br/>
-                &bull; Information Extraction: Before the main model replies, precursor models extract valid information from the conversation, helping the main model respond more brilliantly.<br/>
-                &bull; Difference between Preset 1 and Preset 2: Preset 1 is for general bots; Preset 2 is for epic narrative bots with complex plots.<br/>
-                &bull; Vector Search is temporarily closed: Will be re-enabled after plugin V3 supports CBS.<br/><br/>
+      lbl_vertex_sa_json: "Vertex AI Service Account JSON",
+      vertex_sa_json_hint: "Paste the Google Cloud Service Account JSON key here. The plugin will auto-generate a Bearer token. Leave blank if you provide the token directly in the API Key field.",
+      vertex_sa_json_placeholder: '{"type":"service_account","project_id":"...","private_key":"-----BEGIN PRIVATE KEY-----\\n...","client_email":"...@....iam.gserviceaccount.com",...}',
+      vertex_token_refreshing: "Refreshing Vertex AI Bearer token...",
+      vertex_token_error: "Vertex AI token error: ",
+      help_html: `<div style="font-family: inherit; line-height: 1.5;">
+  <div style="padding: 12px; border-radius: 8px; margin-bottom: 12px; border-left: 4px solid #2196F3; background: rgba(33, 150, 243, 0.05);">
+    <div style="font-weight: bold; color: #2196F3; margin-bottom: 8px;">🎯 Core Role: Information Extraction & Vector Search</div>
+    <div style="margin-bottom: 4px;">• <b>Precursor Models:</b> Extracts conversation info before the main model replies to enhance quality and brilliance.</div>
+    <div style="margin-bottom: 4px;">• <b>Mode Differences:</b> "Setting 1" is for general bots; "Setting 2" is designed for bots with complex plots.</div>
+    <div>• <b>Vector Search:</b> Reorganizes bot structure & uses vector search to significantly increase effective info volume.</div>
+  </div>
 
-                <b>▌ Plugin Constraints</b><br/>
-                &bull; ⚠️ Need to modify your preset<br/>
-                &bull; ❌ Cannot resume non-plugin chats: To continue previous non-plugin chat history, please summarize it first and start a new conversation.<br/>
-                &bull; ❌ Cannot toggle on/off repeatedly: The internal state (e.g., Long-Term Memory, World Encyclopedia) will become disconnected from the current plot if disabled.<br/>
-                &bull; ✅ Switch presets mid-story: As long as the plugin remains enabled, you can freely switch between different presets during your roleplay.<br/>
-                &bull; ✅ Disabling the plugin: You can transition from a plugin-enabled session to a non-plugin session (remember to change your preset), but the state maintained by the Agent will stop updating.<br/><br/>
+  <div style="padding: 12px; border-radius: 8px; margin-bottom: 12px; border-left: 4px solid #9E9E9E; background: rgba(158, 158, 158, 0.05);">
+    <div style="font-weight: bold; color: #BDBDBD; margin-bottom: 8px;">📜 Compatibility Note</div>
+    <div style="margin-bottom: 8px;">
+      <div style="font-weight: bold; color: #ff5252; margin-bottom: 4px;">❌ Caution</div>
+      • Must modify default preset prompts.<br>
+      • Cannot continue non-plugin chat history.<br>
+      • Do not toggle plugin on/off repeatedly.
+    </div>
+    <div>
+      <div style="font-weight: bold; color: #69f0ae; margin-bottom: 4px;">✅ Compatible</div>
+      • Can switch Presets mid-session in plugin mode.<br>
+      • Can switch Card Reorg & Vector Search functions mid-session.<br>
+      • Supports smooth transition to non-plugin mode.
+    </div>
+  </div>
 
-                <b>▌ How to modify the Preset</b><br/>
-                1. Delete Supa/HypaMemory field<br/>
-                2. Click Advanced in chat, adjust Range Start to -10<br/><br/>
+  <div style="padding: 12px; border-radius: 8px; margin-bottom: 12px; border-left: 4px solid #607D8B; background: rgba(96, 125, 139, 0.05);">
+    <div style="font-weight: bold; color: #90A4AE; margin-bottom: 8px;">📂 Data Storage Information</div>
+    • Information extraction records are stored in <b>Lorebook > Chat</b> entries and can be reviewed or adjusted at any time.<br>
+    • Bot reorganization & vector search index data is stored in the <b>Cache Hub</b>.
+  </div>
 
-                <b>▌ Precursor Model Settings: The Core Supporting the Plugin</b><br/>
-                &bull; Main Model: A powerful model capable of effectively processing large amounts of data.<br/>
-                &bull; Auxiliary Model: A non-coding model capable of understanding the play language and processing 1k~5k content.<br/><br/>
+  <div style="padding: 12px; border-radius: 8px; margin-bottom: 12px; border-left: 4px solid #4CAF50; background: rgba(76, 175, 80, 0.05);">
+    <div style="font-weight: bold; color: #4CAF50; margin-bottom: 8px;">🛠️ Default Preset Adjustment Guide (Card Reorg & Vector OFF)</div>
+    <div style="margin-bottom: 4px;">1. <b>Delete fields:</b> Supa/HypaMemory.</div>
+    <div>2. <b>Advanced Settings:</b> Chat > Check "Advanced", set "Range Start" to <b>-10</b>.</div>
+  </div>
 
-                <b>▌ Expected Model Call Frequency</b><br/>
-                <b>[At Start of Conversation]</b><br/>
-                &bull; Main Model: 0 times.<br/>
-                &bull; Auxiliary Model: Called several times to break down bot data and build the classification system.<br/>
-                &bull; Embedding Model: If cache search is enabled, called several times to build the vector index.<br/>
-                <b>[Subsequent Turns: Setting 1]</b><br/>
-                &bull; Main Model: Once every 10 / 15 turns.<br/>
-                &bull; Auxiliary Model: Twice every turn, once every 3 turns.<br/>
-                &bull; Embedding Model: Once every turn if cache search is enabled.<br/>
-                <b>[Subsequent Turns: Setting 2]</b><br/>
-                &bull; Main Model: Once every 3 / 10 / 15 turns.<br/>
-                &bull; Auxiliary Model: Three times every turn, once every 2 turns, once every 3 turns.<br/>
-                &bull; Embedding Model: Once every turn if cache search is enabled.`,
+  <div style="padding: 12px; border-radius: 8px; margin-bottom: 12px; border-left: 4px solid #FFC107; background: rgba(255, 193, 7, 0.05);">
+    <div style="font-weight: bold; color: #FFC107; margin-bottom: 8px;">⚠️ Enable Card Reorg & Vector Processing (Advanced)</div>
+    <div style="margin-bottom: 6px;"><i>Note: Currently cannot parse CBS syntax.</i></div>
+    • <b>Preset Config:</b> Also delete {{char}} description, Lorebook, and Global Note.
+  </div>
+
+  <div style="padding: 12px; border-radius: 8px; margin-bottom: 12px; border-left: 4px solid #FF5722; background: rgba(255, 87, 34, 0.05);">
+    <div style="font-weight: bold; color: #FF5722; margin-bottom: 8px;">🖥️ Model Requirements</div>
+    <div style="margin-bottom: 8px; padding-bottom: 8px; border-bottom: 1px solid rgba(255,255,255,0.1);">
+      <b>Setting 1 (Single Bot or Light Adventure)</b><br>
+      • Main: Can aggregate large data (Gemini 3 Flash).<br>
+      • Aux: Non-coding model for 1k~5k context (Gemini 3.1 Flash Lite).<br>
+      • Embed: Cross-language search (gemini-embedding-001).
+    </div>
+    <div>
+      <b>Setting 2 / Setting 1 (Heavy Adventure)</b><br>
+      • Main: Can analyze/distinguish large data (Gemini 3.1 Pro, Claude 4.6 Sonnet).<br>
+      • Aux: Analytical non-coding model for 1k~10k context (Gemini 3 Flash).<br>
+      • Embed: High-efficiency cross-language search (voyage_4).
+    </div>
+  </div>
+
+  <div style="padding: 12px; border-radius: 8px; border-left: 4px solid #9C27B0; background: rgba(156, 39, 176, 0.05);">
+    <div style="font-weight: bold; color: #E040FB; margin-bottom: 8px;">📊 Expected Model Call Frequency</div>
+    <div style="margin-bottom: 8px;">
+      <b>Card Reorganization & Vector Processing OFF</b><br>
+      • Setting 1: Main (1/10-15 turns), Aux (2/turn + 1/3 turns).<br>
+      • Setting 2: Main (1/3-15 turns), Aux (3/turn + 1/2 turns + 1/3 turns).
+    </div>
+    <div>
+      <b>Card Reorganization & Vector Processing ON</b><br>
+      • New Chat: Calls Aux & Embed multiple times for indexing.<br>
+      • Subsequent: Calls Embed once per turn.
+    </div>
+  </div>
+</div>`,
     },
     ko: {
       append: "추가", overwrite: "덮어쓰기",
       tab_help: "설정 안내", tab_model: "전도 모델 설정", tab_vector: "일시적으로 닫힘",
       tab_entry: "정보 추출", tab_cache: "일시적으로 닫힘", tab_enable: "활성화 설정",
+      tab_vector_open: "벡터 검색", tab_cache_open: "캐시 관리 센터",
       tab_closed: "일시적으로 닫힘",
       tab_common: "공통 프롬프트",
       sec_a: "메인 모델", sec_b: "보조 모델",
@@ -177,6 +225,8 @@
       opt_sequential: "순차 (단일 스레드 요청만 가능)",
       sec_lore_calls: "로어북 쓰기 호출 설정",
       tag_temp_closed: "일시적으로 닫힘",
+      warn_kb_feature_enable: "⚠️ 카드 재구성과 벡터 검색 기능을 활성화하면, 비활성화 상태와 preset 구조가 달라지며 CBS를 파싱할 수 없습니다. 사용 전 설정 안내를 확인하고 기본 preset을 조정한 뒤 활성화하세요.",
+      lbl_kb_feature_enable: "(체크박스) 카드 재구성과 벡터 검색 기능 활성화",
       lore_warn: "⚠️ Agent 작동 중에는 로어북을 수동으로 편집하지 마세요. 시스템에 의해 자동으로 덮어쓰일 수 있습니다.",
       btn_add_call: "호출 작업 추가",
       lbl_anchor: "시스템 앵커 프롬프트 (System Prompt)", lbl_prefill: "어시스턴트 프리필 (Assistant Prefill)", lbl_prereply: "사전 응답 프롬프트 (Assistant Pre-Reply)",
@@ -263,44 +313,89 @@
       warn_parse_failed: "⚠️ 정적 지식 청크를 파싱할 수 없습니다. Step 0이 완료되었는지 확인하십시오.",
       warn_no_chunks: "⚠️ 사용 가능한 청크가 없습니다. 지식 주입을 건너뜜. Step 0이 완료되었는지 확인하십시오.",
       copilot_refresh: "Copilot 토큰 갱신",
-      help_html: `<b>▌ 핵심 역할: 정보 추출</b><br/>
-                &bull; 정보 추출: 메인 모델이 응답하기 전, 전도 모델을 통해 대화에서 유효한 정보를 추출하여 메인 모델이 더 멋지게 응답할 수 있도록 돕습니다.<br/>
-                &bull; 설정 1과 설정 2의 차이: 설정 1은 일반적인 봇에 적합하며, 설정 2는 복잡한 줄거리의 대서사시형 봇에 적합합니다.<br/>
-                &bull; 벡터 검색은 일시적으로 비활성화됨: 플러그인 V3가 CBS를 지원하면 다시 활성화됩니다.<br/><br/>
+      lbl_vertex_sa_json: "Vertex AI 서비스 계정 JSON",
+      vertex_sa_json_hint: "Google Cloud 서비스 계정 JSON 키를 여기에 붙여넣으세요. 플러그인이 자동으로 Bearer 토큰을 생성합니다. API 키 필드에 토큰을 직접 입력하는 경우 비워두세요.",
+      vertex_sa_json_placeholder: '{"type":"service_account","project_id":"...","private_key":"-----BEGIN PRIVATE KEY-----\\n...","client_email":"...@....iam.gserviceaccount.com",...}',
+      vertex_token_refreshing: "Vertex AI Bearer 토큰 갱신 중...",
+      vertex_token_error: "Vertex AI 토큰 오류: ",
+      help_html: `<div style="font-family: inherit; line-height: 1.5;">
+  <div style="padding: 12px; border-radius: 8px; margin-bottom: 12px; border-left: 4px solid #2196F3; background: rgba(33, 150, 243, 0.05);">
+    <div style="font-weight: bold; color: #2196F3; margin-bottom: 8px;">🎯 핵심 역할: 정보 추출 & 벡터 검색</div>
+    <div style="margin-bottom: 4px;">• <b>전도 모델:</b> 메인 모델 응답 전 대화 정보를 추출하여 응답 품질과 화려함을 높입니다.</div>
+    <div style="margin-bottom: 4px;">• <b>모드 차이:</b> 「설정 1」은 일반 봇용, 「설정 2」는 복잡한 스토리의 봇 전용입니다.</div>
+    <div>• <b>벡터 검색:</b> 봇 구조 재구성 및 벡터 검색을 통해 유효 정보량을 대폭 강화합니다.</div>
+  </div>
 
-                <b>▌ 플러그인 제한 사항</b><br/>
-                &bull; ⚠️ 사용 중인 프리셋 수정 필요<br/>
-                &bull; ❌ 일반 채팅 기록과 직접 호환 불가: 플러그인을 사용하지 않은 이전 기록을 가져오려면 내용을 요약한 뒤 새 대화를 시작해 주세요.<br/>
-                &bull; ❌ 반복적인 On/Off 불가: 플러그인을 비활성화하면 내부 상태(장기 기억, 세계 백과사전 등)가 현재 줄거리와 동떨어지게 됩니다.<br/>
-                &bull; ✅ 도중 프리셋 교체: 플러그인이 활성화된 상태라면 플레이 도중 언제든지 다른 프리셋으로 자유롭게 전환할 수 있습니다.<br/>
-                &bull; ✅ 플러그인 비활성화: 플러그인 사용 모드에서 일반 모드로 전환하는 것이 가능하지만(프리셋 교체 필요), 에이전트가 기록하는 상태 정보는 더 이상 업데이트되지 않습니다.<br/><br/>
+  <div style="padding: 12px; border-radius: 8px; margin-bottom: 12px; border-left: 4px solid #9E9E9E; background: rgba(158, 158, 158, 0.05);">
+    <div style="font-weight: bold; color: #BDBDBD; margin-bottom: 8px;">📜 호환성 안내</div>
+    <div style="margin-bottom: 8px;">
+      <div style="font-weight: bold; color: #ff5252; margin-bottom: 4px;">❌ 주의사항</div>
+      • 기본 프리셋 프롬프트 수정 필수.<br>
+      • 외掛 미사용 대화 기록과 직접 연결 불가.<br>
+      • 대화 도중 플러그인 반복 On/Off 금지.
+    </div>
+    <div>
+      <div style="font-weight: bold; color: #69f0ae; margin-bottom: 4px;">✅ 호환성</div>
+      • 플러그인 모드 유지 시 중도 프리셋(Preset) 전환 가능.<br>
+      • 플레이 도중 봇 재구성 및 벡터 검색 기능 전환 가능.<br>
+      • 비플러그인 모드로의 매끄러운 전환 지원.
+    </div>
+  </div>
 
-                <b>▌ 프리셋 수정 방법</b><br/>
-                1. Supa/HypaMemory 필드 삭제<br/>
-                2. 채팅에서 고급(Advanced) 클릭 후, 범위 시작을 -10으로 조정<br/><br/>
+  <div style="padding: 12px; border-radius: 8px; margin-bottom: 12px; border-left: 4px solid #607D8B; background: rgba(96, 125, 139, 0.05);">
+    <div style="font-weight: bold; color: #90A4AE; margin-bottom: 8px;">📂 데이터 저장 안내</div>
+    • 정보 추출 기록은 <b>Lorebook > 채팅</b> 항목에 저장되며 언제든지 확인하거나 수정할 수 있습니다.<br>
+    • 봇 재구성 및 벡터 검색 인덱스 데이터는 <b>캐시 관리 센터</b>에 저장됩니다.
+  </div>
 
-                <b>▌ 전도 모델 설정: 플러그인 작동을 지원하는 핵심</b><br/>
-                &bull; 메인 모델: 강력한 성능으로 대량의 데이터를 효과적으로 처리할 수 있는 모델입니다.<br/>
-                &bull; 보조 모델: 플레이 언어를 이해하고 1k~5k의 내용을 처리할 수 있는 비코딩 모델입니다.<br/><br/>
+  <div style="padding: 12px; border-radius: 8px; margin-bottom: 12px; border-left: 4px solid #4CAF50; background: rgba(76, 175, 80, 0.05);">
+    <div style="font-weight: bold; color: #4CAF50; margin-bottom: 8px;">🛠️ 기본 프리셋 설정 가이드 (봇 재구성 및 벡터 처리 끔)</div>
+    <div style="margin-bottom: 4px;">1. <b>항목 삭제:</b> Supa/HypaMemory.</div>
+    <div>2. <b>고급 설정:</b> 채팅 > 「고급」 체크, 「범위 시작」을 <b>-10</b>으로 설정.</div>
+  </div>
 
-                <b>▌ 예상 모델 호출 빈도</b><br/>
-                <b>【대화 시작 시】</b><br/>
-                &bull; 메인 모델: 0회.<br/>
-                &bull; 보조 모델: 봇 데이터를 분해하고 분류 시스템을 구축하기 위해 수 회 호출됩니다.<br/>
-                &bull; 임베딩 모델: 캐시 검색이 활성화된 경우 벡터 인덱스를 생성하기 위해 수 회 호출됩니다.<br/>
-                <b>【이후 대화: 설정 1】</b><br/>
-                &bull; 메인 모델: 10 / 15 턴마다 1회.<br/>
-                &bull; 보조 모델: 매 턴 2회, 3턴마다 1회.<br/>
-                &bull; 임베딩 모델: 캐시 검색이 활성화된 경우 매 턴 1회.<br/>
-                <b>【이후 대화: 설정 2】</b><br/>
-                &bull; 메인 모델: 3 / 10 / 15 턴마다 1회.<br/>
-                &bull; 보조 모델: 매 턴 3회, 2턴마다 1회, 3턴마다 1회.<br/>
-                &bull; 임베딩 모델: 캐시 검색이 활성화된 경우 매 턴 1회.`,
+  <div style="padding: 12px; border-radius: 8px; margin-bottom: 12px; border-left: 4px solid #FFC107; background: rgba(255, 193, 7, 0.05);">
+    <div style="font-weight: bold; color: #FFC107; margin-bottom: 8px;">⚠️ 봇 재구성 & 벡터 처리 모드 (고급 사용자)</div>
+    <div style="margin-bottom: 6px;"><i>주의: 현재 CBS 문법 파싱이 지원되지 않습니다.</i></div>
+    • <b>프리셋 설정:</b> {{char}} 설명, 로어북, 글로벌 노트도 함께 삭제 필요.
+  </div>
+
+  <div style="padding: 12px; border-radius: 8px; margin-bottom: 12px; border-left: 4px solid #FF5722; background: rgba(255, 87, 34, 0.05);">
+    <div style="font-weight: bold; color: #FF5722; margin-bottom: 8px;">🖥️ 모델 요구 사양</div>
+    <div style="margin-bottom: 8px; padding-bottom: 8px; border-bottom: 1px solid rgba(255,255,255,0.1);">
+      <b>설정 1 (단일/가벼운 봇)</b><br>
+      • 메인: 대량 데이터 요약 가능 (Gemini 3 Flash).<br>
+      • 보조: 비코딩, 1k~5k 컨텍스트 (Gemini 3.1 Flash Lite).<br>
+      • 임베딩: 다국어 벡터 검색 (gemini-embedding-001).
+    </div>
+    <div>
+      <b>설정 2 / 설정 1 (헤비 어드벤처)</b><br>
+      • 메인: 대량 데이터 분석/식별 가능 (Gemini 3.1 Pro, Claude 4.6 Sonnet).<br>
+      • 보조: 분석 능력 보유 비코딩, 1k~10k (Gemini 3 Flash).<br>
+      • 임베딩: 고효율 다국어 검색 (voyage_4).
+    </div>
+  </div>
+
+  <div style="padding: 12px; border-radius: 8px; border-left: 4px solid #9C27B0; background: rgba(156, 39, 176, 0.05);">
+    <div style="font-weight: bold; color: #E040FB; margin-bottom: 8px;">📊 모델 호출 빈도</div>
+    <div style="margin-bottom: 8px;">
+      <b>봇 재구성 및 벡터 처리 모드 끔</b><br>
+      • 설정 1: 메인 (10-15턴당 1회), 보조 (매턴 2회 + 3턴당 1회).<br>
+      • 설정 2: 메인 (3-15턴당 1회), 보조 (매턴 3회 + 2턴당 1회 + 3턴당 1회).
+    </div>
+    <div>
+      <b>봇 재구성 및 벡터 처리 모드 켬</b><br>
+      • 새 채팅: 인덱싱을 위해 보조 및 임베딩 모델 수회 호출.<br>
+      • 이후: 매 턴 임베딩 모델 1회 호출.
+    </div>
+  </div>
+</div>`,
     },
     tc: {
       append: "添加", overwrite: "覆蓋",
       tab_help: "設定說明", tab_model: "前導模型設定", tab_vector: "暫時關閉中",
       tab_entry: "資訊萃取", tab_cache: "暫時關閉中", tab_enable: "啟用設置",
+      tab_vector_open: "向量搜尋", tab_cache_open: "快取倉庫",
       tab_closed: "暫時關閉中",
       tab_common: "共同提示詞",
       sec_a: "主要模型", sec_b: "輔助模型",
@@ -313,6 +408,8 @@
       opt_sequential: "序列 (僅能單線請求)",
       sec_lore_calls: "Lorebook 寫入呼叫設定",
       tag_temp_closed: "暫時關閉中",
+      warn_kb_feature_enable: "⚠️ 啟用卡片重組與向量搜尋功能後，預設與未啟用是不同結構，且CBS無法解析。使用前，請至設定說明閱讀相關操作後、調整預設preset後再開啟。",
+      lbl_kb_feature_enable: "啟用卡片重組與向量搜尋功能",
       lore_warn: "⚠️ Agent 運作期間，請勿手動編輯Lorebook，以免被系統自動覆蓋。",
       btn_add_call: "新增呼叫任務",
       lbl_anchor: "系統定位提示詞 (System Prompt)", lbl_prefill: "助理預填充 (Assistant Prefill)", lbl_prereply: "預回覆提示詞 (Assistant Pre-Reply)",
@@ -399,39 +496,83 @@
       warn_parse_failed: "⚠️ 無法解析靜態知識分塊。請檢查 Step 0 是否已完成。",
       warn_no_chunks: "⚠️ 無可用分塊。已跳過知識注入。請檢查 Step 0 是否已完成。",
       copilot_refresh: "Copilot token refresh",
-      help_html: `<b>▌ 核心作用：資訊萃取</b><br/>
-                &bull; 資訊萃取：主要模型回覆之前，先透過前導模型從對話中萃取有效資訊，輔助主要模型回應得更精彩。<br/>
-                &bull; 設定1與設定2的差異：設定1適用於一般卡片；設定2適合劇情複雜的史詩型卡片。<br/>
-                &bull; 向量搜尋暫時關閉中：等到plugin V3支援CBS後再開啟。<br/><br/>
+      lbl_vertex_sa_json: "Vertex AI 服務帳戶 JSON",
+      vertex_sa_json_hint: "將 Google Cloud 服務帳戶 JSON 金鑰貼上於此。外掛將自動產生 Bearer token。若您直接在 API Key 欄位填入 token，請留空。",
+      vertex_sa_json_placeholder: '{"type":"service_account","project_id":"...","private_key":"-----BEGIN PRIVATE KEY-----\\n...","client_email":"...@....iam.gserviceaccount.com",...}',
+      vertex_token_refreshing: "正在更新 Vertex AI Bearer token...",
+      vertex_token_error: "Vertex AI token 錯誤：",
+      help_html: `<div style="font-family: inherit; line-height: 1.5;">
+  <div style="padding: 12px; border-radius: 8px; margin-bottom: 12px; border-left: 4px solid #2196F3; background: rgba(33, 150, 243, 0.05);">
+    <div style="font-weight: bold; color: #2196F3; margin-bottom: 8px;">🎯 核心作用：資訊萃取 & 向量搜尋</div>
+    <div style="margin-bottom: 4px;">• <b>前導模型：</b>在主模型回覆前先萃取對話資訊，提升回應的品質與精彩度。</div>
+    <div style="margin-bottom: 4px;">• <b>模式差異：</b>「設定 1」適用於一般卡片；「設定 2」專為劇情複雜的卡片設計。</div>
+    <div>• <b>向量搜尋：</b>透過卡片結構重組 & 向量搜尋，大幅強化有效資訊量。</div>
+  </div>
 
-                <b>▌ 本外掛限制</b><br/>
-                &bull; ⚠️ 需要修改你所使用的preset<br/>
-                &bull; ❌ 無法銜接無外掛對話：若要延續先前無外掛的遊玩記錄，請將記錄彙整後，重新開啟一段新對話。<br/>
-                &bull; ❌ 外掛無法時開時關：因為外掛內的狀態（如長期記憶、世界百科）會在關閉時與當前劇情脫節。<br/>
-                &bull; ✅ 外掛途中切換提示詞 (preset)：只要持續啟用此外掛，就可以在遊玩途中自由切換不同的提示詞。<br/>
-                &bull; ✅ 關閉外掛：可從有外掛模式接軌至切換至無外掛模式 (記得preset也要轉換)，但外掛紀錄的狀態將停止更新。<br/><br/>
+  <div style="padding: 12px; border-radius: 8px; margin-bottom: 12px; border-left: 4px solid #9E9E9E; background: rgba(158, 158, 158, 0.05);">
+    <div style="font-weight: bold; color: #BDBDBD; margin-bottom: 8px;">📜 相容性說明</div>
+    <div style="margin-bottom: 8px;">
+      <div style="font-weight: bold; color: #ff5252; margin-bottom: 4px;">❌ 注意事項</div>
+      • 必須要對預設提示詞進行修改。<br>
+      • 無法銜接無外掛對話記錄。<br>
+      • 請勿在對話中途反覆開關。<br>
+    </div>
+    <div>
+      <div style="font-weight: bold; color: #69f0ae; margin-bottom: 4px;">✅ 可以相容</div>
+      • 外掛模式下，可中途切換 Preset。<br>
+      • 可中途切換卡片重組與向量搜尋功能。<br>
+      • 支援平滑接軌至無外掛模式。
+    </div>
+  </div>
 
-                <b>▌ 修改Preset的方式</b><br/>
-                1. 刪除Supa/HypaMemory欄位<br/>
-                2. 聊天點選進階，將範圍開始調整至-10<br/><br/>
+  <div style="padding: 12px; border-radius: 8px; margin-bottom: 12px; border-left: 4px solid #607D8B; background: rgba(96, 125, 139, 0.05);">
+    <div style="font-weight: bold; color: #90A4AE; margin-bottom: 8px;">📂 資料儲存說明</div>
+    • 資訊萃取的記錄都會存放於 <b>Lorebook > 聊天</b> 條目內，可隨時檢閱或調整。<br>
+    • 卡片重組 & 向量搜尋的索引資料則會放置於 <b>快取倉庫</b> 內。
+  </div>
 
-                <b>▌ 前導模型設定：支持外掛運作的核心</b><br/>
-                &bull; 主要模型：功能強大、能夠有效處理大量資料的模型。<br/>
-                &bull; 輔助模型：能夠理解遊玩語言、處理 1k~5k 內容的非編程模型。<br/><br/>
+  <div style="padding: 12px; border-radius: 8px; margin-bottom: 12px; border-left: 4px solid #4CAF50; background: rgba(76, 175, 80, 0.05);">
+    <div style="font-weight: bold; color: #4CAF50; margin-bottom: 8px;">🛠️ 預設提示詞 調整指南 (關閉卡片重組 & 向量處理)</div>
+    <div style="margin-bottom: 4px;">1. <b>刪除欄位：</b>Supa/HypaMemory。</div>
+    <div>2. <b>進階設定：</b>進入聊天 > 勾選「進階」，然後將「範圍開始」設定為 <b>-10</b>。</div>
+  </div>
 
-                <b>▌ 預期呼叫模型的頻率</b><br/>
-                <b>【啟動對話時】</b><br/>
-                &bull; 主要模型：0 次。<br/>
-                &bull; 輔助模型：呼叫數次，將卡片資料拆散建立分類系統。<br/>
-                &bull; 嵌入模型：若開啟快取搜尋則呼叫數次，建立向量索引。<br/>
-                <b>【之後對話：設定 1】</b><br/>
-                &bull; 主要模型：每 10 / 15 回合 1 次。<br/>
-                &bull; 輔助模型：每回合 2 次、每 3 回合 1 次。<br/>
-                &bull; 嵌入模型：若開啟快取搜尋，每回合 1 次。<br/>
-                <b>【之後對話：設定 2】</b><br/>
-                &bull; 主要模型：每 3 / 10 / 15 回合 1 次。<br/>
-                &bull; 輔助模型：每回合 3 次、每 2 回合 1 次、每 3 回合 1 次。<br/>
-                &bull; 嵌入模型：若開啟快取搜尋，每回合 1 次。`,
+  <div style="padding: 12px; border-radius: 8px; margin-bottom: 12px; border-left: 4px solid #FFC107; background: rgba(255, 193, 7, 0.05);">
+    <div style="font-weight: bold; color: #FFC107; margin-bottom: 8px;">⚠️ 開啟卡片重組 & 向量處理模式 (進階使用者)</div>
+    <div style="margin-bottom: 6px;"><i>注意：此模式目前無法解析 CBS 語法。</i></div>
+    • <b>預設提示詞配置：</b>需額外刪除 {{char}} 敘述、Lorebook 及全域備註。
+  </div>
+
+  <div style="padding: 12px; border-radius: 8px; margin-bottom: 12px; border-left: 4px solid #FF5722; background: rgba(255, 87, 34, 0.05);">
+    <div style="font-weight: bold; color: #FF5722; margin-bottom: 8px;">🖥️ 模型要求</div>
+    <div style="margin-bottom: 8px; padding-bottom: 8px; border-bottom: 1px solid rgba(255,255,255,0.1);">
+      <b>設定 1 (單角色卡或輕度冒險卡)</b><br>
+      • 主要模型：能夠彙整大量資料的模型 (Gemini 3 Flash)。<br>
+      • 輔助模型：能夠處理 1k~5k 內容的非編程模型 (Gemini 3.1 Flash Lite)。<br>
+      • 嵌入模型：能夠跨語言處理向量搜尋的模型 (gemini-embedding-001)。
+    </div>
+    <div>
+      <b>設定 2、設定 1 (重度冒險卡片)</b><br>
+      • 主要模型：能夠辨別分析大量資料的模型 (Gemini 3.1 Pro、Claude 4.6 Sonnet)。<br>
+      • 輔助模型：具一定分析能力，能處理 1k~10k 內容 (Gemini 3 Flash)。<br>
+      • 嵌入模型：能夠高效跨語言處理向量搜尋的模型 (voyage_4)。
+    </div>
+  </div>
+
+  <div style="padding: 12px; border-radius: 8px; border-left: 4px solid #9C27B0; background: rgba(156, 39, 176, 0.05);">
+    <div style="font-weight: bold; color: #E040FB; margin-bottom: 8px;">📊 預期模型呼叫頻率</div>
+    <div style="margin-bottom: 8px;">
+      <b>關閉卡片重組 & 向量處理模式</b><br>
+      • 設定 1：主要 (每 10-15 回合 1 次), 輔助 (每回合 2 次 + 每 3 回合 1 次)。<br>
+      • 設定 2：主要 (每 3-15 回合 1 次), 輔助 (每回合 3 次 + 每 2 回合 1 次 + 每 3 回合 1 次)。
+    </div>
+    <div>
+      <b>啟用卡片重組 & 向量處理模式</b><br>
+      • 開啟新聊天時：呼叫數次輔助模型與嵌入模型，建立分類系統與索引。<br>
+      • 之後每回合會額外啟用嵌入模型一次。
+    </div>
+  </div>
+</div>`,
     },
   };
 
@@ -439,9 +580,8 @@
   let _langInitialized = false;
 
   const PLUGIN_NAME = "👤 RisuAI Agent";
-  const PLUGIN_VER = "2.0.3";
+  const PLUGIN_VER = "2.1.1";
   const LOG = "[RisuAIAgent]";
-  const HARD_FREEZE_KB_FEATURES = true;
   const SYSTEM_INJECT_TAG = "PLUGIN_PARALLEL_STATUS";
   const SYSTEM_REWRITE_TAG = "PLUGIN_PARALLEL_REWRITE";
   const KNOWLEDGE_BLOCK_TAG = "PSE_INJECTED_KNOWLEDGE";
@@ -505,6 +645,8 @@
     embedding_provider_key_map: "{}",
     extractor_a_provider_key_map: "{}",
     extractor_b_provider_key_map: "{}",
+    extractor_a_vertex_sa_json: "",
+    extractor_b_vertex_sa_json: "",
     model_calls: "pse_model_calls",
     advanced_model_anchor_prompt: `ROLE: Narrative state extraction engine for collaborative fiction.
 
@@ -549,6 +691,7 @@ Example: [{"id": "chk_0", "category": "information"}, {"id": "chk_1", "category"
     embedding_concurrency: 1,
     model_calls_2: atob("W3siaWQiOiJjYWxsX3N0YXRlIiwibmFtZSI6IlN0YXRlIiwidGFyZ2V0X21vZGVsIjoiQiIsImV2ZXJ5X25fdHVybnMiOjEsInJlYWRfZGlhbG9ndWVfcm91bmRzIjoyLCJyZWFkX2xvcmVib29rX25hbWVzIjoicmVjZW50X3R1cm5fbG9nLCByZWNlbnRfY2hhcmFjdGVyX3N0YXRlcywgc3lzdGVtX2RpcmVjdG9yLCBzdHJhdGVnaWNfYW5hbHlzaXMiLCJlbnRyaWVzIjpbeyJsb3JlYm9va19uYW1lIjoicmVjZW50X3R1cm5fbG9nIiwid3JpdGVfbW9kZSI6ImFwcGVuZCIsImFsd2F5c19hY3RpdmUiOnRydWUsIm91dHB1dF9mb3JtYXQiOiJTQ0hFTUE6XG57XG4gIFwicmVjZW50X3R1cm5fbG9nXCI6IHtcbiAgICBcInNjZW5lXCI6IFwiPGxvY2F0aW9uICsgb25lIHNlbnNvcnkgY3VlLCA8PTEyIHdvcmRzPlwiLFxuICAgIFwidGltZV9hbmNob3JcIjogXCI8ZXhwbGljaXQgaW4tc3RvcnkgdGltZSBwb3NpdGlvbj5cIixcbiAgICBcImVsYXBzZWRfc2luY2VfcHJldlwiOiBcIjxzYW1lIG1vbWVudCAvICsyaCAvICszZCAvIGV0Yy47ICd1bnNwZWNpZmllZF9jb250aW51YXRpb24nIGlmIHVua25vd24+XCIsXG4gICAgXCJ1c2VyX2FjdGlvblwiOiBcIjxwbGF5ZXIgYWN0aW9uLCA8PTEyIHdvcmRzPlwiLFxuICAgIFwibmFycmF0aXZlX2V2ZW50XCI6IFwiPHN0b3J5IHJlc3VsdCwgPD0xNSB3b3Jkcz5cIixcbiAgICBcInNoaWZ0XCI6IFwiPHRvbmUvc3Rha2VzIGNoYW5nZSA8PTggd29yZHMsIG9yIG51bGw+XCIsXG4gICAgXCJ1c2VyX3NjZW5lX2NoYW5nZVwiOiBmYWxzZVxuICB9XG59XG5cbkZJRUxEIFJVTEVTOlxuLSBBbGwgc3RyaW5nIHZhbHVlcyA8PTE1IHdvcmRzLiBLZXl3b3JkcyBwcmVmZXJyZWQuIiwicmV0ZW50aW9uX2VuYWJsZWQiOnRydWUsInJldGVudGlvbl9hZnRlciI6MTAsInJldGVudGlvbl9rZWVwIjoyfSx7ImxvcmVib29rX25hbWUiOiJyZWNlbnRfY2hhcmFjdGVyX3N0YXRlcyIsIndyaXRlX21vZGUiOiJhcHBlbmQiLCJhbHdheXNfYWN0aXZlIjp0cnVlLCJvdXRwdXRfZm9ybWF0IjoiU0NIRU1BOlxue1xuICBcInJlY2VudF9jaGFyYWN0ZXJfc3RhdGVzXCI6IHtcbiAgICBcImxvY2F0aW9uXCI6IFwiIDxwbGFjZSArIG9uZSBhdG1vc3BoZXJpYyBkZXRhaWwsIDw9MTAgd29yZHM+XCIsXG4gICAgXCJwbGF5ZXJfc3RhdGVcIjogXCI8Y29uZGl0aW9uICsga2V5IGl0ZW1zLCA8PTE1IHdvcmRzPlwiLFxuICAgIFwibnBjc1wiOltcbiAgICAgIHtcbiAgICAgICAgXCJuYW1lXCI6IFwiPE5QQyBuYW1lPlwiLFxuICAgICAgICBcInBoeXNpY2FsX3N0YXRlXCI6IFwiPGFwcGVhcmFuY2UsIDw9MTIgd29yZHM+XCIsXG4gICAgICAgIFwiaW50ZXJuYWxfc3RhdGVcIjogXCI8dHJ1ZSBtb3RpdmUvZmVlbGluZywgPD0xMiB3b3Jkcz5cIixcbiAgICAgICAgXCJyZWxhdGlvbl90b19wbGF5ZXJcIjogXCI8Y3VycmVudCBzdGFuY2UsIDw9MTAgd29yZHMsIG9yIG51bGw+XCJcbiAgICAgIH1cbiAgICBdXG4gIH1cbn1cblxuRklFTEQgUlVMRVM6XG4tIEtleXdvcmRzIG9ubHksIG5vIGZ1bGwgc2VudGVuY2VzLiIsInJldGVudGlvbl9lbmFibGVkIjp0cnVlLCJyZXRlbnRpb25fYWZ0ZXIiOjEwLCJyZXRlbnRpb25fa2VlcCI6Mn0seyJsb3JlYm9va19uYW1lIjoic3lzdGVtX2RpcmVjdG9yIiwid3JpdGVfbW9kZSI6Im92ZXJ3cml0ZSIsImFsd2F5c19hY3RpdmUiOnRydWUsIm91dHB1dF9mb3JtYXQiOiJTQ0hFTUE6XG57XG4gIFwic3lzdGVtX2RpcmVjdG9yXCI6IHtcbiAgICBcInN0YWxlbmVzc19sZXZlbFwiOiAwLFxuICAgIFwic3RyYXRlZ2ljX3N0YWduYXRpb25cIjogZmFsc2UsXG4gICAgXCJnbG9iYWxfc3RhZ25hdGlvblwiOiBmYWxzZSxcbiAgICBcImVudmlyb25tZW50X2ludGVydmVudGlvblwiOiBudWxsXG4gIH1cbn1cblxuRklFTEQgUlVMRVM6XG4tIFNjb3JlIHN0YWxlbmVzc19sZXZlbCAw4oCTMTAuIn1dfSx7ImlkIjoiY2FsbF90cmFja2VyX2siLCJuYW1lIjoiVHJhY2tlci1LIiwidGFyZ2V0X21vZGVsIjoiQiIsImV2ZXJ5X25fdHVybnMiOjEsInJlYWRfZGlhbG9ndWVfcm91bmRzIjoyLCJyZWFkX2xvcmVib29rX25hbWVzIjoia25vd2xlZGdlX21hdHJpeCwga25vd2xlZGdlX2Fubm90YXRpb25zLCBrbm93bGVkZ2VfYXJjaGl2ZSIsImVudHJpZXMiOlt7ImxvcmVib29rX25hbWUiOiJrbm93bGVkZ2VfbWF0cml4Iiwid3JpdGVfbW9kZSI6Im92ZXJ3cml0ZSIsImFsd2F5c19hY3RpdmUiOnRydWUsIm91dHB1dF9mb3JtYXQiOiJTQ0hFTUE6XG57XG4gIFwia25vd2xlZGdlX21hdHJpeFwiOiB7XG4gICAgXCJjaGFuZ2VkX2lkc1wiOiBbXSxcbiAgICBcImVudHJpZXNcIjogW1xuICAgICAge1xuICAgICAgICBcImlkXCI6IFwiSzAwMVwiLFxuICAgICAgICBcInN1YmplY3RcIjogXCI8ZmFjdCBvciBzZWNyZXQsIDw9MTUgd29yZHM+XCIsXG4gICAgICAgIFwidHJ1ZV9hbnN3ZXJcIjogXCI8YWN0dWFsIHRydXRoLCA8PTE1IHdvcmRzPlwiLFxuICAgICAgICBcImtub3dlcnNcIjogW10sXG4gICAgICAgIFwidW5rbm93bl90b1wiOiBbXSxcbiAgICAgICAgXCJwdWJsaWNfc3RhdHVzXCI6IFwicHVibGljIHwgc2VjcmV0XCIsXG4gICAgICAgIFwic3RhYmlsaXR5XCI6IFwibG9ja2VkIHwgZnJhZ2lsZVwiXG4gICAgICB9XG4gICAgXVxuICB9XG59In1dfSx7ImlkIjoiY2FsbF90cmFja2VyX3MiLCJuYW1lIjoiVHJhY2tlci1TIiwidGFyZ2V0X21vZGVsIjoiQiIsImV2ZXJ5X25fdHVybnMiOjIsInJlYWRfZGlhbG9ndWVfcm91bmRzIjoyLCJyZWFkX2xvcmVib29rX25hbWVzIjoiYWN0aXZlX3N0cmF0ZWdpY19sYXllciwgc3RyYXRlZ2ljX2FuYWx5c2lzLCBzdHJhdGVnaWNfYXJjaGl2ZSIsImVudHJpZXMiOlt7ImxvcmVib29rX25hbWUiOiJhY3RpdmVfc3RyYXRlZ2ljX2xheWVyIiwid3JpdGVfbW9kZSI6Im92ZXJ3cml0ZSIsImFsd2F5c19hY3RpdmUiOnRydWUsIm91dHB1dF9mb3JtYXQiOiJTQ0hFTUE6XG57XG4gIFwiYWN0aXZlX3N0cmF0ZWdpY19sYXllclwiOiB7XG4gICAgXCJwbGF5ZXJfc3RyYXRlZ3lcIjoge1xuICAgICAgXCJwcmltYXJ5X2dvYWxcIjogXCI8Z29hbCwgPD0xNSB3b3Jkcz5cIixcbiAgICAgIFwib3BlcmF0aW9uc1wiOiBbXVxuICAgIH0sXG4gICAgXCJyaXZhbF9zdHJhdGVnaWVzXCI6IFtdXG4gIH1cbn0ifV19LHsiaWQiOiJjYWxsX2xvZ2ljIiwibmFtZSI6IkxvZ2ljIiwidGFyZ2V0X21vZGVsIjoiQiIsImV2ZXJ5X25fdHVybnMiOjEsInJlYWRfZGlhbG9ndWVfcm91bmRzIjozLCJyZWFkX2xvcmVib29rX25hbWVzIjoidW5zb2x2ZWRfcXVlc3RzLCByZWNlbnRfY2hhcmFjdGVyX3N0YXRlcywgcmVjZW50X3R1cm5fbG9nLCBrbm93bGVkZ2VfbWF0cml4LCBrbm93bGVkZ2VfYW5ub3RhdGlvbnMsIGFjdGl2ZV9zdHJhdGVnaWNfbGF5ZXIsIHN0cmF0ZWdpY19hbmFseXNpcyIsImVudHJpZXMiOlt7ImxvcmVib29rX25hbWUiOiJrbm93bl9jb250cmFkaWN0aW9ucyIsIndyaXRlX21vZGUiOiJvdmVyd3JpdGUiLCJhbHdheXNfYWN0aXZlIjp0cnVlLCJvdXRwdXRfZm9ybWF0IjoiU0NIRU1BOlxue1xuICBcImtub3duX2NvbnRyYWRpY3Rpb25zXCI6IHtcbiAgICBcImxvZ2ljX3Zpb2xhdGlvblwiOiBcIjxkZXNjcmliZSBjb250cmFkaWN0aW9uLCBvciBudWxsPlwiLFxuICAgIFwic3RyaWN0X2RpcmVjdGl2ZVwiOiBcIjxzZWUgYWxsb3dlZCB2YWx1ZXM+XCJcbiAgfVxufSJ9LHsibG9yZWJvb2tfbmFtZSI6InVuc29sdmVkX3F1ZXN0cyIsIndyaXRlX21vZGUiOiJvdmVyd3JpdGUiLCJhbHdheXNfYWN0aXZlIjp0cnVlLCJvdXRwdXRfZm9ybWF0IjoiU0NIRU1BOlxue1xuICBcInVuc29sdmVkX3F1ZXN0c1wiOiB7XG4gICAgXCJhY3RpdmVfdGhyZWFkc1wiOiBbXSxcbiAgICBcInJlc29sdmVkX3RoaXNfdHVyblwiOiBbXVxuICB9XG59In1dfSx7ImlkIjoiY2FsbF9zdHJhdGVneV9hbmFseXN0IiwibmFtZSI6IlN0cmF0ZWd5LUFuYWx5c3QiLCJ0YXJnZXRfbW9kZWwiOiJBIiwiZXZlcnlfbl90dXJucyI6MywicmVhZF9kaWFsb2d1ZV9yb3VuZHMiOjUsInJlYWRfbG9yZWJvb2tfbmFtZXMiOiJrbm93bGVkZ2VfbWF0cml4LCBrbm93bGVkZ2VfYW5ub3RhdGlvbnMsIGFjdGl2ZV9zdHJhdGVnaWNfbGF5ZXIsIHJlY2VudF90dXJuX2xvZywgcmVjZW50X2NoYXJhY3Rlcl9zdGF0ZXMsIHVuc29sdmVkX3F1ZXN0cywgc3RyYXRlZ2ljX2FuYWx5c2lzIiwiZW50cmllcyI6W3sibG9yZWJvb2tfbmFtZSI6InN0cmF0ZWdpY19hbmFseXNpcyIsIndyaXRlX21vZGUiOiJvdmVyd3JpdGUiLCJhbHdheXNfYWN0aXZlIjp0cnVlLCJvdXRwdXRfZm9ybWF0IjoiU0NIRU1BOlxue1xuICBcInN0cmF0ZWdpY19hbmFseXNpc1wiOiB7XG4gICAgXCJhbmFseXN0X3N0cmF0ZWd5X292ZXJyaWRlc1wiOiB7fSxcbiAgICBcImNvZ25pdGlvbl92aW9sYXRpb25zXCI6IFtdXG4gIH1cbn0ifSx7ImxvcmVib29rX25hbWUiOiJrbm93bGVkZ2VfYW5ub3RhdGlvbnMiLCJ3cml0ZV9tb2RlIjoib3ZlcndyaXRlIiwiYWx3YXlzX2FjdGl2ZSI6dHJ1ZSwib3V0cHV0X2Zvcm1hdCI6IlNDSEVNQTpcbntcbiAgXCJrbm93bGVkZ2VfYW5ub3RhdGlvbnNcIjoge1xuICAgIFwiZW50cmllc1wiOiBbXVxuICB9XG59In1dfSx7ImlkIjoiY2FsbF9xdWFsaXR5IiwibmFtZSI6IlF1YWxpdHkiLCJ0YXJnZXRfbW9kZWwiOiJCIiwiZXZlcnlfbl90dXJucyI6MywicmVhZF9kaWFsb2d1ZV9yb3VuZHMiOjUsInJlYWRfbG9yZWJvb2tfbmFtZXMiOiJyZWNlbnRfd29ybGRfZW50cmllcywgd29ybGRfZW5jeWNsb3BlZGlhLCByZWNlbnRfdHVybl9sb2ciLCJlbnRyaWVzIjpbeyJsb3JlYm9va19uYW1lIjoicmVwZXRpdGlvbl9ndWFyZCIsIndyaXRlX21vZGUiOiJvdmVyd3JpdGUiLCJhbHdheXNfYWN0aXZlIjp0cnVlLCJvdXRwdXRfZm9ybWF0IjoiU0NIRU1BOlxue1xuICBcInJlcGV0aXRpb25fZ3VhcmRcIjoge1xuICAgIFwiZmxhZ2dlZF9jbGljaGVzXCI6IFtdLCBcImxhc3RfdHN1a2tvbWlcIjogbnVsbCwgXCJiYW5uZWRfcGhyYXNlc1wiOiBbXVxuICB9XG59In0seyJsb3JlYm9va19uYW1lIjoicmVjZW50X3dvcmxkX2VudHJpZXMiLCJ3cml0ZV9tb2RlIjoiYXBwZW5kIiwiYWx3YXlzX2FjdGl2ZSI6dHJ1ZSwib3V0cHV0X2Zvcm1hdCI6IlNDSEVNQTpcbntcbiAgXCJyZWNlbnRfd29ybGRfZW50cmllc1wiOiB7XG4gICAgXCJlbnRyaWVzXCI6IFsgXCI8TmFtZS4gS2V5IGZhY3QuIDw9MjAgd29yZHMuPlwiIF1cbiAgfVxufSIsInJldGVudGlvbl9lbmFibGVkIjp0cnVlLCJyZXRlbnRpb25fYWZ0ZXIiOjE1LCJyZXRlbnRpb25fa2VlcCI6MX1dfSx7ImlkIjoiY2FsbF9sb25ndGVybSIsIm5hbWUiOiJMb25ndGVybSIsInRhcmdldF9tb2RlbCI6IkEiLCJldmVyeV9uX3R1cm5zIjoxMCwicmVhZF9kaWFsb2d1ZV9yb3VuZHMiOjEsInJlYWRfbG9yZWJvb2tfbmFtZXMiOiJyZWNlbnRfdHVybl9sb2csIHJlY2VudF9jaGFyYWN0ZXJfc3RhdGVzLCB1bnNvbHZlZF9xdWVzdHMsIHN0b3J5X3R1cm5pbmdfcG9pbnRzLCBzdG9yeV9hcmNfc3VtbWFyeSwgYWN0aXZlX3N0cmF0ZWdpY19sYXllciwgc3RyYXRlZ2ljX2FuYWx5c2lzIiwiZW50cmllcyI6W3sibG9yZWJvb2tfbmFtZSI6InN0b3J5X3R1cm5pbmdfcG9pbnRzIiwid3JpdGVfbW9kZSI6ImFwcGVuZCIsImFsd2F5c19hY3RpdmUiOnRydWUsIm91dHB1dF9mb3JtYXQiOiJTQ0hFTUE6IFtdIiwicmV0ZW50aW9uX2VuYWJsZWQiOmZhbHNlLCJyZXRlbnRpb25fYWZ0ZXIiOjAsInJldGVudGlvbl9rZWVwIjowfSx7ImxvcmVib29rX25hbWUiOiJzdG9yeV9hcmNfc3VtbWFyeSIsIndyaXRlX21vZGUiOiJhcHBlbmQiLCJhbHdheXNfYWN0aXZlIjp0cnVlLCJvdXRwdXRfZm9ybWF0IjoiU0NIRU1BOiBbXSIsInJldGVudGlvbl9lbmFibGVkIjpmYWxzZSwicmV0ZW50aW9uX2FmdGVyIjowLCJyZXRlbnRpb25fa2VlcCI6MH0seyJsb3JlYm9va19uYW1lIjoia25vd2xlZGdlX2FyY2hpdmUiLCJ3cml0ZV9tb2RlIjoib3ZlcndyaXRlIiwiYWx3YXlzX2FjdGl2ZSI6dHJ1ZSwib3V0cHV0X2Zvcm1hdCI6IlNDSEVNQToge1wiZW50cmllc1wiOltdfSJ9LHsibG9yZWJvb2tfbmFtZSI6InN0cmF0ZWdpY19hcmNoaXZlIiwid3JpdGVfbW9kZSI6Im92ZXJ3cml0ZSIsImFsd2F5c19hY3RpdmUiOnRydWUsIm91dHB1dF9mb3JtYXQiOiJTQ0hFTUE6IHtcImVudHJpZXNcIjpbXX0ifV19LHsiaWQiOiJjYWxsX3dvcmxkIiwibmFtZSI6IldvcmxkIiwidGFyZ2V0X21vZGVsIjoiQiIsImV2ZXJ5X25fdHVybnMiOjE1LCJyZWFkX2RpYWxvZ3VlX3JvdW5kcyI6MSwicmVhZF9sb3JlYm9va19uYW1lcyI6InJlY2VudF93b3JsZF9lbnRyaWVzLCB3b3JsZF9lbmN5Y2xvcGVkaWEsIHN0b3J5X2FyY19zdW1tYXJ5LCBrbm93bGVkZ2VfYXJjaGl2ZSIsImVudHJpZXMiOlt7ImxvcmVib29rX25hbWUiOiJ3b3JsZF9lbmN5Y2xvcGVkaWEiLCJ3cml0ZV9tb2RlIjoib3ZlcndyaXRlIiwiYWx3YXlzX2FjdGl2ZSI6dHJ1ZSwib3V0cHV0X2Zvcm1hdCI6IlNDSEVNQTpcbntcbiAgXCJ3b3JsZF9lbmN5Y2xvcGVkaWFcIjoge1xuICAgIFwiZ2VvZ3JhcGh5XCI6IFtdLCBcIm5wY3NcIjogW10sIFwibG9yZVwiOiBbXVxuICB9XG59In1dfV0="),
     active_preset: 1,
+    kb_features_enabled: 0,
     ui_language: "en",
     card_enable_settings: "{}",
     vector_search_query_dialogue_rounds_2: 2,
@@ -584,7 +727,9 @@ Example: [{"id": "chk_0", "category": "information"}, {"id": "chk_1", "category"
     embedding_provider_key_map: "pse_embedding_provider_key_map",
     extractor_a_provider_key_map: "pse_extractor_a_provider_key_map",
     extractor_b_provider_key_map: "pse_extractor_b_provider_key_map",
-    model_calls: JSON.stringify(DEFAULT_MODEL_CALLS),
+    extractor_a_vertex_sa_json: "pse_extractor_a_vertex_sa_json",
+    extractor_b_vertex_sa_json: "pse_extractor_b_vertex_sa_json",
+    model_calls: "pse_model_calls",
     advanced_model_anchor_prompt: "pse_advanced_model_anchor_prompt",
     advanced_prefill_prompt: "pse_advanced_prefill_prompt",
     advanced_prereply_prompt: "pse_advanced_prereply_prompt",
@@ -606,6 +751,7 @@ Example: [{"id": "chk_0", "category": "information"}, {"id": "chk_1", "category"
     embedding_concurrency: "pse_embedding_concurrency",
     model_calls_2: "pse_model_calls_2",
     active_preset: "pse_active_preset",
+    kb_features_enabled: "pse_kb_features_enabled",
     card_enable_settings: "pse_card_enable_settings",
     vector_search_query_dialogue_rounds_2: "pse_vector_search_query_dialogue_rounds_2",
     vector_search_top_k_2: "pse_vector_search_top_k_2",
@@ -724,13 +870,16 @@ Example: [{"id": "chk_0", "category": "information"}, {"id": "chk_1", "category"
   let embeddingCacheStore = null;
   let configCache = {};
 
+  function isKbFeatureEnabled() {
+    return toInt(configCache?.kb_features_enabled, DEFAULTS.kb_features_enabled) === 1;
+  }
+
   let cachedGlobalNoteData = { charId: null, reloadKeys: 0, globalNote: "", replaceGlobalNote: "", mainPrompt: "" };
 
   async function getGlobalNoteDataCached(char) {
     const charId = char?.chaId || "-1";
     const currentReloadKeys = char?.reloadKeys || 0;
 
-    
     const isCacheValid =
       cachedGlobalNoteData.charId !== null &&
       cachedGlobalNoteData.charId === charId &&
@@ -794,7 +943,7 @@ Example: [{"id": "chk_0", "category": "information"}, {"id": "chk_1", "category"
   const embeddingVectorCache = new Map();
 
   function safeTrim(v) { return typeof v === "string" ? v.trim() : ""; }
-  
+
   const TURN_BLOCK_SPLIT_REGEX = /(?=###\s*Turn\s*\d+)/i;
   const TURN_BLOCK_HEADER_REGEX = /^###\s*Turn\s*(\d+)/i;
   const TURN_MARKER_ANY_REGEX = /###\s*Turn\s*\d+/i;
@@ -841,10 +990,6 @@ Example: [{"id": "chk_0", "category": "information"}, {"id": "chk_1", "category"
   async function fetchWithFallback(url, options, timeoutMs, timeoutMessagePrefix, preferRisuFirst = false) {
     const deadline = Date.now() + Math.max(1, Number(timeoutMs) || 1);
     const remainingMs = () => Math.max(1, deadline - Date.now());
-    // In a sandboxed iframe (RisuAI plugin v3 environment), window.origin is the string "null".
-    // Sandboxed iframes without allow-same-origin cannot make cross-origin requests via the
-    // browser's native fetch — CORS will silently hang the request until the full timeout elapses
-    // before the fallback risuFetch is tried. Detect this and skip nativeFetch entirely.
     const isSandboxedIframe = (typeof window !== "undefined" && window.origin === "null");
     const orders = isSandboxedIframe
       ? ["risuFetch"]
@@ -855,7 +1000,6 @@ Example: [{"id": "chk_0", "category": "information"}, {"id": "chk_1", "category"
       if (remainingMs() <= 1) break;
       if (via === "nativeFetch") {
         try {
-          // Avoid passing AbortSignal across plugin boundary (structured clone issue).
           const res = await withTimeout(
             Risuai.nativeFetch(url, options),
             remainingMs(),
@@ -890,7 +1034,6 @@ Example: [{"id": "chk_0", "category": "information"}, {"id": "chk_1", "category"
     if (typeof res.text === "function") {
       try {
         const txt = String(await res.text());
-        // Guard against "[object Object]" from Windows Chrome structured-clone
         if (txt.startsWith("[object ")) return "";
         return txt;
       } catch { }
@@ -916,11 +1059,9 @@ Example: [{"id": "chk_0", "category": "information"}, {"id": "chk_1", "category"
     }
     if (Object.prototype.hasOwnProperty.call(res, "data")) {
       if (typeof res.data === "string") {
-        // Guard against "[object Object]" string from Windows Chrome structured-clone issue
         if (res.data.startsWith("[object ")) return null;
         try { return JSON.parse(res.data); } catch { return res.data; }
       }
-      // data is already an object (risuFetch on Windows Chrome sometimes returns parsed object directly)
       if (res.data && typeof res.data === "object") return res.data;
       return res.data;
     }
@@ -982,7 +1123,11 @@ Example: [{"id": "chk_0", "category": "information"}, {"id": "chk_1", "category"
   const REGEN_SKIP_KEY = "regen_skip";
 
   function getScopeCharId(char) {
-    return String(char?.chaId || char?.id || char?._id || "-1").replace(/[^0-9a-zA-Z_-]/g, "") || "-1";
+    const rawId = String(char?.chaId || char?.id || char?._id || "").replace(/[^0-9a-zA-Z_-]/g, "");
+    if (rawId) return rawId;
+    const name = safeTrim(char?.name || "");
+    if (name) return `name_${simpleHash(name)}`;
+    return "-1";
   }
 
   function makeScopedStorageKey(baseKey, scopeId) {
@@ -1094,7 +1239,14 @@ Example: [{"id": "chk_0", "category": "information"}, {"id": "chk_1", "category"
   async function clearAllEmbeddingCache() {
     embeddingCacheStore = null;
     embeddingVectorCache.clear();
-    sessionStep0HandledHashByScope.clear();
+
+    let currentScopeId = null;
+    try {
+      const { char } = await getCurrentCharAndChatSafe();
+      currentScopeId = getScopeId(char);
+    } catch { }
+    if (currentScopeId) sessionStep0HandledHashByScope.delete(currentScopeId);
+    else sessionStep0HandledHashByScope.clear();
 
     try {
       const idxRaw = await Risuai.pluginStorage.getItem(VCACHE_INDEX_KEY);
@@ -1120,7 +1272,6 @@ Example: [{"id": "chk_0", "category": "information"}, {"id": "chk_1", "category"
       try { await Risuai.safeLocalStorage.removeItem(firstMessageHandledKey); } catch { }
     } catch { }
 
-    // Legacy global keys for backward compatibility cleanup.
     try { await Risuai.pluginStorage.removeItem(STATIC_KNOWLEDGE_CHUNKS_KEY); } catch { }
     try { await Risuai.pluginStorage.removeItem(STATIC_DATA_HASH_KEY); } catch { }
     try { await Risuai.pluginStorage.removeItem(STEP0_COMPLETE_KEY); } catch { }
@@ -1214,7 +1365,10 @@ Example: [{"id": "chk_0", "category": "information"}, {"id": "chk_1", "category"
         try {
           const b = JSON.parse(match[1].trim());
           if (b !== null && typeof b === "object") parsedBlocks.push(b);
-        } catch { }
+        } catch {
+          const repaired = repairJsonString(match[1].trim());
+          if (repaired !== null && typeof repaired === "object") parsedBlocks.push(repaired);
+        }
       }
       if (parsedBlocks.length > 0) {
         const hasPlainObject = parsedBlocks.some(b => !Array.isArray(b));
@@ -1263,8 +1417,14 @@ Example: [{"id": "chk_0", "category": "information"}, {"id": "chk_1", "category"
       const startIdx = s.indexOf(startChar);
       if (startIdx < 0) return null;
       let depth = 0;
+      let inStr = false;
+      let escape = false;
       for (let i = startIdx; i < s.length; i++) {
         const c = s[i];
+        if (escape) { escape = false; continue; }
+        if (c === "\\" && inStr) { escape = true; continue; }
+        if (c === '"') { inStr = !inStr; continue; }
+        if (inStr) continue;
         if (c === startChar) depth++;
         else if (c === endChar) {
           depth--;
@@ -1288,7 +1448,41 @@ Example: [{"id": "chk_0", "category": "information"}, {"id": "chk_1", "category"
       if (useArr) { const r = tryDepthFirst(candidate, "[", "]"); if (r !== null) return r; }
     }
 
+    for (const candidate of [stripped, src]) {
+      const firstBrace = candidate.indexOf("{");
+      const firstBracket = candidate.indexOf("[");
+      if (firstBrace >= 0 || firstBracket >= 0) {
+        const start = firstBrace >= 0 && (firstBracket < 0 || firstBrace <= firstBracket) ? firstBrace : firstBracket;
+        const end = start === firstBrace ? candidate.lastIndexOf("}") : candidate.lastIndexOf("]");
+        if (end > start) {
+          const r = repairJsonString(candidate.slice(start, end + 1));
+          if (r !== null && typeof r === "object") return r;
+        }
+      }
+    }
+
     return null;
+  }
+
+  function repairJsonString(src) {
+    let s = String(src || "").replace(/,(\s*[}\]])/g, "$1");
+    try { return JSON.parse(s); } catch { }
+    s = s.replace(/([{,]\s*)([A-Za-z_][A-Za-z0-9_-]*)(\s*:)/g, '$1"$2"$3');
+    try { return JSON.parse(s); } catch { }
+    if (!s.includes("'")) return null;
+    let out = "";
+    let inDouble = false;
+    let inSingle = false;
+    let esc = false;
+    for (let i = 0; i < s.length; i++) {
+      const c = s[i];
+      if (esc) { out += c; esc = false; continue; }
+      if (c === "\\" && (inDouble || inSingle)) { out += c; esc = true; continue; }
+      if (c === '"' && !inSingle) { inDouble = !inDouble; out += c; continue; }
+      if (c === "'" && !inDouble) { inSingle = !inSingle; out += '"'; continue; }
+      out += c;
+    }
+    try { return JSON.parse(out); } catch { return null; }
   }
 
   function isPlainObject(v) {
@@ -1409,7 +1603,6 @@ Example: [{"id": "chk_0", "category": "information"}, {"id": "chk_1", "category"
       }
     }
 
-    // Single-entry fallback: if only one field is expected, accept the first object value.
     if (expectedKeys.length === 1 && !Object.prototype.hasOwnProperty.call(aligned, expectedKeys[0])) {
       const firstKey = sourceKeys[0];
       if (firstKey) aligned[expectedKeys[0]] = source[firstKey];
@@ -1439,7 +1632,6 @@ Example: [{"id": "chk_0", "category": "information"}, {"id": "chk_1", "category"
       if (typeof Risuai.getArgument === "function") val = await Risuai.getArgument(key);
       else if (typeof Risuai.getArg === "function") val = await Risuai.getArg(key);
       else return undefined;
-      // Normalize to string to prevent [object Object] JSON.parse crash on Windows Chrome
       if (val === undefined || val === null) return undefined;
       if (typeof val === "object") return JSON.stringify(val);
       return String(val);
@@ -1448,7 +1640,6 @@ Example: [{"id": "chk_0", "category": "information"}, {"id": "chk_1", "category"
 
   async function safeSetArgument(key, value) {
     try {
-      // Always pass strings to avoid structured-clone issues on Windows Chrome
       const strVal = (value === undefined || value === null) ? "" : (typeof value === "object" ? JSON.stringify(value) : String(value));
       if (typeof Risuai.setArgument === "function") await Risuai.setArgument(key, strVal);
       else if (typeof Risuai.setArg === "function") await Risuai.setArg(key, strVal);
@@ -1460,7 +1651,6 @@ Example: [{"id": "chk_0", "category": "information"}, {"id": "chk_1", "category"
     for (const key of Object.keys(DEFAULTS)) {
       const argValue = await safeGetArgument(key);
       const localValue = await Risuai.safeLocalStorage.getItem(SETTING_KEYS[key]);
-      // Normalize any value to string to prevent [object Object] being passed to JSON.parse
       const normalizeVal = (v) => {
         if (v === undefined || v === null) return undefined;
         if (typeof v === "object") return JSON.stringify(v);
@@ -1532,6 +1722,7 @@ Example: [{"id": "chk_0", "category": "information"}, {"id": "chk_1", "category"
     }
 
     next.read_mod_lorebook = toInt(next.read_mod_lorebook, DEFAULTS.read_mod_lorebook) === 1 ? 1 : 0;
+    next.kb_features_enabled = toInt(next.kb_features_enabled, DEFAULTS.kb_features_enabled) === 1 ? 1 : 0;
     next.vector_search_enabled = toInt(next.vector_search_enabled, DEFAULTS.vector_search_enabled) === 1 ? 1 : 0;
     next.vector_search_query_dialogue_rounds = Math.max(1, toInt(next.vector_search_query_dialogue_rounds, DEFAULTS.vector_search_query_dialogue_rounds));
     next.vector_search_top_k = Math.max(1, toInt(next.vector_search_top_k, DEFAULTS.vector_search_top_k));
@@ -1543,18 +1734,8 @@ Example: [{"id": "chk_0", "category": "information"}, {"id": "chk_1", "category"
     next.vector_search_min_score_2 = Number.isFinite(minScore2) ? Math.max(0, minScore2) : DEFAULTS.vector_search_min_score_2;
     next.init_bootstrap_target_model = safeTrim(next.init_bootstrap_target_model) === "B" ? "B" : "A";
     next.init_bootstrap_model_anchor_prompt = String(next.init_bootstrap_model_anchor_prompt || DEFAULTS.init_bootstrap_model_anchor_prompt);
-    if (HARD_FREEZE_KB_FEATURES) {
+    if (next.kb_features_enabled !== 1) {
       next.vector_search_enabled = 0;
-      try {
-        const raw = JSON.parse(String(next.card_enable_settings || "{}"));
-        if (raw && typeof raw === "object" && !Array.isArray(raw)) {
-          for (const cfg of Object.values(raw)) {
-            if (!cfg || typeof cfg !== "object") continue;
-            cfg.vector_search = "off";
-          }
-          next.card_enable_settings = JSON.stringify(raw);
-        }
-      } catch { }
     }
 
     next.timeout_ms = FIXED_TIMEOUT_MS;
@@ -1588,6 +1769,7 @@ Example: [{"id": "chk_0", "category": "information"}, {"id": "chk_1", "category"
       temperature: Number(configCache.extractor_a_temperature),
       thinkingEnabled: configCache.extractor_a_thinking_enabled === 1,
       thinkingLevel: safeTrim(configCache.extractor_a_thinking_level || ""),
+      vertexSaJson: safeTrim(configCache.extractor_a_vertex_sa_json || ""),
     };
     const b = {
       url: normalizeUrlByFormat(configCache.extractor_b_url || configCache.extractor_a_url, bFormat),
@@ -1598,6 +1780,7 @@ Example: [{"id": "chk_0", "category": "information"}, {"id": "chk_1", "category"
       temperature: Number(configCache.extractor_b_temperature),
       thinkingEnabled: configCache.extractor_b_thinking_enabled === 1,
       thinkingLevel: safeTrim(configCache.extractor_b_thinking_level || ""),
+      vertexSaJson: safeTrim(configCache.extractor_b_vertex_sa_json || ""),
     };
     return { a, b };
   }
@@ -1605,15 +1788,121 @@ Example: [{"id": "chk_0", "category": "information"}, {"id": "chk_1", "category"
   async function saveConfigFromUI(formData) {
     for (const [key, storageKey] of Object.entries(SETTING_KEYS)) {
       if (formData[key] !== undefined) {
-        const value = formData[key];
-        // Always stringify to avoid [object Object] stored in localStorage (Windows Chrome bug)
-        const strVal = (value === undefined || value === null) ? "" : (typeof value === "object" ? JSON.stringify(value) : String(value));
-        await Risuai.safeLocalStorage.setItem(storageKey, strVal);
-        await safeSetArgument(key, strVal);
+        try {
+          const value = formData[key];
+          const strVal = (value === undefined || value === null) ? "" : (typeof value === "object" ? JSON.stringify(value) : String(value));
+          await Risuai.safeLocalStorage.setItem(storageKey, strVal);
+          await safeSetArgument(key, strVal);
+        } catch (err) {
+          throw new Error(`saveConfigFromUI failed at "${key}": ${err?.message || String(err)}`);
+        }
       }
     }
-    await refreshConfig();
+    try {
+      await refreshConfig();
+    } catch (err) {
+      throw new Error(`saveConfigFromUI refreshConfig failed: ${err?.message || String(err)}`);
+    }
   }
+
+  // ── Vertex AI: Service Account JSON → JWT → OAuth2 Bearer Token ──────────────
+  // Uses browser-native SubtleCrypto (RSASSA-PKCS1-v1_5 RS256) — no Node.js required.
+  // Cache key format: "vertex_token::<client_email hash>"
+  const VERTEX_TOKEN_CACHE_PREFIX = "vertex_tok_";
+  const VERTEX_TOKEN_EXPIRY_PREFIX = "vertex_tok_exp_";
+  const VERTEX_OAUTH_URL = "https://oauth2.googleapis.com/token";
+  const VERTEX_SCOPE = "https://www.googleapis.com/auth/cloud-platform";
+
+  function _base64UrlEncode(buf) {
+    const bytes = buf instanceof Uint8Array ? buf : new Uint8Array(buf);
+    let str = "";
+    for (const b of bytes) str += String.fromCharCode(b);
+    return btoa(str).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+  }
+
+  function _pemToArrayBuffer(pem) {
+    const b64 = pem
+      .replace(/-----BEGIN PRIVATE KEY-----/, "")
+      .replace(/-----END PRIVATE KEY-----/, "")
+      .replace(/\s+/g, "");
+    const binary = atob(b64);
+    const buf = new Uint8Array(binary.length);
+    for (let i = 0; i < binary.length; i++) buf[i] = binary.charCodeAt(i);
+    return buf.buffer;
+  }
+
+  async function _signJwt(header, payload, pemPrivateKey) {
+    const enc = new TextEncoder();
+    const headerB64 = _base64UrlEncode(enc.encode(JSON.stringify(header)));
+    const payloadB64 = _base64UrlEncode(enc.encode(JSON.stringify(payload)));
+    const signingInput = `${headerB64}.${payloadB64}`;
+
+    const keyBuf = _pemToArrayBuffer(pemPrivateKey);
+    const cryptoKey = await crypto.subtle.importKey(
+      "pkcs8", keyBuf,
+      { name: "RSASSA-PKCS1-v1_5", hash: "SHA-256" },
+      false, ["sign"]
+    );
+    const sigBuf = await crypto.subtle.sign("RSASSA-PKCS1-v1_5", cryptoKey, enc.encode(signingInput));
+    return `${signingInput}.${_base64UrlEncode(sigBuf)}`;
+  }
+
+  async function getVertexBearerToken(saJsonRaw) {
+    const raw = safeTrim(saJsonRaw);
+    if (!raw) return "";
+
+    let sa;
+    try { sa = JSON.parse(raw); } catch { return ""; }
+    const email = safeTrim(sa.client_email || "");
+    const privateKey = safeTrim(sa.private_key || "").replace(/\\n/g, "\n");
+    if (!email || !privateKey) return "";
+
+    // Check cache
+    const cacheKey = VERTEX_TOKEN_CACHE_PREFIX + simpleHash(email);
+    const expiryKey = VERTEX_TOKEN_EXPIRY_PREFIX + simpleHash(email);
+    try {
+      const cached = safeTrim(await Risuai.safeLocalStorage.getItem(cacheKey));
+      const expiry = Number(await Risuai.safeLocalStorage.getItem(expiryKey) || 0);
+      if (cached && Number.isFinite(expiry) && Date.now() < expiry - 60000) return cached;
+    } catch { }
+
+    try {
+      await Risuai.log(`${LOG} ${_T.vertex_token_refreshing || "Refreshing Vertex AI Bearer token..."}`);
+      const now = Math.floor(Date.now() / 1000);
+      const jwt = await _signJwt(
+        { alg: "RS256", typ: "JWT" },
+        { iss: email, scope: VERTEX_SCOPE, aud: VERTEX_OAUTH_URL, iat: now, exp: now + 3600 },
+        privateKey
+      );
+      const { res } = await fetchWithFallback(
+        VERTEX_OAUTH_URL,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/x-www-form-urlencoded" },
+          body: `grant_type=urn%3Aietf%3Aparams%3Aoauth%3Agrant-type%3Ajwt-bearer&assertion=${jwt}`,
+        },
+        15000, "Vertex token", true
+      );
+      if (!isResponseLike(res) || !res.ok) {
+        const errTxt = await readResponseErrorText(res);
+        throw new Error(`HTTP ${isResponseLike(res) ? res.status : 0}: ${String(errTxt).slice(0, 300)}`);
+      }
+      const data = await readResponseJson(res);
+      const token = safeTrim(data?.access_token || "");
+      if (!token) throw new Error("No access_token in response");
+      const expiresIn = Number(data?.expires_in || 3600);
+      const expiry = Date.now() + expiresIn * 1000;
+      try {
+        await Risuai.safeLocalStorage.setItem(cacheKey, token);
+        await Risuai.safeLocalStorage.setItem(expiryKey, String(expiry));
+      } catch { }
+      return token;
+    } catch (err) {
+      await Risuai.log(`${LOG} ${_T.vertex_token_error || "Vertex AI token error: "}${err?.message || String(err)}`);
+      return "";
+    }
+  }
+  // ─────────────────────────────────────────────────────────────────────────────
 
   async function getCopilotBearerToken(rawGitHubToken) {
     const key = safeTrim(rawGitHubToken);
@@ -1730,8 +2019,6 @@ Example: [{"id": "chk_0", "category": "information"}, {"id": "chk_1", "category"
     return texts.join("\n").trim();
   }
 
-  // Step0 preprocessing: convert CBS syntax into readable placeholders for indexing/tagging.
-  // This does not mutate original lorebook content used at runtime.
   function cbsToIndexPlaceholders(content) {
     let src = String(content || "");
     if (!src || !src.includes("{{")) return src;
@@ -1899,7 +2186,6 @@ Example: [{"id": "chk_0", "category": "information"}, {"id": "chk_1", "category"
       const count = matches ? matches.length : 0;
       if (level === 1) {
         if (count >= 2) { bestLevel = 1; break; }
-        // Don't break here: fall through to try ## level splits even when no # headers exist
         prevCount = count;
         continue;
       } else {
@@ -2122,7 +2408,6 @@ Example: [{"id": "chk_0", "category": "information"}, {"id": "chk_1", "category"
     const charLore = await getCombinedLorebookEntries(char, chat);
     const localMap = new Map();
 
-    
     for (const entry of charLore) {
       const name = safeTrim(entry?.comment || "");
       if (!wanted.has(name)) continue;
@@ -2204,8 +2489,7 @@ Example: [{"id": "chk_0", "category": "information"}, {"id": "chk_1", "category"
           .map((item, idx) => ({ ...item, score: cosineSimilarity(queryVec, vectors[idx]) }))
           .filter((x) => Number.isFinite(x.score)).sort((a, b) => b.score - a.score);
         const picked = scored.filter((x) => x.score >= minScore).slice(0, topK);
-        
-        
+
         topInactiveList = picked.length ? picked : scored.filter((x) => x.score >= 0).slice(0, topK);
       }
 
@@ -2490,7 +2774,7 @@ Example: [{"id": "chk_0", "category": "information"}, {"id": "chk_1", "category"
     const loreNames = parseLorebookNames(modelCall?.read_lorebook_names || "");
     let loreContext = "";
     if (loreNames.length > 0) {
-      if (!HARD_FREEZE_KB_FEATURES && configCache.vector_search_enabled === 1) {
+      if (isKbFeatureEnabled() && configCache.vector_search_enabled === 1) {
         loreContext = await getLorebookContextByVector(loreNames, scopedConversation);
         if (!safeTrim(loreContext)) loreContext = await getLorebookContextByNames(loreNames);
       } else {
@@ -2501,8 +2785,7 @@ Example: [{"id": "chk_0", "category": "information"}, {"id": "chk_1", "category"
   }
 
   function formatLoreOutput(raw, parsed, outputFormat, lorebookName, totalEntries) {
-    
-    
+
     let normalizedParsed = parsed;
     if (Array.isArray(parsed)) {
       const merged = {};
@@ -2520,32 +2803,25 @@ Example: [{"id": "chk_0", "category": "information"}, {"id": "chk_1", "category"
     }
     if (Object.prototype.hasOwnProperty.call(normalizedParsed, lorebookName)) {
       const val = normalizedParsed[lorebookName];
-      
-      
-      if (val === null || val === undefined || val === false || val === "" || val === 0) return "";
+      if (val === null || val === undefined || val === false || val === "") return "";
       if (typeof val === "string") return val.trim();
-      
-      
-      try { return JSON.stringify(val); } catch { return String(val || "").trim(); }
+      try { return JSON.stringify(val); } catch { return String(val).trim(); }
     }
     if (totalEntries === 1 && isPlainObject(normalizedParsed)) {
       const keys = Object.keys(normalizedParsed);
       if (keys.length === 1) {
         const val = normalizedParsed[keys[0]];
-        if (val === null || val === undefined || val === false || val === "" || val === 0) return "";
+        if (val === null || val === undefined || val === false || val === "") return "";
         if (typeof val === "string") return val.trim();
-        try { return JSON.stringify(val); } catch { return String(val || "").trim(); }
+        try { return JSON.stringify(val); } catch { return String(val).trim(); }
       }
-      
-      
       try { return JSON.stringify(normalizedParsed); } catch { return String(raw || "").trim(); }
     }
     return "";
   }
 
   function resolveLoreCommentForTarget(target, callsOverride) {
-    
-    
+
     const calls = callsOverride || getModelCalls();
     const entries = calls.filter((c) => c.target_model === target).flatMap((c) => c.entries || []);
     return safeTrim(entries?.[0]?.lorebook_name) || LOCAL_LORE_COMMENT;
@@ -2620,8 +2896,7 @@ Example: [{"id": "chk_0", "category": "information"}, {"id": "chk_1", "category"
   }
 
   async function applyRetentionCleanup(userMsgCount, callsOverride) {
-    
-    
+
     const calls = callsOverride || getModelCalls();
     const retentionEntries = [];
     for (const call of calls) {
@@ -2674,7 +2949,6 @@ Example: [{"id": "chk_0", "category": "information"}, {"id": "chk_1", "category"
     const entries = modelCall.entries || [];
     const target = modelCall.target_model === "B" ? "B" : "A";
 
-    
     const alignedParsed = alignParsedObjectToEntries(raw, parsed, entries);
 
     const pendingWrites = [];
@@ -2682,15 +2956,13 @@ Example: [{"id": "chk_0", "category": "information"}, {"id": "chk_1", "category"
     for (const entry of entries) {
       const loreName = safeTrim(entry?.lorebook_name) || resolveLoreCommentForTarget(target, callsOverride);
       const writeMode = safeTrim(entry?.write_mode) === "overwrite" ? "overwrite" : "append";
-      const alwaysActive = entry?.always_active === true;
+      const alwaysActive = entry?.always_active === true || entry?.always_active === 1 || entry?.always_active === "1" || String(entry?.always_active) === "true";
       const outputFormat = safeTrim(entry?.output_format) || "raw";
 
-      
       let content = formatLoreOutput(raw, alignedParsed, outputFormat, loreName, entries.length);
 
-      
       if (!safeTrim(content) && entries.length > 1 && parsed && typeof parsed === "object") {
-        
+
         const singleAlign = alignParsedObjectToEntries(raw, parsed, [entry]);
         content = formatLoreOutput(raw, singleAlign, outputFormat, loreName, 1);
       }
@@ -2703,7 +2975,7 @@ Example: [{"id": "chk_0", "category": "information"}, {"id": "chk_1", "category"
     }
 
     if (pendingWrites.length === 0) {
-      
+
       const issuesSummary = outputIssues.join("; ");
       if (entries.length > 1 && (!alignedParsed || typeof alignedParsed !== "object")) {
         throw new Error(
@@ -2717,7 +2989,6 @@ Example: [{"id": "chk_0", "category": "information"}, {"id": "chk_1", "category"
       );
     }
 
-    
     if (outputIssues.length > 0) {
       await Risuai.log(
         `${LOG} Warning (${modelCall.name}): partial write — ${outputIssues.join("; ")}. ` +
@@ -2731,17 +3002,15 @@ Example: [{"id": "chk_0", "category": "information"}, {"id": "chk_1", "category"
     }
   }
 
-  
   function thinkingLevelToClaudeBudget(level) {
     switch (safeTrim(level).toLowerCase()) {
       case "low": return 1024;
       case "medium": return 8000;
       case "high": return 32000;
-      default: return 8000; 
+      default: return 8000;
     }
   }
 
-  
   function thinkingLevelToGemini(level) {
     switch (safeTrim(level).toUpperCase()) {
       case "LOW": return "LOW";
@@ -2751,7 +3020,6 @@ Example: [{"id": "chk_0", "category": "information"}, {"id": "chk_1", "category"
     }
   }
 
-  
   function thinkingLevelToOpenAIEffort(level) {
     switch (safeTrim(level).toLowerCase()) {
       case "low": return "low";
@@ -2861,11 +3129,20 @@ Example: [{"id": "chk_0", "category": "information"}, {"id": "chk_1", "category"
     return { parsed: parsePossiblyWrappedJson(content), raw: content };
   }
 
-  async function callVertexGenerative({ url, apiKey, model, messages, timeoutMs, temperature, thinkingEnabled, thinkingLevel }) {
+  async function callVertexGenerative({ url, apiKey, model, messages, timeoutMs, temperature, thinkingEnabled, thinkingLevel, vertexSaJson }) {
     const finalUrl = normalizeVertexGenerateUrl(url, model);
     if (!finalUrl) throw new Error("Vertex AI URL/model is missing.");
     const headers = { "Content-Type": "application/json" };
-    if (apiKey) headers.Authorization = `Bearer ${apiKey}`;
+    // SA JSON 優先；若沒有 SA JSON 才直接用 apiKey 當 Bearer token
+    const saJson = safeTrim(vertexSaJson || "");
+    let bearerToken = "";
+    if (saJson) {
+      bearerToken = await getVertexBearerToken(saJson);
+      if (!bearerToken) throw new Error("Vertex AI: Failed to obtain Bearer token from Service Account JSON.");
+    } else if (apiKey) {
+      bearerToken = safeTrim(apiKey);
+    }
+    if (bearerToken) headers.Authorization = `Bearer ${bearerToken}`;
     const built = buildGoogleMessages(messages);
     const body = {
       contents: built.contents, ...(built.systemInstruction ? { systemInstruction: built.systemInstruction } : {}),
@@ -2969,11 +3246,11 @@ Example: [{"id": "chk_0", "category": "information"}, {"id": "chk_1", "category"
     return { parsed: parsePossiblyWrappedJson(content), raw: content };
   }
 
-  async function callExtractorStrict({ url, apiKey, model, messages, timeoutMs, mode, format = "openai", temperature = 0, thinkingEnabled = false, thinkingLevel = "" }) {
+  async function callExtractorStrict({ url, apiKey, model, messages, timeoutMs, mode, format = "openai", temperature = 0, thinkingEnabled = false, thinkingLevel = "", vertexSaJson = "" }) {
     const runner = async () => {
       const f = safeTrim(format || "openai").toLowerCase();
       const result = f === "google" ? await callGoogleGenerative({ url, apiKey, model, messages, timeoutMs, temperature, thinkingEnabled, thinkingLevel })
-        : f === "vertex" ? await callVertexGenerative({ url, apiKey, model, messages, timeoutMs, temperature, thinkingEnabled, thinkingLevel })
+        : f === "vertex" ? await callVertexGenerative({ url, apiKey, model, messages, timeoutMs, temperature, thinkingEnabled, thinkingLevel, vertexSaJson })
           : f === "claude" ? await callClaudeCompat({ url, apiKey, model, messages, timeoutMs, temperature, thinkingEnabled, thinkingLevel })
             : await callOpenAICompat({ url, apiKey, model, messages, timeoutMs, temperature, thinkingEnabled, thinkingLevel });
       if (!safeTrim(result?.raw)) throw new Error(_T.err_extractor_empty(mode));
@@ -3021,14 +3298,13 @@ Example: [{"id": "chk_0", "category": "information"}, {"id": "chk_1", "category"
   }
 
   async function injectKnowledgeIntoMessages(messages, queryText) {
-    
+
     const cleanInput = messages.filter(m =>
       !(m?.role === "system" && typeof m?.content === "string" && m.content.startsWith(`<${KNOWLEDGE_BLOCK_TAG}>`))
     );
-    if (HARD_FREEZE_KB_FEATURES) return cleanInput;
+    if (!isKbFeatureEnabled()) return cleanInput;
     const isChatRole = (role) => role === "user" || role === "assistant" || role === "char";
 
-    
     const { char, chat } = await getCurrentCharAndChatSafe();
     const staticKeys = getStaticCacheKeysForScope(char);
     const staticRaw = await Risuai.pluginStorage.getItem(staticKeys.staticKnowledgeChunks);
@@ -3082,7 +3358,6 @@ Example: [{"id": "chk_0", "category": "information"}, {"id": "chk_1", "category"
     const inactiveChunks = allChunks.filter((c) => !c.alwaysActive);
     const vectorEligibleInactiveChunks = inactiveChunks.filter((c) => hasPrimaryTriggerKey(c));
 
-    
     const firstChatIdx = (() => { const i = cleanInput.findIndex((m) => isChatRole(m?.role)); return i === -1 ? cleanInput.length : i; })();
     let lastChatIdx = -1;
     for (let i = cleanInput.length - 1; i >= 0; i--) { if (isChatRole(cleanInput[i]?.role)) { lastChatIdx = i; break; } }
@@ -3092,14 +3367,13 @@ Example: [{"id": "chk_0", "category": "information"}, {"id": "chk_1", "category"
     const recentMsgs = limitConversationByRounds(trimmedTurns, queryRounds);
     const resolvedQueryText = recentMsgs.map(m => String(m.content || "")).join("\n") || queryText || "";
 
-    
     const topK = Math.max(1, toInt(configCache.vector_search_top_k, DEFAULTS.vector_search_top_k));
     const minScore = Number(configCache.vector_search_min_score) || 0;
     let topInactiveChunks = [];
 
     if (inactiveChunks.length > 0) {
       if (configCache.vector_search_enabled === 1 && vectorEligibleInactiveChunks.length > 0) {
-        
+
         try {
           const finalQueryText = resolvedQueryText || " ";
           const queryVecs = await getEmbeddingsForTexts([finalQueryText], true);
@@ -3160,10 +3434,10 @@ Example: [{"id": "chk_0", "category": "information"}, {"id": "chk_1", "category"
           topInactiveChunks = scored.filter((x) => x.score >= minScore).slice(0, topK).map((x) => x.chunk);
         } catch (e) {
           await Risuai.log(`${LOG} Vector search failed: ${e.message}, falling back to keyword matching.`);
+          try { await Risuai.safeLocalStorage.setItem("last_lore_sync_error", `${LOG} Vector search failed and switched to keyword mode: ${e?.message || String(e)}`); } catch { }
         }
       }
 
-      
       if (topInactiveChunks.length === 0) {
         if (resolvedQueryText.trim()) {
           const matchedChunks = [];
@@ -3199,7 +3473,6 @@ Example: [{"id": "chk_0", "category": "information"}, {"id": "chk_1", "category"
       }
     }
 
-    
     const grouped = {
       rp_instruction: { active: [], inactive: [] },
       information: { active: [], inactive: [] },
@@ -3274,7 +3547,7 @@ Example: [{"id": "chk_0", "category": "information"}, {"id": "chk_1", "category"
   }
 
   async function runStep0Classification(char, chat, resolvedGlobalNote, staticDataHash, staticKeys, resumeMode = false, classifyDoneMode = false) {
-    if (HARD_FREEZE_KB_FEATURES) {
+    if (!isKbFeatureEnabled()) {
       try { await Risuai.pluginStorage.setItem(staticKeys.staticKnowledgeChunks, "[]"); } catch { }
       try { await Risuai.pluginStorage.setItem(staticKeys.staticDataHash, staticDataHash); } catch { }
       try { await Risuai.pluginStorage.setItem(staticKeys.step0Complete, "1"); } catch { }
@@ -3394,7 +3667,7 @@ Example: [{"id": "chk_0", "category": "information"}, {"id": "chk_1", "category"
     const chunksToClassify = chunks.filter(c => !c.alwaysActive);
     const skipClassification = classifyDoneMode || !safeTrim(endpoint.url) || !safeTrim(endpoint.model);
     if (classifyDoneMode) {
-      
+
       try {
         const savedRaw = await Risuai.pluginStorage.getItem(staticKeys.staticKnowledgeChunks);
         if (savedRaw) {
@@ -3432,6 +3705,7 @@ Example: [{"id": "chk_0", "category": "information"}, {"id": "chk_1", "category"
           const result = await callExtractorStrict({
             url: endpoint.url, apiKey: endpoint.key, model: endpoint.model, format: endpoint.format, temperature: endpoint.temperature,
             messages, timeoutMs: configCache.timeout_ms, mode: "Step0_Classification",
+            vertexSaJson: endpoint.vertexSaJson || "",
           });
           const parsed = result.parsed;
           if (Array.isArray(parsed)) {
@@ -3562,13 +3836,12 @@ Example: [{"id": "chk_0", "category": "information"}, {"id": "chk_1", "category"
       if (!entry || typeof entry.content !== "string") { newLocalLore.push(entry); continue; }
       const originalContent = entry.content;
 
-      
       const owMatch = originalContent.match(/^## .*?\n<!-- written_at_turn: (\d+) -->/m);
       if (owMatch) {
         const writtenAt = Number(owMatch[1]);
         if (Number.isFinite(writtenAt) && writtenAt > userMsgCount) {
           loreModified = true;
-          continue; 
+          continue;
         }
         newLocalLore.push(entry);
         continue;
@@ -4180,7 +4453,6 @@ Example: [{"id": "chk_0", "category": "information"}, {"id": "chk_1", "category"
       try { await Risuai.safeLocalStorage.removeItem(requestKeys.lastExtractedData); } catch { }
       try { await Risuai.safeLocalStorage.removeItem(requestKeys.regenSkip); } catch { }
     } catch { }
-    try { await Risuai.safeLocalStorage.removeItem(LAST_REQ_HASH_KEY); } catch { }
     throw new Error(`[RisuAI Agent Error] ${msg}\n(${suffix})`);
   }
 
@@ -4188,6 +4460,7 @@ Example: [{"id": "chk_0", "category": "information"}, {"id": "chk_1", "category"
     await ensureLangInitialized(true);
     LORE_WRITE_MODE_OPTIONS = [{ value: "append", label: _T.append }, { value: "overwrite", label: _T.overwrite }];
     await refreshConfig();
+    const kbFeatureEnabled = isKbFeatureEnabled();
     injectStyles();
 
     const existing = document.getElementById("pse-overlay-root");
@@ -4200,19 +4473,19 @@ Example: [{"id": "chk_0", "category": "information"}, {"id": "chk_1", "category"
     overlayRoot.innerHTML = `
       <div class="pse-body">
         <div class="pse-card">
-          <h1 class="pse-title">👤 RisuAI Agent v2.0.3</h1>
+          <h1 class="pse-title">👤 RisuAI Agent v2.1.1</h1>
           <div id="pse-status" class="pse-status"></div>
           ${renderModelDatalists()}
 
           <div class="pse-tabs">
             ${`<button class="pse-tab active" data-page="7">${_T.tab_help}</button>
             <button class="pse-tab" data-page="8">${_T.tab_enable}</button>
-            <button class="pse-tab frozen" data-page="6">${_T.tab_closed}</button>`}
+            <button class="pse-tab${kbFeatureEnabled ? "" : " frozen"}" data-page="6">${kbFeatureEnabled ? (_T.tab_cache_open || _T.sec_cache) : _T.tab_closed}</button>`}
           </div>
           <div class="pse-tabs pse-tabs-secondary">
             ${`<button class="pse-tab" data-page="1">${_T.tab_model}</button>
             <button class="pse-tab" data-page="2">${_T.tab_entry}</button>
-            <button class="pse-tab frozen" data-page="5">${_T.tab_closed}</button>`}
+            <button class="pse-tab${kbFeatureEnabled ? "" : " frozen"}" data-page="5">${kbFeatureEnabled ? (_T.tab_vector_open || _T.sec_vec) : _T.tab_closed}</button>`}
           </div>
 
           <div class="pse-page active" data-page="7">
@@ -4240,9 +4513,15 @@ Example: [{"id": "chk_0", "category": "information"}, {"id": "chk_1", "category"
             <div class="pse-section" style="border-left:4px solid var(--pse-accent-blue); background:linear-gradient(180deg, rgba(41, 121, 255, 0.1) 0%, var(--pse-input-bg) 100%); padding:10px 12px;">
               <button id="pse-reset-agent-defaults" class="pse-btn cache" type="button" style="padding:8px 14px;font-size:12px;white-space:nowrap;width:100%;">${_T.btn_reset}</button>
             </div>
-            <div class="pse-section pse-frozen-wrap" style="border-left:4px solid var(--pse-accent-cyan); background:linear-gradient(180deg, rgba(0, 229, 255, 0.1) 0%, var(--pse-input-bg) 100%); padding:10px 12px;">
-              <div class="pse-frozen-badge">${_T.tag_temp_closed}</div>
-              <div class="pse-frozen-fields">
+            <div class="pse-section ${kbFeatureEnabled ? "" : "pse-frozen-wrap"}" style="border-left:4px solid var(--pse-accent-cyan); background:linear-gradient(180deg, rgba(0, 229, 255, 0.1) 0%, var(--pse-input-bg) 100%); padding:10px 12px;">
+              <div style="margin-bottom:8px;padding:8px 10px;border-radius:6px;background:rgba(255,171,0,0.12);border:1px solid rgba(255,171,0,0.32);font-size:12px;line-height:1.5;color:var(--pse-accent-amber);">
+                ${escapeHtml(_T.warn_kb_feature_enable)}
+              </div>
+              <label class="pse-label" for="kb_features_enabled" style="display:flex;align-items:center;gap:8px;margin:0 0 10px;cursor:pointer;color:var(--pse-card-text);font-weight:700;">
+                <input type="checkbox" id="kb_features_enabled" ${kbFeatureEnabled ? "checked" : ""} style="margin:0;flex-shrink:0;" />
+                <span>${escapeHtml(_T.lbl_kb_feature_enable)}</span>
+              </label>
+              <div class="${kbFeatureEnabled ? "" : "pse-frozen-fields"}">
               <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
                 <div style="display:flex;align-items:center;gap:8px;flex:1;min-width:200px;">
                   <label class="pse-label" style="margin:0;white-space:nowrap;">${_T.lbl_classify_model}</label>
@@ -4277,6 +4556,11 @@ Example: [{"id": "chk_0", "category": "information"}, {"id": "chk_1", "category"
               <input id="extractor_a_url" class="pse-input" value="${String(configCache.extractor_a_url || "").replace(/"/g, "&quot;")}" />
               <label class="pse-label">${_T.lbl_key}</label>
               <input id="extractor_a_key" class="pse-input" type="text" value="${String(configCache.extractor_a_key || "").replace(/"/g, "&quot;")}" />
+              <div id="extractor_a_vertex_sa_wrap" style="display:${configCache.extractor_a_provider === 'vertex_ai' ? 'block' : 'none'};">
+                <label class="pse-label" style="margin-top:6px;">${_T.lbl_vertex_sa_json || "Vertex AI Service Account JSON"}</label>
+                <div style="font-size:11px;color:var(--pse-muted);margin-bottom:4px;">${_T.vertex_sa_json_hint || "Paste Service Account JSON to auto-generate Bearer token."}</div>
+                <textarea id="extractor_a_vertex_sa_json" class="pse-input" rows="4" style="font-family:monospace;font-size:11px;resize:vertical;" placeholder="${escapeHtml(_T.vertex_sa_json_placeholder || '{...}')}">${escapeHtml(String(configCache.extractor_a_vertex_sa_json || ""))}</textarea>
+              </div>
               <label class="pse-label">${_T.lbl_model}</label>
               <input id="extractor_a_model" class="pse-input" autocomplete="off" value="${String(configCache.extractor_a_model || "").replace(/"/g, "&quot;")}" />
               <div id="extractor_a_model_suggestions" class="pse-model-suggestions"></div>
@@ -4309,6 +4593,11 @@ Example: [{"id": "chk_0", "category": "information"}, {"id": "chk_1", "category"
               <input id="extractor_b_url" class="pse-input" value="${String(configCache.extractor_b_url || "").replace(/"/g, "&quot;")}" />
               <label class="pse-label">${_T.lbl_key}</label>
               <input id="extractor_b_key" class="pse-input" type="text" value="${String(configCache.extractor_b_key || "").replace(/"/g, "&quot;")}" />
+              <div id="extractor_b_vertex_sa_wrap" style="display:${configCache.extractor_b_provider === 'vertex_ai' ? 'block' : 'none'};">
+                <label class="pse-label" style="margin-top:6px;">${_T.lbl_vertex_sa_json || "Vertex AI Service Account JSON"}</label>
+                <div style="font-size:11px;color:var(--pse-muted);margin-bottom:4px;">${_T.vertex_sa_json_hint || "Paste Service Account JSON to auto-generate Bearer token."}</div>
+                <textarea id="extractor_b_vertex_sa_json" class="pse-input" rows="4" style="font-family:monospace;font-size:11px;resize:vertical;" placeholder="${escapeHtml(_T.vertex_sa_json_placeholder || '{...}')}">${escapeHtml(String(configCache.extractor_b_vertex_sa_json || ""))}</textarea>
+              </div>
               <label class="pse-label">${_T.lbl_model}</label>
               <input id="extractor_b_model" class="pse-input" autocomplete="off" value="${String(configCache.extractor_b_model || "").replace(/"/g, "&quot;")}" />
               <div id="extractor_b_model_suggestions" class="pse-model-suggestions"></div>
@@ -4336,8 +4625,8 @@ Example: [{"id": "chk_0", "category": "information"}, {"id": "chk_1", "category"
                 ${_T.sec_embed_title}
                 <span style="font-size:12px; color:var(--pse-accent-rose); font-weight:normal; display:block; margin-top:4px;">${_T.embed_warn}</span>
               </div>
-              <div class="pse-frozen-badge">${_T.tag_temp_closed}</div>
-              <div class="pse-frozen-fields">
+              ${kbFeatureEnabled ? "" : `<div class="pse-frozen-badge">${_T.tag_temp_closed}</div>`}
+              <div class="${kbFeatureEnabled ? "" : "pse-frozen-fields"}">
               <label class="pse-label">${_T.lbl_provider}</label>
               <select id="embedding_provider" class="pse-input">${renderEmbeddingProviderOptions(configCache.embedding_provider)}</select>
               <label class="pse-label">${_T.lbl_format}</label>
@@ -4437,12 +4726,10 @@ Example: [{"id": "chk_0", "category": "information"}, {"id": "chk_1", "category"
       const wrap = document.getElementById("pse-embed-cache-list");
       if (!wrap) return;
 
-      
       const store = await loadEmbeddingCacheStore();
       const vecBlocks = summarizeEmbeddingCacheBlocks(store);
       const vecCardKeys = new Set(vecBlocks.map(b => b.cardKey));
 
-      
       const classifyBlocks = [];
       try {
         const db = await Risuai.getDatabase();
@@ -4453,7 +4740,7 @@ Example: [{"id": "chk_0", "category": "information"}, {"id": "chk_1", "category"
           if (!scopeId) continue;
           const charName = safeTrim(c?.name || "");
           const cardKey = scopeId;
-          if (vecCardKeys.has(cardKey)) continue; 
+          if (vecCardKeys.has(cardKey)) continue;
           const step0Key = makeScopedStorageKey(STEP0_COMPLETE_KEY, scopeId);
           const chunksKey = makeScopedStorageKey(STATIC_KNOWLEDGE_CHUNKS_KEY, scopeId);
           const step0Done = await Risuai.pluginStorage.getItem(step0Key);
@@ -4523,16 +4810,23 @@ Example: [{"id": "chk_0", "category": "information"}, {"id": "chk_1", "category"
       });
     });
 
+    document.getElementById("kb_features_enabled")?.addEventListener("change", async (e) => {
+      const enabled = e?.target?.checked ? 1 : 0;
+      await Risuai.safeLocalStorage.setItem(SETTING_KEYS.kb_features_enabled, String(enabled));
+      await safeSetArgument("kb_features_enabled", String(enabled));
+      await refreshConfig();
+      await renderSettingsUI();
+    });
+
     document.getElementById("pse-refresh-cache")?.addEventListener("click", async () => {
       await renderEmbeddingCacheList();
     });
     document.getElementById("pse-clear-cache")?.addEventListener("click", async () => {
-      if (!confirm(_T.confirm_clear_cache || "Clear all cache data?")) return;
+      if (!confirm(_T.confirm_clear)) return;
       await clearAllEmbeddingCache();
       await renderEmbeddingCacheList();
     });
 
-    
     const renderCardEnableList = async () => {
       const wrap = document.getElementById("pse-card-enable-list");
       if (!wrap) return;
@@ -4555,7 +4849,7 @@ Example: [{"id": "chk_0", "category": "information"}, {"id": "chk_1", "category"
           `<option value="2" ${selected === "2" ? "selected" : ""}>${_T.opt_preset2}</option>`,
         ].join("");
         wrap.innerHTML = characters.map((c, idx) => {
-          
+
           const rawId = String(c?.chaId || c?.id || c?._id || "").replace(/[^0-9a-zA-Z_-]/g, "");
           const cname = safeTrim(c?.name || `Card ${idx + 1}`);
           const cid = rawId || `name_${simpleHash(cname)}`;
@@ -4563,7 +4857,8 @@ Example: [{"id": "chk_0", "category": "information"}, {"id": "chk_1", "category"
           const isEven = idx % 2 === 0;
           const borderColor = isEven ? "var(--pse-accent-blue)" : "var(--pse-accent-green)";
           const gradientColor = isEven ? "rgba(41, 121, 255, 0.08)" : "rgba(0, 230, 118, 0.08)";
-          const isDisabled = cs.card_disabled === 0 || cs.card_disabled === "0" || cs.card_disabled === false ? false : true;
+          const isDisabled = cs.card_disabled === undefined || cs.card_disabled === null
+            || cs.card_disabled === 1 || cs.card_disabled === "1" || cs.card_disabled === true;
           return `
             <div class="pse-entry-block" data-card-id="${escapeHtml(cid)}" style="border-left:4px solid ${borderColor};background:linear-gradient(180deg,${gradientColor} 0%,var(--pse-input-bg) 100%);">
               <div style="font-weight:700;margin-bottom:6px;">${escapeHtml(cname)}</div>
@@ -4574,12 +4869,12 @@ Example: [{"id": "chk_0", "category": "information"}, {"id": "chk_1", "category"
               <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;${isDisabled ? "opacity:0.35;pointer-events:none;" : ""}">
                 <div>
                   <label class="pse-label" style="font-size:11px;">${_T.lbl_memory_extract}</label>
-                  <select class="pse-input pse-card-memory" style="font-size:12px;">${makeMemoryOpts(cs.memory_extract === "2" ? "2" : "1")}</select>
+                  <select class="pse-input pse-card-memory" style="font-size:12px;">${makeMemoryOpts(cs.memory_extract === "2" ? "2" : cs.memory_extract === "off" ? "off" : "1")}</select>
                 </div>
-                <div class="pse-frozen-wrap">
+                <div class="${kbFeatureEnabled ? "" : "pse-frozen-wrap"}">
                   <label class="pse-label" style="font-size:11px;">${_T.lbl_vector_search_card}</label>
-                  <div class="pse-frozen-badge">${_T.tag_temp_closed}</div>
-                  <select class="pse-input pse-card-vector" style="font-size:12px;" disabled>${makeVectorOpts(cs.vector_search || "off")}</select>
+                  ${kbFeatureEnabled ? "" : `<div class="pse-frozen-badge">${_T.tag_temp_closed}</div>`}
+                  <select class="pse-input pse-card-vector" style="font-size:12px;" ${kbFeatureEnabled ? "" : "disabled"}>${makeVectorOpts(cs.vector_search || "off")}</select>
                 </div>
               </div>
             </div>`;
@@ -4589,8 +4884,6 @@ Example: [{"id": "chk_0", "category": "information"}, {"id": "chk_1", "category"
       }
     };
 
-    // Bind tab navigation and close/save BEFORE any async call that might hang,
-    // so the UI is always interactive even if getDatabase() is slow or pending.
     const setPage = (page) => {
       document.querySelectorAll(".pse-tab").forEach((el) => {
         el.classList.toggle("active", el.getAttribute("data-page") === page);
@@ -4619,7 +4912,7 @@ Example: [{"id": "chk_0", "category": "information"}, {"id": "chk_1", "category"
     });
 
     document.getElementById("pse-embed-cache-list")?.addEventListener("click", async (e) => {
-      
+
       const vecBtn = e.target?.closest?.("[data-delete-cache-card]");
       if (vecBtn) {
         const block = vecBtn.closest?.("[data-cache-card-key]");
@@ -4653,7 +4946,6 @@ Example: [{"id": "chk_0", "category": "information"}, {"id": "chk_1", "category"
         return;
       }
 
-      
       const clsBtn = e.target?.closest?.("[data-delete-classify-card]");
       if (clsBtn) {
         const block = clsBtn.closest?.("[data-classify-scope-id]");
@@ -4715,7 +5007,6 @@ Example: [{"id": "chk_0", "category": "information"}, {"id": "chk_1", "category"
     bindPromptExpander("advanced_prefill_prompt_expand", "advanced_prefill_prompt", _T.expand_prefill);
     bindPromptExpander("advanced_prereply_prompt_expand", "advanced_prereply_prompt", _T.expand_prereply);
     bindPromptExpander("init_bootstrap_model_anchor_prompt_expand", "init_bootstrap_model_anchor_prompt", _T.expand_classify);
-    
 
     document.querySelector(".pse-card").addEventListener("click", (e) => {
       const btn = e.target.closest(".pse-expand-btn");
@@ -4833,6 +5124,7 @@ Example: [{"id": "chk_0", "category": "information"}, {"id": "chk_1", "category"
           if (uiSubTab === 1) uiModelCalls1 = uiModelCalls;
           else if (uiSubTab === 2) uiModelCalls2 = uiModelCalls;
         }
+        const kbFeaturesEnabledNow = document.getElementById("kb_features_enabled")?.checked ? 1 : 0;
         uiSubTab = 'common';
 
         document.getElementById("pse-preset-common")?.classList.add("active");
@@ -4852,7 +5144,7 @@ Example: [{"id": "chk_0", "category": "information"}, {"id": "chk_1", "category"
       }
 
       uiSubTab = newPreset;
-      uiActivePreset = newPreset; 
+      uiActivePreset = newPreset;
       uiModelCalls = uiSubTab === 2 ? uiModelCalls2 : uiModelCalls1;
 
       document.getElementById("pse-preset-common")?.classList.remove("active");
@@ -4937,18 +5229,18 @@ Example: [{"id": "chk_0", "category": "information"}, {"id": "chk_1", "category"
 
     document.getElementById("pse-reset-agent-defaults")?.addEventListener("click", async () => {
       try {
-        
-        
+
         const resetFormData = {
           ...configCache,
-          
+
           model_calls: JSON.stringify(DEFAULT_MODEL_CALLS),
           model_calls_2: DEFAULTS.model_calls_2,
           active_preset: 1,
           advanced_model_anchor_prompt: DEFAULTS.advanced_model_anchor_prompt,
           advanced_prefill_prompt: DEFAULTS.advanced_prefill_prompt,
           advanced_prereply_prompt: DEFAULTS.advanced_prereply_prompt,
-          
+          kb_features_enabled: DEFAULTS.kb_features_enabled,
+
           vector_search_enabled: DEFAULTS.vector_search_enabled,
           vector_search_query_dialogue_rounds: DEFAULTS.vector_search_query_dialogue_rounds,
           vector_search_top_k: DEFAULTS.vector_search_top_k,
@@ -4956,7 +5248,7 @@ Example: [{"id": "chk_0", "category": "information"}, {"id": "chk_1", "category"
           vector_search_query_dialogue_rounds_2: DEFAULTS.vector_search_query_dialogue_rounds_2,
           vector_search_top_k_2: DEFAULTS.vector_search_top_k_2,
           vector_search_min_score_2: DEFAULTS.vector_search_min_score_2,
-          
+
           read_mod_lorebook: DEFAULTS.read_mod_lorebook,
           init_bootstrap_target_model: DEFAULTS.init_bootstrap_target_model,
           init_bootstrap_model_anchor_prompt: DEFAULTS.init_bootstrap_model_anchor_prompt,
@@ -4993,16 +5285,16 @@ Example: [{"id": "chk_0", "category": "information"}, {"id": "chk_1", "category"
         setVal("read_mod_lorebook", configCache.read_mod_lorebook);
         setVal("init_bootstrap_target_model", configCache.init_bootstrap_target_model);
         setVal("init_bootstrap_model_anchor_prompt", configCache.init_bootstrap_model_anchor_prompt);
+        const kbCheckbox = document.getElementById("kb_features_enabled");
+        if (kbCheckbox) kbCheckbox.checked = Number(configCache.kb_features_enabled) === 1;
         await renderCardEnableList();
         showStatus(_T.st_reset, "ok");
       } catch (e) { showStatus(_T.st_reset_fail + (e?.message || String(e)), "err"); }
     });
 
     const bindProviderAutoUrl = (providerId, urlId, urlMapKey) => {
-      // Build the in-memory map from persisted storage key (loaded into configCache at init)
       let uiProviderUrlMap = parseSimpleStringMap(configCache[urlMapKey] || "{}");
 
-      // Initialise savedCustomUrl from the map so it survives UI re-renders
       let savedCustomUrl = safeTrim(uiProviderUrlMap["custom_api"] || document.getElementById(urlId)?.value || "");
       let prevProvider = safeTrim(document.getElementById(providerId)?.value || "custom_api");
 
@@ -5011,23 +5303,19 @@ Example: [{"id": "chk_0", "category": "information"}, {"id": "chk_1", "category"
         const urlEl = document.getElementById(urlId);
         if (!urlEl) return;
 
-        // When leaving custom_api, save whatever the user typed to both memory and the map
         if (prevProvider === "custom_api") {
           savedCustomUrl = safeTrim(urlEl.value || "");
           uiProviderUrlMap["custom_api"] = savedCustomUrl;
         }
 
         if (nextProvider === "custom_api") {
-          // Restore the user's own URL when switching back to custom_api
           urlEl.value = savedCustomUrl;
         } else {
-          // For every named provider, always apply its preset URL
           urlEl.value = PROVIDER_DEFAULT_URL[nextProvider] ?? "";
         }
         prevProvider = nextProvider;
       });
 
-      // Keep savedCustomUrl and the map in sync when the user edits the URL while on custom_api
       document.getElementById(urlId)?.addEventListener("input", () => {
         if (safeTrim(document.getElementById(providerId)?.value || "") === "custom_api") {
           savedCustomUrl = safeTrim(document.getElementById(urlId)?.value || "");
@@ -5035,7 +5323,6 @@ Example: [{"id": "chk_0", "category": "information"}, {"id": "chk_1", "category"
         }
       });
 
-      // Expose a getter so the save handler can persist the map
       return () => uiProviderUrlMap;
     };
     const getUrlMapA = bindProviderAutoUrl("extractor_a_provider", "extractor_a_url", "extractor_a_provider_url_map");
@@ -5135,7 +5422,20 @@ Example: [{"id": "chk_0", "category": "information"}, {"id": "chk_1", "category"
     bindExtractorProviderModelMemory("extractor_a_provider", "extractor_a_model", "extractor_a_key", "A");
     bindExtractorProviderModelMemory("extractor_b_provider", "extractor_b_model", "extractor_b_key", "B");
 
-    
+    // Vertex AI SA JSON 顯示/隱藏邏輯
+    const bindVertexSaJsonVisibility = (providerId, wrapId) => {
+      const providerEl = document.getElementById(providerId);
+      const wrapEl = document.getElementById(wrapId);
+      if (!providerEl || !wrapEl) return;
+      const update = () => {
+        wrapEl.style.display = safeTrim(providerEl.value) === "vertex_ai" ? "block" : "none";
+      };
+      providerEl.addEventListener("change", update);
+      update();
+    };
+    bindVertexSaJsonVisibility("extractor_a_provider", "extractor_a_vertex_sa_wrap");
+    bindVertexSaJsonVisibility("extractor_b_provider", "extractor_b_vertex_sa_wrap");
+
     const THINKING_HINTS = {
       claude: "Claude: budget_tokens — Low=1024, Medium=8000, High=32000",
       google: "Gemini 3+: thinkingLevel — Low / Medium / High",
@@ -5160,7 +5460,7 @@ Example: [{"id": "chk_0", "category": "information"}, {"id": "chk_1", "category"
         updateThinkingHint(formatId, hintId);
       };
       cb.addEventListener("change", sync);
-      
+
       const fmtEl = document.getElementById(formatId);
       if (fmtEl) fmtEl.addEventListener("change", () => updateThinkingHint(formatId, hintId));
       sync();
@@ -5191,7 +5491,6 @@ Example: [{"id": "chk_0", "category": "information"}, {"id": "chk_1", "category"
         if (prevModel) uiEmbeddingProviderModelMap[currentEmbeddingProvider] = prevModel;
         const prevKey = safeTrim(keyEl?.value || "");
         if (prevKey) uiEmbeddingProviderKeyMap[currentEmbeddingProvider] = prevKey;
-        // Save custom_api URL before leaving it
         if (currentEmbeddingProvider === "custom_api") {
           const prevUrl = safeTrim(urlEl?.value || "");
           if (prevUrl) uiEmbeddingProviderUrlMap["custom_api"] = prevUrl;
@@ -5226,7 +5525,6 @@ Example: [{"id": "chk_0", "category": "information"}, {"id": "chk_1", "category"
       if (provider !== "custom_api") {
         urlEl.value = safeTrim(preset.url || "");
       } else {
-        // Restore the user's saved custom_api URL when switching back
         const remembered = safeTrim(uiEmbeddingProviderUrlMap["custom_api"] || "");
         if (remembered) urlEl.value = remembered;
       }
@@ -5235,7 +5533,6 @@ Example: [{"id": "chk_0", "category": "information"}, {"id": "chk_1", "category"
     };
 
     document.getElementById("embedding_provider")?.addEventListener("change", () => { refreshEmbeddingPresetByProvider(true).catch(() => { }); });
-    // Keep uiEmbeddingProviderUrlMap in sync when editing URL on custom_api
     document.getElementById("embedding_url")?.addEventListener("input", () => {
       if (safeTrim(document.getElementById("embedding_provider")?.value || "") === "custom_api") {
         uiEmbeddingProviderUrlMap["custom_api"] = safeTrim(document.getElementById("embedding_url")?.value || "");
@@ -5257,6 +5554,7 @@ Example: [{"id": "chk_0", "category": "information"}, {"id": "chk_1", "category"
 
     document.getElementById("pse-save")?.addEventListener("click", async () => {
       try {
+        const kbFeaturesEnabledNow = document.getElementById("kb_features_enabled")?.checked ? 1 : 0;
         const exAProv = safeTrim(document.getElementById("extractor_a_provider")?.value || "custom_api");
         const exAMod = safeTrim(document.getElementById("extractor_a_model")?.value || "");
         const exAKey = safeTrim(document.getElementById("extractor_a_key")?.value || "");
@@ -5317,8 +5615,9 @@ Example: [{"id": "chk_0", "category": "information"}, {"id": "chk_1", "category"
           advanced_model_anchor_prompt: document.getElementById("advanced_model_anchor_prompt")?.value ?? "",
           advanced_prefill_prompt: document.getElementById("advanced_prefill_prompt")?.value ?? "",
           advanced_prereply_prompt: document.getElementById("advanced_prereply_prompt")?.value ?? "",
+          kb_features_enabled: kbFeaturesEnabledNow,
           read_mod_lorebook: toInt(document.getElementById("read_mod_lorebook")?.value, DEFAULTS.read_mod_lorebook) === 1 ? 1 : 0,
-          vector_search_enabled: HARD_FREEZE_KB_FEATURES ? 0 : (() => {
+          vector_search_enabled: kbFeaturesEnabledNow !== 1 ? 0 : (() => {
             const cardList = document.querySelectorAll("#pse-card-enable-list .pse-entry-block");
             let anyVec = false;
             cardList.forEach(block => { if (block.querySelector(".pse-card-vector")?.value !== "off") anyVec = true; });
@@ -5338,6 +5637,8 @@ Example: [{"id": "chk_0", "category": "information"}, {"id": "chk_1", "category"
           extractor_b_thinking_level: safeTrim(document.getElementById("extractor_b_thinking_level")?.value || "medium"),
           extractor_a_concurrency: toInt(document.getElementById("extractor_a_concurrency")?.value, 1),
           extractor_b_concurrency: toInt(document.getElementById("extractor_b_concurrency")?.value, 1),
+          extractor_a_vertex_sa_json: safeTrim(document.getElementById("extractor_a_vertex_sa_json")?.value || ""),
+          extractor_b_vertex_sa_json: safeTrim(document.getElementById("extractor_b_vertex_sa_json")?.value || ""),
           context_messages: configCache.context_messages, timeout_ms: configCache.timeout_ms,
           card_enable_settings: (() => {
             const cardList = document.querySelectorAll("#pse-card-enable-list .pse-entry-block");
@@ -5347,7 +5648,7 @@ Example: [{"id": "chk_0", "category": "information"}, {"id": "chk_1", "category"
               if (!cid) return;
               cs[cid] = {
                 memory_extract: block.querySelector(".pse-card-memory")?.value || "off",
-                vector_search: HARD_FREEZE_KB_FEATURES ? "off" : (block.querySelector(".pse-card-vector")?.value || "off"),
+                vector_search: (block.querySelector(".pse-card-vector")?.value || "off"),
                 card_disabled: block.querySelector(".pse-card-disabled")?.checked ? 1 : 0,
               };
             });
@@ -5360,7 +5661,6 @@ Example: [{"id": "chk_0", "category": "information"}, {"id": "chk_1", "category"
     });
 
     document.getElementById("pse-close")?.addEventListener("click", async () => {
-      // Remove our overlay so the underlying framework regains full control
       const overlay = document.getElementById("pse-overlay-root");
       if (overlay) overlay.remove();
       try { await Risuai.hideContainer(); } catch { }
@@ -5368,8 +5668,7 @@ Example: [{"id": "chk_0", "category": "information"}, {"id": "chk_1", "category"
   }
 
   async function initSettingEntry() {
-    
-    
+
     const part = await Promise.resolve(
       Risuai.registerSetting(
         "RisuAI Agent",
@@ -5379,7 +5678,6 @@ Example: [{"id": "chk_0", "category": "information"}, {"id": "chk_1", "category"
     ).catch(() => null);
     if (part?.id != null) uiIds.push(part.id);
 
-    
     if (typeof Risuai.registerButton === "function") {
       const btn = await Promise.resolve(
         Risuai.registerButton({
@@ -5487,15 +5785,16 @@ Example: [{"id": "chk_0", "category": "information"}, {"id": "chk_1", "category"
       const charId = rawCharId || (charName ? `name_${simpleHash(charName)}` : "-1");
       const cardCfg = cardSettings[charId] || {};
       const cardMemoryPreset = cardCfg.memory_extract || "off";
-      const vectorPresetNum = HARD_FREEZE_KB_FEATURES ? 0 : (cardCfg.vector_search === "2" ? 2 : cardCfg.vector_search === "1" ? 1 : 0);
+      const vectorPresetNum = !isKbFeatureEnabled() ? 0 : (cardCfg.vector_search === "2" ? 2 : cardCfg.vector_search === "1" ? 1 : 0);
 
-      const cardIsDisabled = cardCfg.card_disabled === true || cardCfg.card_disabled === 1 || cardCfg.card_disabled === "1";
+      const cardIsDisabled = cardCfg.card_disabled === undefined || cardCfg.card_disabled === null
+        || cardCfg.card_disabled === true || cardCfg.card_disabled === 1 || cardCfg.card_disabled === "1";
       if (cardIsDisabled) {
         await Risuai.safeLocalStorage.setItem("last_extractor_mode", "card_disabled");
         return messages;
       }
 
-      const effectiveVecConfig = HARD_FREEZE_KB_FEATURES
+      const effectiveVecConfig = !isKbFeatureEnabled()
         ? {
           vector_search_enabled: 0,
           vector_search_query_dialogue_rounds: configCache.vector_search_query_dialogue_rounds,
@@ -5538,7 +5837,7 @@ Example: [{"id": "chk_0", "category": "information"}, {"id": "chk_1", "category"
         const hashChanged = currentStaticHash !== savedStaticHash;
         const sessionHandled = currentStaticHash === sessionStep0HandledHashByScope.get(staticKeys.scopeId);
 
-        if (HARD_FREEZE_KB_FEATURES) {
+        if (!isKbFeatureEnabled()) {
           try { await Risuai.pluginStorage.setItem(staticKeys.step0Complete, "1"); } catch { }
           try { await Risuai.pluginStorage.setItem(staticKeys.staticDataHash, currentStaticHash); } catch { }
           needsStep0 = false;
@@ -5576,6 +5875,10 @@ Example: [{"id": "chk_0", "category": "information"}, {"id": "chk_1", "category"
             await Risuai.log(`${LOG} Knowledge base initialization complete!`);
           } catch (step0Err) {
             const errMsg = step0Err?.message || String(step0Err);
+            try {
+              await Risuai.safeLocalStorage.setItem("last_lore_sync_error", `${LOG} Step 0 failed: ${errMsg}`);
+              try { await Risuai.safeLocalStorage.removeItem(requestKeys.regenSkip); } catch { }
+            } catch { }
             await Risuai.log(`${LOG} ❌ Knowledge base initialization failed: ${errMsg}`);
             if (isVectorEnabled) {
               throw new Error(`[RisuAI Agent] Vector knowledge base build failed/timed out. Progress has been saved.\nError: ${errMsg}\nPlease wait a moment, then click "Regenerate/Send" to continue from where it left off.`);
@@ -5603,19 +5906,12 @@ Example: [{"id": "chk_0", "category": "information"}, {"id": "chk_1", "category"
           return await mergeToSystemPromptWithRewrite(messages, null, lastUserContent);
         }
 
-        // Regen skip: key = hash(userMsgCount + lastUserMsg + chatIndex)
-        // Invalidated when performChatCleanup removes stale lore (undo/revert detected)
         const regenSkipKey = requestKeys.regenSkip;
         const regenSkipToken = simpleHash(JSON.stringify({ userMsgCount, lastUserContent, chatIndex }));
         if (loreModified) {
           try { await Risuai.safeLocalStorage.removeItem(regenSkipKey); } catch { }
         }
 
-        const reqHash = simpleHash(JSON.stringify({ baseConversation, userMsgCount }));
-        try { await Risuai.safeLocalStorage.removeItem(requestKeys.lastReqHash); } catch { }
-        await Risuai.safeLocalStorage.setItem(requestKeys.lastReqHash, reqHash);
-
-        // Check if this is a plain regenerate (same turn, same user message, no lore change)
         let savedRegenToken = null;
         try { savedRegenToken = await Risuai.safeLocalStorage.getItem(regenSkipKey); } catch { }
         if (!loreModified && savedRegenToken === regenSkipToken) {
@@ -5656,6 +5952,7 @@ Example: [{"id": "chk_0", "category": "information"}, {"id": "chk_1", "category"
                   url: endpoint.url, apiKey: endpoint.key, model: endpoint.model, format: endpoint.format, temperature: endpoint.temperature,
                   messages: extractedMessages, timeoutMs: configCache.timeout_ms, mode: call.target_model,
                   thinkingEnabled: endpoint.thinkingEnabled || false, thinkingLevel: endpoint.thinkingLevel || "",
+                  vertexSaJson: endpoint.vertexSaJson || "",
                 }),
               };
             } catch (err) {
@@ -5710,9 +6007,6 @@ Example: [{"id": "chk_0", "category": "information"}, {"id": "chk_1", "category"
         const allCardCalls = parseModelCalls(cardMemoryPreset === "2" ? configCache.model_calls_2 : configCache.model_calls);
         await applyRetentionCleanup(userMsgCount, allCardCalls);
 
-        // Mark this turn+message as successfully extracted so regenerates can skip.
-        // Only set when dueCalls actually ran — turns with no due calls must not
-        // block the next extraction cycle from running.
         if (dueCalls.length > 0) {
           try { await Risuai.safeLocalStorage.setItem(regenSkipKey, regenSkipToken); } catch { }
         }
