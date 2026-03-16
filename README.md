@@ -76,5 +76,14 @@ All step-by-step preset modifications, API key setups, model recommendations, an
 
 ---
 
+
+## 🔗 References
+*   *[HER: Human-like Reasoning and Reinforcement Learning for LLM Role-playing](https://www.alphaxiv.org/abs/2601.21459?chatId=019cd9ab-2c7a-7db3-9a1e-6bafa8fe626f)*
+*   *[ENHANCING PERSONA FOLLOWING AT DECODING TIME VIA DYNAMIC IMPORTANCE ESTIMATION FOR ROLE-PLAYING AGENT](https://www.alphaxiv.org/abs/2603.01438)*
+*   *[Facet-Level Persona Control by Trait-Activated Routing with Contrastive SAE for Role-Playing LLMs](https://www.alphaxiv.org/abs/2602.19157)*
+*   *[Structured Personality Control and Adaptation for LLM Agents](https://www.alphaxiv.org/abs/2601.10025)*
+
+---
+
 ### 📜 License
 Licensed under the **GPL-3.0** License.
