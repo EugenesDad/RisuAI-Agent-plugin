@@ -31,20 +31,20 @@ Instead of forcing your main AI model to juggle memory, world-building, and acti
 
 *   🎬 **Director's Notes:** Actively guides the plot, manages the character's emotional shifts and reactions, and corrects minor logical inconsistencies in real-time.
 *   🔍 **Vector Search:** Replaces rigid keyword matching with intelligent semantic retrieval, drastically increasing the relevance and density of injected background lore.
-*   🔀 **Card Reorganization (Bot Reorg):** Dismantles the character card and intelligently re-categorizes entries, injecting them into the most optimal structural positions within the prompt.
+*   🔀 **Bot Reorganization:** Dismantles the character card and intelligently re-categorizes entries, injecting them into the most optimal structural positions within the prompt.
 
 ---
 
 ## 🧋 V3 Preset Architecture
 
-This plugin is designed to power RisuAI's most advanced prompt architecture to date. Characters remember more, responses are richer, and personalities are multi-dimensional.
+This plugin is designed to power [RisuAI](https://github.com/kwaroran/Risuai)'s most advanced prompt architecture to date. Characters remember more, responses are richer, and personalities are multi-dimensional.
 
 ### 🏗️ Preset Structure
 The optimal prompt execution flow under this architecture looks like this:
 
 ```text
 System Prompts [Actor Rules] ->
-Initial Setting [Card Info] ->
+Initial Setting [Bot Info] ->
 10 Chat [Recent 5 Message Pairs] -> 
 Author's Note -> 
 Story Progression [Memory Extraction & Director Instructions] ->
@@ -57,10 +57,10 @@ Prefill with Jailbreak [⚠️ Delete this for Claude, DeepSeek, & Mistral]
 
 ## 📦 Setup & Configuration
 
-1. **Install the Plugin** directly within RisuAI.
+1. **Install the Plugin** directly within [RisuAI](https://github.com/kwaroran/Risuai).
 2. Open the **Plugin Settings** (👤 RisuAI Agent).
 
-All step-by-step preset modifications, API key setups, model recommendations, and feature toggles are explained interactively directly inside the RisuAI interface!
+All step-by-step preset modifications, API key setups, model recommendations, and feature toggles are explained interactively directly inside the [RisuAI](https://github.com/kwaroran/Risuai) interface!
 
 ---
 
