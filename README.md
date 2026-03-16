@@ -16,7 +16,7 @@
 
 ## 🚀 Overview
 
-**RisuAI Agent** is an advanced orchestration layer built on top of RisuAI. Think of it as a **versatile secretary standing beside a star actor**. 
+**RisuAI Agent** is an advanced orchestration layer built on top of [RisuAI](https://github.com/kwaroran/Risuai). Think of it as a **versatile secretary standing beside a star actor**. 
 
 Instead of forcing your main AI model to juggle memory, world-building, and acting all at once, this plugin delegates the heavy lifting (memory management, logical consistency, and character directing) to specialized background AI agents. This allows your main model to focus entirely on delivering a stellar, immersive performance in the present moment.
 
