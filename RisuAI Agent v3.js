@@ -1,9 +1,9 @@
 //@name 👤 RisuAI Agent
-//@display-name 👤 RisuAI Agent v3.0
+//@display-name 👤 RisuAI Agent v3.1
 //@author penguineugene@protonmail.com
 //@link https://github.com/EugenesDad/RisuAI-Agent-plugin
 //@api 3.0
-//@version 3.0
+//@version 3.1
 
 (async () => {
   function _mapLangCode(raw) {
@@ -132,6 +132,8 @@
       preset2: "Setting 2",
       no_cache: "No vector cache data available.",
       confirm_clear: `Are you sure you want to clear all vector caches?\nThis will delete all bot cache data. The cache will be rebuilt when you next send a message.`,
+      confirm_reset:
+        "Are you sure you want to reset all settings to factory defaults?\nThis will replace your current plugin settings.",
       st_cache_refreshed: "Vector cache list refreshed.",
       st_cache_cleared:
         "All vector caches cleared. Cache will be rebuilt on next send.",
@@ -145,16 +147,19 @@
       st_save_fail: "Save failed: ",
       st_reset: "Reset to Agent defaults.",
       st_reset_fail: "Reset failed: ",
+      lbl_persona_entries: "Character Persona Entries",
+      lbl_delete_char_cache: "Delete this character's cache",
+      lbl_no_persona_data: "No character data found.",
       model_suggest_title: "🖥️ Recommended Models",
-      model_suggest_s1: `<b>Setting 1: Single Character or Light Adventure Bot</b><br/>• Main Model: Models suited for summarizing large datasets (Gemini 1.5 Flash)<br/>• Auxiliary Model: Non-coding models for 1k~5k context (Gemini 1.5 Flash Lite)<br/>• Embedding Model: Multilingual vector search model (text-embedding-004)`,
-      model_suggest_s2: `<b>Setting 1 or 2: Complex or Multi-Character Bots</b><br/>• Main Model: Models for deep analysis of large datasets (Gemini 1.5 Pro, Claude 3.5 Sonnet)<br/>• Auxiliary Model: High-performance models for 1k~10k context (Gemini 1.5 Flash)<br/>• Embedding Model: Multilingual vector search model (text-embedding-004)`,
+      model_suggest_s1: `<b>Setting 1: Single Character or Light Adventure Bot</b><br/>• Main Model: Models suited for summarizing large datasets (Gemini 3 Flash)<br/>• Auxiliary Model: Non-coding models for 1k~5k context (Gemini 3.1 Flash Lite)<br/>• Embedding Model: Multilingual vector search model (gemini-embedding-2-preview)`,
+      model_suggest_s2: `<b>Setting 1 or 2: Complex or Multi-Character Bots</b><br/>• Main Model: Models for deep analysis of large datasets (Gemini 3.1 Pro, Claude 4.6 Sonnet)<br/>• Auxiliary Model: High-performance models for 1k~10k context (Gemini 3 Flash)<br/>• Embedding Model: Multilingual vector search model (gemini-embedding-2-preview)`,
       mode_guide_title: "📖 Mode Guide & Model Call Instructions",
       mode_guide_content: `<div style="border-top: 1px solid rgba(255, 152, 0, 0.1); padding-top: 12px;">
                     <!-- 🎯 Mode Choice (Indigo) -->
                     <div style="border-left: 4px solid var(--pse-accent-indigo); background: rgba(63, 81, 181, 0.05); padding: 8px 12px; border-radius: 8px; margin-bottom: 16px;">
                       <b style="color: var(--pse-accent-indigo); font-size: 14px;">🎯 Mode Choice</b>
                       <div style="margin-top: 6px; display: grid; gap: 4px; margin-bottom: 8px;">
-                        <div>• <b>Settings Difference:</b> "Setting 1" is for general cards; "Setting 2" is designed for complex plots.</div>
+                        <div>• <b>Settings Difference:</b> "Setting 1" is for general bots; "Setting 2" is designed for complex plots.</div>
                         <div>• <b>Extraction:</b> Condenses chat logs, replacing traditional long-turn dialogue and Supa/Hypa.</div>
                       </div>
 
@@ -231,7 +236,7 @@
                     <div style="border-left: 4px solid var(--pse-accent-red); background: rgba(244, 67, 54, 0.04); padding: 8px 12px; border-radius: 8px;">
                       <b style="color: var(--pse-accent-red); font-size: 14px;">⚠️ Important Notes</b>
                       <div style="margin-top: 8px; font-size: 12px; line-height: 1.6;">
-                        <div style="margin-bottom: 10px;">CBS syntax cannot be parsed; manual adjustment required for <b>Card Reorg</b> or <b>Vector Search</b>:</div>
+                        <div style="margin-bottom: 10px;">CBS syntax cannot be parsed; manual adjustment is required for <b>Bot Reorg</b> or <b>Vector Search</b>:</div>
                         <div style="display: grid; gap: 8px;">
                           <div style="display: flex; align-items: flex-start; gap: 8px; background: rgba(244, 67, 54, 0.06); border: 1px solid rgba(244, 67, 54, 0.15); padding: 10px; border-radius: 6px;">
                             <div style="background: var(--pse-accent-red); color: white; padding: 2px 6px; border-radius: 4px; font-size: 10px; font-weight: bold; white-space: nowrap; margin-top: 1px;">Toggle</div>
@@ -288,6 +293,16 @@
       expand_classify: "Classification Anchor Prompt - Expanded Edit",
       expand_generic: "Edit Prompt Content",
       expand_format: "Output Format (JSON Schema) - Expanded Edit",
+      sec_json_tools: "Prompt JSON",
+      btn_json_export: "Export Settings",
+      btn_json_import: "Import Settings",
+      json_file_accept: ".json,application/json",
+      st_json_exported: "Prompt JSON exported.",
+      st_json_imported: "Prompt JSON imported and saved.",
+      err_json_import_invalid:
+        "Imported JSON format is invalid. Please use a JSON exported from this UI.",
+      err_json_import_mode:
+        "Imported JSON does not match this tab type. Please import the correct preset/persona JSON.",
       lbl_thinking: "Thinking Tokens",
       lbl_thinking_level: "Thinking Level",
       thinking_title: "Enable extended thinking for this model",
@@ -373,7 +388,7 @@
   <div style="padding: 12px; border-radius: 8px; border-left: 4px solid #4CAF50; background: rgba(76, 175, 80, 0.05);">
     <div style="font-weight: bold; color: #2E7D32; margin-bottom: 8px;">📂 Data Storage Information</div>
     • Information extraction records are stored in <b>Lorebook > Chat</b> entries and can be reviewed or adjusted at any time.<br>
-    • Index data for card classification, vector search, and character core is stored in the <b>Cache Hub</b>.
+    • Index data for bot classification, vector search, and character core is stored in the <b>Cache Hub</b>.
   </div>
 </div>
 
@@ -608,7 +623,7 @@ Practical conflict rule:
       tab_preset2_old: "설정 2 (추출)",
       tab_preset1_new: "설정 1 (추출+디렉터)",
       tab_preset2_new: "설정 2 (추출+디렉터)",
-      tab_char_extract: "캐릭터 성향 추출",
+      tab_char_extract: "캐릭터 페르소나 추출",
       tab_preset3: "설정 3",
       tab_preset4: "설정 4",
       sec_a: "메인 모델",
@@ -686,6 +701,8 @@ Practical conflict rule:
       no_cache: "벡터 캐시 데이터가 없습니다.",
       confirm_clear:
         "모든 벡터 캐시를 삭제하시겠습니까?\n모든 봇의 캐시가 삭제되며 다음 대화 시 재생성됩니다.",
+      confirm_reset:
+        "모든 설정을 공장 기본값으로 초기화하시겠습니까?\n현재 플러그인 설정이 기본값으로 대체됩니다.",
       st_cache_refreshed: "벡터 캐시 목록이 업데이트되었습니다.",
       st_cache_cleared:
         "모든 벡터 캐시가 삭제되었습니다. 다음 대화 시 재생성됩니다.",
@@ -699,9 +716,12 @@ Practical conflict rule:
       st_save_fail: "저장 실패: ",
       st_reset: "기본값으로 초기화되었습니다.",
       st_reset_fail: "초기화 실패: ",
+      lbl_persona_entries: "캐릭터 페르소나 항목",
+      lbl_delete_char_cache: "이 캐릭터의 캐시 삭제",
+      lbl_no_persona_data: "캐릭터 데이터가 없습니다.",
       model_suggest_title: "🖥️ 권장 모델",
-      model_suggest_s1: `<b>설정 1: 단일 캐릭터 또는 가벼운 모험용 봇</b><br/>• 메인 모델: 대량의 정보를 요약하기에 적합 (Gemini 1.5 Flash)<br/>• 보조 모델: 가벼운 처리에 적합 (Gemini 1.5 Flash Lite)<br/>• 임베딩 모델: 다국어 벡터 검색용 (text-embedding-004)`,
-      model_suggest_s2: `<b>설정 1 또는 2: 복잡하거나 다중 캐릭터형 봇</b><br/>• 메인 모델: 깊이 있는 분석에 적합 (Gemini 1.5 Pro, Claude 3.5 Sonnet)<br/>• 보조 모델: 중량급 처리에 적합 (Gemini 1.5 Flash)<br/>• 임베딩 모델: 다국어 벡터 검색용 (text-embedding-004)`,
+      model_suggest_s1: `<b>설정 1: 단일 캐릭터 또는 가벼운 모험용 봇</b><br/>• 메인 모델: 대량의 정보를 요약하기에 적합 (Gemini 3 Flash)<br/>• 보조 모델: 가벼운 처리에 적합 (Gemini 3.1 Flash Lite)<br/>• 임베딩 모델: 다국어 벡터 검색용 (gemini-embedding-2-preview)`,
+      model_suggest_s2: `<b>설정 1 또는 2: 복잡하거나 다중 캐릭터형 봇</b><br/>• 메인 모델: 깊이 있는 분석에 적합 (Gemini 3.1 Pro, Claude 4.6 Sonnet)<br/>• 보조 모델: 중량급 처리에 적합 (Gemini 3 Flash)<br/>• 임베딩 모델: 다국어 벡터 검색용 (gemini-embedding-2-preview)`,
       mode_guide_title: "📖 모드 및 호출 빈도 안내",
       mode_guide_content: `<div style="border-top: 1px solid rgba(255, 152, 0, 0.1); padding-top: 12px;">
                     <!-- 🎯 모드 선택 (Indigo) -->
@@ -792,8 +812,8 @@ Practical conflict rule:
                             <div style="color: var(--pse-text);">원하는 <b>활성화/비활성화</b> 상태로 직접 조정하십시오.</div>
                           </div>
                           <div style="display: flex; align-items: flex-start; gap: 8px; background: rgba(244, 67, 54, 0.06); border: 1px solid rgba(244, 67, 54, 0.15); padding: 10px; border-radius: 6px;">
-                            <div style="background: var(--pse-accent-red); color: white; padding: 2px 6px; border-radius: 4px; font-size: 10px; font-weight: bold; white-space: nowrap; margin-top: 1px;">피라미터형</div>
-                            <div style="color: var(--pse-text);">전체 항목 내용을 <b>작가 노트 (Author's Note)</b>로 이동하십시오.</div>
+                            <div style="background: var(--pse-accent-red); color: white; padding: 2px 6px; border-radius: 4px; font-size: 10px; font-weight: bold; white-space: nowrap; margin-top: 1px;">파라미터형</div>
+                            <div style="color: var(--pse-text);">전체 항목 내용을 <b>작가의 노트 (Author's Note)</b>로 이동해 주세요.</div>
                           </div>
                         </div>
                       </div>
@@ -840,6 +860,16 @@ Practical conflict rule:
       expand_classify: "분류 앵커 프롬프트 - 확대 편집",
       expand_generic: "프롬프트 내용 편집",
       expand_format: "출력 형식 (JSON Schema) - 확대 편집",
+      sec_json_tools: "프롬프트 JSON",
+      btn_json_export: "설정 내보내기",
+      btn_json_import: "설정 가져오기",
+      json_file_accept: ".json,application/json",
+      st_json_exported: "프롬프트 JSON을 내보냈습니다.",
+      st_json_imported: "프롬프트 JSON을 가져와 바로 저장했습니다.",
+      err_json_import_invalid:
+        "가져온 JSON 형식이 올바르지 않습니다. 이 UI에서 내보낸 JSON을 사용해 주세요.",
+      err_json_import_mode:
+        "가져온 JSON 유형이 현재 탭과 맞지 않습니다. 올바른 프리셋 또는 페르소나 JSON을 선택해 주세요.",
       lbl_thinking: "사고 토큰",
       lbl_thinking_level: "사고 수준",
       thinking_title: "이 모델에 대한 확장 사고 활성화",
@@ -898,9 +928,9 @@ Practical conflict rule:
       help_html: `<div style="font-family: inherit; line-height: 1.5;">
   <div style="padding: 12px; border-radius: 8px; margin-bottom: 12px; border-left: 4px solid #E91E63; background: rgba(233, 30, 99, 0.05);">
     <div style="font-weight: bold; color: #E91E63; margin-bottom: 8px;">🦮 플러그인 안내</div>
-    <div style="margin-bottom: 4px;">• <b>활성화 설정:</b> 개별 카드에 대한 플러그인 모드를 설정합니다. 설정이 완료되면 어떤 프리셋 프롬프트 수정이 적용되는지 안내합니다. 태그를 클릭하면 설명 페이지로 이동합니다.</div>
-    <div style="margin-bottom: 4px;">• <b>전도 모델 설정:</b> 주요 모델, 보조 모델, 임베딩 모델의 위치와 파라미터를 설정합니다. RisuAI 본체에서 사용하는 모델과는 무관합니다.</div>
-    <div style="margin-bottom: 4px;">• <b>캐시 관리 센터:</b> 카드 분류, 벡터 검색 및 캐릭터 핵심 데이터를 저장합니다. 확인, 새로고침 및 삭제가 가능합니다.</div>
+    <div style="margin-bottom: 4px;">• <b>활성화 설정:</b> 개별 봇의 플러그인 모드를 설정합니다. 설정이 완료되면 어떤 프리셋 프롬프트 수정이 적용되는지 안내합니다. 태그를 클릭하면 설명 페이지로 이동합니다.</div>
+    <div style="margin-bottom: 4px;">• <b>코어 모델:</b> 메인 모델, 보조 모델, 임베딩 모델의 설정값과 파라미터를 지정합니다. RisuAI 본체에서 사용하는 모델과는 별개입니다.</div>
+    <div style="margin-bottom: 4px;">• <b>캐시 저장소:</b> 봇 분류, 벡터 검색, 캐릭터 핵심 데이터를 저장합니다. 확인, 새로고침, 삭제가 가능합니다.</div>
     <div style="margin-bottom: 4px;">• <b>정보 추출:</b> 고급 사용자용. 디렉터 및 추출 모드의 세부 사항을 사용자 정의할 수 있습니다.</div>
     <div>• <b>벡터 검색:</b> 고급 사용자용. 벡터 검색의 세부 사항을 사용자 정의할 수 있습니다.</div>
   </div>
@@ -910,7 +940,7 @@ Practical conflict rule:
     <div style="margin-bottom: 8px;">
       <div style="font-weight: bold; color: #43A047; margin-bottom: 4px;">✅ 호환 가능</div>
       • 플러그인 모드 유지 시 대화 도중 프리셋(Preset) 전환 가능.<br>
-      • 플레이 도중 카드 재구성 및 벡터 검색 기능 전환 가능.<br>
+      • 대화 중에도 봇 재구성과 벡터 검색 기능을 전환할 수 있습니다.<br>
       • 비플러그인 모드로의 매끄러운 전환 지원.
     </div>
     <div>
@@ -924,7 +954,7 @@ Practical conflict rule:
   <div style="padding: 12px; border-radius: 8px; border-left: 4px solid #4CAF50; background: rgba(76, 175, 80, 0.05);">
     <div style="font-weight: bold; color: #2E7D32; margin-bottom: 8px;">📂 데이터 저장 안내</div>
     • 정보 추출 기록은 <b>로어북 > 채팅</b> 항목에 저장되며 언제든지 확인하거나 수정할 수 있습니다.<br>
-    • 카드 분류, 벡터 검색 및 캐릭터 핵심의 인덱스 데이터는 <b>캐시 관리 센터</b>에 저장됩니다.
+    • 봇 분류, 벡터 검색 및 캐릭터 핵심의 인덱스 데이터는 <b>캐시 저장소</b>에 저장됩니다.
   </div>
 </div>
 
@@ -950,8 +980,8 @@ Practical conflict rule:
   </div>`,
       lbl_loading: "로딩 중...",
       sec_suggest: "🖥️ 권장 모델",
-      lbl_suggest_s1: "설정 1: 단일 캐릭터 또는 가벼운 모험 카드",
-      lbl_suggest_s2: "설정 1 또는 2: 인물 많거나 설정이 복잡한 카드",
+      lbl_suggest_s1: "설정 1: 단일 캐릭터 또는 가벼운 모험용 봇",
+      lbl_suggest_s2: "설정 1 또는 2: 인물이 많거나 설정이 복잡한 봇",
       lbl_suggest_s1_main:
         "메인 모델: 대량의 데이터를 요약할 수 있는 모델 (Gemini 3 Flash)",
       lbl_suggest_s1_aux:
@@ -964,24 +994,24 @@ Practical conflict rule:
         "보조 모델: 일정 수준의 분석 능력을 갖춘 모델 (Gemini 3 Flash)",
       lbl_suggest_s2_embed:
         "임베딩 모델: 다국어 벡터 검색 모델 (gemini-embedding-2-preview)",
-      lbl_mode_reorg_vec: "카드 재구성 및 벡터 검색 모드:",
+      lbl_mode_reorg_vec: "봇 재구성 및 벡터 검색 모드:",
       lbl_cbs_manual:
         "현재 CBS 구문을 파싱할 수 없으므로 수동 조정이 필요합니다.",
       lbl_adjustment_method: "조정 방법:",
       lbl_toggle_type: "On/Off형:",
       lbl_toggle_desc: "필요한 설정으로 직접 조정하세요.",
       lbl_param_type: "매개변수형:",
-      lbl_param_desc: "전체 데이터를 작가 노트(Author's Note)로 이동시키세요.",
+      lbl_param_desc: "전체 데이터를 작가의 노트(Author's Note)로 옮기세요.",
       lbl_director_vec: "디렉터 & 벡터 검색:",
       lbl_embed_per_turn: "임베딩 모델 턴당 1회",
       lbl_new_chat: "대화 시작",
       lbl_during_chat: "대화 중",
       lbl_init_time: "설정이 복잡할수록 초기화에 더 많은 시간이 소요됩니다",
       lbl_director_call: "디렉터: 페르소나 추출을 위해 메인 모델 호출",
-      lbl_reorg_call: "카드 재구성: 데이터 분류를 위해 보조 모델 호출",
+      lbl_reorg_call: "봇 재구성: 데이터 분류를 위해 보조 모델 호출",
       lbl_vec_call: "벡터 검색: 인덱스 구축을 위해 임베딩 모델 호출",
       lbl_cost_chars: "소모량은 캐릭터 수에 비례합니다",
-      lbl_cost_data: "소모량은 카드 데이터양에 비례합니다",
+      lbl_cost_data: "소모량은 봇 데이터 양에 비례합니다",
       lbl_extraction_mode: "✨ 추출 모드",
       lbl_extraction_director: "🎬 추출 + 디렉터",
       lbl_s1_freq_ext: "설정 1: 메인 (10-15 턴마다), 보조 (턴당 2회 + 3턴마다)",
@@ -1235,6 +1265,8 @@ Practical conflict rule:
       no_cache: "目前沒有向量快取資料。",
       confirm_clear:
         "確定要清除全部向量快取嗎？\n這將刪除所有卡片的快取資料，下次對話時系統將會重新建立。",
+      confirm_reset:
+        "確定要將所有設定重置為出廠預設嗎？\n目前的插件設定將被預設值取代。",
       st_cache_refreshed: "已更新向量快取列表。",
       st_cache_cleared: "已清除全部向量快取，下次對話時將重新建立。",
       st_card_deleted: "已刪除該卡片的向量快取。",
@@ -1246,6 +1278,9 @@ Practical conflict rule:
       st_save_fail: "儲存失敗：",
       st_reset: "已重置為 Agent 預設值。",
       st_reset_fail: "重置失敗：",
+      lbl_persona_entries: "角色萃取條目",
+      lbl_delete_char_cache: "刪除此角色的快取",
+      lbl_no_persona_data: "找不到角色資料。",
       warn_cbs_mod:
         "因為無法解析 CBS 語法，所以請在檢視模組的 Lorebook 內容後，自行決定是否開啟。",
       btn_reset_factory: "將所有設定重置為出廠預設",
@@ -1287,6 +1322,16 @@ Practical conflict rule:
       expand_classify: "分類定位提示詞 - 放大編輯",
       expand_generic: "編輯提示詞內容",
       expand_format: "輸出格式 (JSON Schema) - 放大編輯",
+      sec_json_tools: "提示詞 JSON",
+      btn_json_export: "設定匯出",
+      btn_json_import: "設定匯入",
+      json_file_accept: ".json,application/json",
+      st_json_exported: "已匯出提示詞 JSON。",
+      st_json_imported: "已匯入並立即儲存提示詞 JSON。",
+      err_json_import_invalid:
+        "匯入的 JSON 格式不符合。請使用由此介面匯出的 JSON。",
+      err_json_import_mode:
+        "匯入的 JSON 類型與目前分頁不符。請匯入對應的預設或人格 JSON。",
       lbl_thinking: "思考 Tokens",
       lbl_thinking_level: "思考等級",
       thinking_title: "為此模型啟用延伸思考",
@@ -1692,7 +1737,7 @@ Practical conflict rule:
   let _langInitialized = false;
 
   const PLUGIN_NAME = "👤 RisuAI Agent";
-  const PLUGIN_VER = "3.0";
+  const PLUGIN_VER = "3.1";
   const LOG = "[RisuAIAgent]";
   const SYSTEM_INJECT_TAG = "PLUGIN_PARALLEL_STATUS";
   const SYSTEM_REWRITE_TAG = "PLUGIN_PARALLEL_REWRITE";
@@ -1724,6 +1769,9 @@ Practical conflict rule:
   const COPILOT_MODELS_CACHE_KEY = "copilot_models_cache_v1";
   const COPILOT_MODELS_CACHE_TS_KEY = "copilot_models_cache_ts_v1";
   const COPILOT_TOKEN_URL = "https://api.github.com/copilot_internal/v2/token";
+  const COPILOT_CODE_VERSION = "1.111.0";
+  const COPILOT_CHAT_VERSION = "0.40.2026031401";
+  const COPILOT_USER_AGENT = `Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Code/${COPILOT_CODE_VERSION} Chrome/142.0.7444.265 Electron/39.3.0 Safari/537.36`;
   const OPENROUTER_MODELS_CACHE_TTL_MS = 6 * 60 * 60 * 1000;
   const FIXED_TIMEOUT_MS = 300000;
 
@@ -3278,7 +3326,7 @@ CORRECT EXAMPLE:
     anthropic: "https://api.anthropic.com/v1/messages",
     google_cloud: "https://generativelanguage.googleapis.com/v1beta/models",
     vertex_ai:
-      "https://us-central1-aiplatform.googleapis.com/v1/projects/YOUR_PROJECT_ID/locations/us-central1/publishers/google/models",
+      "https://aiplatform.googleapis.com/v1/projects/YOUR_PROJECT_ID/locations/global/publishers/google/models",
     grok: "https://api.x.ai/v1/chat/completions",
     github_copilot: "https://api.githubcopilot.com/chat/completions",
     openrouter: "https://openrouter.ai/api/v1/chat/completions",
@@ -3444,6 +3492,51 @@ CORRECT EXAMPLE:
       label: "Gemini 3.1 Flash Lite Preview",
     },
     { value: "gemini-2.5-pro", label: "Gemini 2.5 Pro" },
+    { value: "gemini-2.5-flash", label: "Gemini 2.5 Flash" },
+  ];
+
+  const VERTEX_EXTRACTOR_MODEL_OPTIONS = [
+    { value: "gemini-3-pro-preview", label: "Gemini 3 Pro Preview" },
+    { value: "gemini-3.1-pro-preview", label: "Gemini 3.1 Pro Preview" },
+    { value: "gemini-3-flash-preview", label: "Gemini 3 Flash Preview" },
+    {
+      value: "gemini-3.1-flash-lite-preview",
+      label: "Gemini 3.1 Flash Lite Preview",
+    },
+    { value: "gemini-2.5-pro", label: "Gemini 2.5 Pro" },
+    { value: "gemini-2.5-flash", label: "Gemini 2.5 Flash" },
+    {
+      value: "gemini-3-pro-image-preview",
+      label: "Gemini 3 Pro Image Preview",
+    },
+    {
+      value: "claude-haiku-4-5@20251001",
+      label: "Claude 4.5 Haiku (2025/10/01)",
+    },
+    {
+      value: "claude-sonnet-4@20250514",
+      label: "Claude 4 Sonnet (2025/05/14)",
+    },
+    {
+      value: "claude-sonnet-4-5@20250929",
+      label: "Claude 4.5 Sonnet (2025/09/29)",
+    },
+    {
+      value: "claude-sonnet-4-6@20260301",
+      label: "Claude 4.6 Sonnet (2026/03/01)",
+    },
+    {
+      value: "claude-opus-4-1@20250805",
+      label: "Claude 4.1 Opus (2025/08/05)",
+    },
+    {
+      value: "claude-opus-4-5@20251101",
+      label: "Claude 4.5 Opus (2025/11/01)",
+    },
+    {
+      value: "claude-opus-4-6@20260301",
+      label: "Claude 4.6 Opus (2026/03/01)",
+    },
   ];
 
   const uiIds = [];
@@ -5155,7 +5248,7 @@ CORRECT EXAMPLE:
   }
 
   async function getCopilotBearerToken(rawGitHubToken) {
-    const key = safeTrim(rawGitHubToken);
+    const key = sanitizeAsciiToken(rawGitHubToken);
     if (!key) return "";
     const cachedToken = safeTrim(
       await Risuai.safeLocalStorage.getItem("copilot_tid_token"),
@@ -5178,7 +5271,10 @@ CORRECT EXAMPLE:
           Accept: "application/json",
           Authorization: `Bearer ${key}`,
           Origin: "vscode-file://vscode-app",
-          "User-Agent": "GitHubCopilotChat/0.30.0",
+          "Editor-Version": `vscode/${COPILOT_CODE_VERSION}`,
+          "Editor-Plugin-Version": `copilot-chat/${COPILOT_CHAT_VERSION}`,
+          "Copilot-Integration-Id": "vscode-chat",
+          "User-Agent": COPILOT_USER_AGENT,
         },
       },
       12000,
@@ -5200,17 +5296,201 @@ CORRECT EXAMPLE:
   }
 
   async function applyCopilotAuthHeaders(headers, rawGitHubToken) {
-    const token = await getCopilotBearerToken(rawGitHubToken);
+    const fallbackToken = sanitizeAsciiToken(rawGitHubToken);
+    const token = (await getCopilotBearerToken(fallbackToken)) || fallbackToken;
     if (!token) return headers;
     const next = { ...(headers || {}) };
     next.Authorization = `Bearer ${token}`;
     next["Copilot-Integration-Id"] = "vscode-chat";
-    next["Editor-plugin-version"] = "copilot-chat/0.30.0";
-    next["Editor-version"] = "vscode/1.99.0";
-    next["User-Agent"] = "GitHubCopilotChat/0.30.0";
+    next["Editor-plugin-version"] = `copilot-chat/${COPILOT_CHAT_VERSION}`;
+    next["Editor-version"] = `vscode/${COPILOT_CODE_VERSION}`;
+    next["Editor-Plugin-Version"] = `copilot-chat/${COPILOT_CHAT_VERSION}`;
+    next["Editor-Version"] = `vscode/${COPILOT_CODE_VERSION}`;
+    next["User-Agent"] = COPILOT_USER_AGENT;
     next["X-Github-Api-Version"] = "2025-10-01";
     next["X-Initiator"] = "user";
     return next;
+  }
+
+  function sanitizeAsciiToken(raw) {
+    return String(raw || "")
+      .replace(/[^\x20-\x7E]/g, "")
+      .trim();
+  }
+
+  function parseVertexServiceAccount(rawKey) {
+    const raw = safeTrim(rawKey || "");
+    if (!raw) throw new Error("Vertex AI Service Account JSON is missing.");
+    let parsed = null;
+    try {
+      parsed = JSON.parse(raw);
+    } catch (err) {
+      throw new Error(
+        `Vertex AI key must be the full Service Account JSON, not a bearer token or file path: ${err?.message || String(err)}`,
+      );
+    }
+    if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) {
+      throw new Error("Vertex AI key must be a JSON object.");
+    }
+    if (!safeTrim(parsed.client_email) || !safeTrim(parsed.private_key)) {
+      throw new Error(
+        "Vertex AI Service Account JSON is missing client_email or private_key.",
+      );
+    }
+    return parsed;
+  }
+
+  function toBase64UrlUtf8(input) {
+    return btoa(unescape(encodeURIComponent(String(input || ""))))
+      .replace(/\+/g, "-")
+      .replace(/\//g, "_")
+      .replace(/=+$/g, "");
+  }
+
+  function pemToArrayBuffer(pem) {
+    const body = String(pem || "")
+      .replace(/-----BEGIN [^-]+-----/g, "")
+      .replace(/-----END [^-]+-----/g, "")
+      .replace(/\s+/g, "");
+    const binary = atob(body);
+    const bytes = new Uint8Array(binary.length);
+    for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+    return bytes.buffer.slice(0);
+  }
+
+  async function requestVertexAccessToken(rawKey) {
+    const svc = parseVertexServiceAccount(rawKey);
+    const cacheKey = `vertex_access_token_${safeTrim(svc.client_email) || "default"}`;
+    const cachedToken = safeTrim(await Risuai.safeLocalStorage.getItem(cacheKey));
+    const cachedExpiry = Number(
+      (await Risuai.safeLocalStorage.getItem(`${cacheKey}_expiry`)) || 0,
+    );
+    if (
+      cachedToken &&
+      Number.isFinite(cachedExpiry) &&
+      Date.now() < cachedExpiry - 60000
+    )
+      return { token: cachedToken, serviceAccount: svc };
+
+    const now = Math.floor(Date.now() / 1000);
+    const header = toBase64UrlUtf8(JSON.stringify({ alg: "RS256", typ: "JWT" }));
+    const claim = toBase64UrlUtf8(
+      JSON.stringify({
+        iss: svc.client_email,
+        scope: "https://www.googleapis.com/auth/cloud-platform",
+        aud: "https://oauth2.googleapis.com/token",
+        iat: now,
+        exp: now + 3600,
+      }),
+    );
+    const unsignedToken = `${header}.${claim}`;
+    const privateKey = await crypto.subtle.importKey(
+      "pkcs8",
+      pemToArrayBuffer(svc.private_key),
+      { name: "RSASSA-PKCS1-v1_5", hash: "SHA-256" },
+      false,
+      ["sign"],
+    );
+    const signature = await crypto.subtle.sign(
+      "RSASSA-PKCS1-v1_5",
+      privateKey,
+      new TextEncoder().encode(unsignedToken),
+    );
+    const jwt = `${unsignedToken}.${btoa(String.fromCharCode(...new Uint8Array(signature)))
+      .replace(/\+/g, "-")
+      .replace(/\//g, "_")
+      .replace(/=+$/g, "")}`;
+    const body = `grant_type=urn%3Aietf%3Aparams%3Aoauth%3Agrant-type%3Ajwt-bearer&assertion=${jwt}`;
+    let res = null;
+    try {
+      res = await Risuai.nativeFetch("https://oauth2.googleapis.com/token", {
+        method: "POST",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body: new TextEncoder().encode(body),
+      });
+    } catch {}
+    if (!isResponseLike(res) || !res.ok) {
+      const fallback = await fetchWithFallback(
+        "https://oauth2.googleapis.com/token",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/x-www-form-urlencoded" },
+          body,
+        },
+        15000,
+        "Vertex token exchange",
+        false,
+      );
+      res = fallback.res;
+    }
+    if (!isResponseLike(res) || !res.ok) {
+      const errText = await readResponseErrorText(res);
+      throw new Error(
+        `Vertex token exchange failed: ${String(errText || "").slice(0, 500)}`,
+      );
+    }
+    const data = await readResponseJson(res);
+    const accessToken = safeTrim(data?.access_token);
+    const expiresIn = Number(data?.expires_in || 3600);
+    if (!accessToken) throw new Error("Vertex token exchange returned no token.");
+    await Risuai.safeLocalStorage.setItem(cacheKey, accessToken);
+    await Risuai.safeLocalStorage.setItem(
+      `${cacheKey}_expiry`,
+      String(Date.now() + Math.max(300, expiresIn) * 1000),
+    );
+    return { token: accessToken, serviceAccount: svc };
+  }
+
+  function inferVertexProjectAndLocation(baseUrl, rawKey) {
+    let serviceAccount = null;
+    try {
+      serviceAccount = parseVertexServiceAccount(rawKey);
+    } catch {}
+    const raw = safeTrim(baseUrl || "");
+    const projectFromUrl = raw.match(/\/projects\/([^/]+)/i)?.[1] || "";
+    const locationFromUrl = raw.match(/\/locations\/([^/]+)/i)?.[1] || "";
+    const hostLocation =
+      raw.match(/^https?:\/\/([a-z0-9-]+)-aiplatform\.googleapis\.com/i)?.[1] ||
+      "";
+    return {
+      project: safeTrim(projectFromUrl || serviceAccount?.project_id || ""),
+      location: safeTrim(locationFromUrl || hostLocation || "global"),
+    };
+  }
+
+  function isVertexClaudeModel(model) {
+    return /^claude-/i.test(safeTrim(model || ""));
+  }
+
+  function normalizeVertexClaudeUrl(baseUrl, model, rawKey) {
+    const raw = safeTrim(baseUrl || "");
+    const id = safeTrim(model || "");
+    if (!raw || !id) return "";
+    const inferred = inferVertexProjectAndLocation(raw, rawKey);
+    if (!inferred.project || !inferred.location) return "";
+    const host =
+      inferred.location === "global"
+        ? "https://aiplatform.googleapis.com"
+        : `https://${inferred.location}-aiplatform.googleapis.com`;
+    return `${host}/v1/projects/${encodeURIComponent(inferred.project)}/locations/${encodeURIComponent(inferred.location)}/publishers/anthropic/models/${encodeURIComponent(id)}:rawPredict`;
+  }
+
+  function buildClaudeMessages(messages) {
+    const system = (messages || [])
+      .filter((m) => m?.role === "system")
+      .map((m) => normalizeMessageContent(m?.content))
+      .filter(Boolean)
+      .join("\n\n");
+    const chatMessages = (messages || [])
+      .filter((m) => m?.role === "user" || m?.role === "assistant")
+      .map((m) => ({
+        role: m.role === "assistant" ? "assistant" : "user",
+        content: normalizeMessageContent(m?.content),
+      }))
+      .filter((m) => !!safeTrim(m.content));
+    if (!chatMessages.length)
+      chatMessages.push({ role: "user", content: "Continue." });
+    return { system, chatMessages };
   }
 
   function getEmbeddingTokenLimit(requestModel) {
@@ -6576,6 +6856,79 @@ CORRECT EXAMPLE:
     }
   }
 
+  function isPlainObject(value) {
+    return !!value && typeof value === "object" && !Array.isArray(value);
+  }
+
+  function validateImportedCallArray(rawCalls) {
+    if (!Array.isArray(rawCalls)) {
+      throw new Error("calls must be an array");
+    }
+
+    rawCalls.forEach((call, callIndex) => {
+      if (!isPlainObject(call)) {
+        throw new Error(`call ${callIndex + 1} must be an object`);
+      }
+      const entries = call.entries;
+      if (!Array.isArray(entries) || entries.length === 0) {
+        throw new Error(`call ${callIndex + 1} must include entries`);
+      }
+      entries.forEach((entry, entryIndex) => {
+        if (!isPlainObject(entry)) {
+          throw new Error(
+            `call ${callIndex + 1} entry ${entryIndex + 1} must be an object`,
+          );
+        }
+        if (!safeTrim(entry.lorebook_name || "")) {
+          throw new Error(
+            `call ${callIndex + 1} entry ${entryIndex + 1} is missing lorebook_name`,
+          );
+        }
+        if (entry.write_mode !== undefined) {
+          const mode = safeTrim(entry.write_mode);
+          if (mode !== "append" && mode !== "overwrite") {
+            throw new Error(
+              `call ${callIndex + 1} entry ${entryIndex + 1} has invalid write_mode`,
+            );
+          }
+        }
+        if (
+          entry.output_format !== undefined &&
+          typeof entry.output_format !== "string"
+        ) {
+          throw new Error(
+            `call ${callIndex + 1} entry ${entryIndex + 1} has invalid output_format`,
+          );
+        }
+      });
+    });
+  }
+
+  function parseImportedCallPayload(rawText, expectedMode) {
+    let parsed;
+    try {
+      parsed = JSON.parse(String(rawText || ""));
+    } catch {
+      throw new Error("invalid_json");
+    }
+
+    let mode = expectedMode;
+    let calls = parsed;
+    if (isPlainObject(parsed) && Array.isArray(parsed.calls)) {
+      calls = parsed.calls;
+      mode = safeTrim(parsed.mode || mode || "");
+    }
+
+    if (expectedMode && mode && mode !== expectedMode) {
+      const err = new Error("invalid_mode");
+      err.code = "invalid_mode";
+      throw err;
+    }
+
+    validateImportedCallArray(calls);
+    return calls.map((call, index) => normalizeModelCall(call, index));
+  }
+
   function getModelCalls() {
     const preset = toInt(configCache.active_preset, 1);
     const raw =
@@ -7574,10 +7927,18 @@ CORRECT EXAMPLE:
     return url;
   }
 
-  function normalizeVertexGenerateUrl(baseUrl, model) {
+  function normalizeVertexGenerateUrl(baseUrl, model, rawKey) {
     const raw = safeTrim(baseUrl || "");
     const id = safeTrim(model || "");
     if (!raw || !id) return "";
+    const inferred = inferVertexProjectAndLocation(raw, rawKey);
+    if (inferred.project && inferred.location) {
+      const host =
+        inferred.location === "global"
+          ? "https://aiplatform.googleapis.com"
+          : `https://${inferred.location}-aiplatform.googleapis.com`;
+      return `${host}/v1/projects/${encodeURIComponent(inferred.project)}/locations/${encodeURIComponent(inferred.location)}/publishers/google/models/${encodeURIComponent(id)}:generateContent`;
+    }
     let url = raw.replace(/\/+$/, "");
     if (!/:generateContent(\?|$)/.test(url)) {
       if (/\/chat\/completions$/i.test(url))
@@ -7696,10 +8057,25 @@ CORRECT EXAMPLE:
     thinkingEnabled,
     thinkingLevel,
   }) {
-    const finalUrl = normalizeVertexGenerateUrl(url, model);
+    if (isVertexClaudeModel(model)) {
+      return await callVertexClaudeCompat({
+        url,
+        apiKey,
+        model,
+        messages,
+        timeoutMs,
+        temperature,
+        thinkingEnabled,
+        thinkingLevel,
+      });
+    }
+    const finalUrl = normalizeVertexGenerateUrl(url, model, apiKey);
     if (!finalUrl) throw new Error("Vertex AI URL/model is missing.");
     const headers = { "Content-Type": "application/json" };
-    if (apiKey) headers.Authorization = `Bearer ${apiKey}`;
+    if (apiKey) {
+      const { token } = await requestVertexAccessToken(apiKey);
+      headers.Authorization = `Bearer ${token}`;
+    }
     const built = buildGoogleMessages(messages);
     const body = {
       contents: built.contents,
@@ -7757,6 +8133,152 @@ CORRECT EXAMPLE:
       .join("\n")
       .trim();
     if (!content) throw new Error("Vertex extractor returned empty content.");
+    return { parsed: parsePossiblyWrappedJson(content), raw: content };
+  }
+
+  async function callVertexClaudeCompat({
+    url,
+    apiKey,
+    model,
+    messages,
+    timeoutMs,
+    temperature,
+    thinkingEnabled,
+    thinkingLevel,
+  }) {
+    const finalUrl = normalizeVertexClaudeUrl(url, model, apiKey);
+    if (!finalUrl) throw new Error("Vertex Claude URL/model is missing.");
+    const { token } = await requestVertexAccessToken(apiKey);
+    const { system, chatMessages } = buildClaudeMessages(messages);
+    const finalModel = safeTrim(model || "");
+    const adaptiveThinking =
+      thinkingEnabled &&
+      thinkingLevel &&
+      /claude-(?:sonnet|opus)-4-6@/i.test(finalModel);
+    const budgetThinking =
+      thinkingEnabled && thinkingLevel && !adaptiveThinking;
+    const maxTokens = budgetThinking
+      ? Math.max(4096, thinkingLevelToClaudeBudget(thinkingLevel) + 4096)
+      : 4096;
+    const basePayload = {
+      anthropic_version: "vertex-2023-10-16",
+      model: finalModel,
+      stream: false,
+      max_tokens: maxTokens,
+      ...(Number.isFinite(Number(temperature))
+        ? { temperature: Math.max(0, Math.min(2, Number(temperature))) }
+        : {}),
+      ...(system ? { system } : {}),
+      messages: chatMessages,
+      ...(adaptiveThinking
+        ? {
+            thinking: { type: "adaptive" },
+            output_config: {
+              effort: thinkingLevelToOpenAIEffort(thinkingLevel),
+            },
+          }
+        : budgetThinking
+          ? {
+              thinking: {
+                type: "enabled",
+                budget_tokens: thinkingLevelToClaudeBudget(thinkingLevel),
+              },
+            }
+          : {}),
+    };
+    if (adaptiveThinking || budgetThinking) {
+      delete basePayload.temperature;
+    }
+    const toolPayload = {
+      ...basePayload,
+      tools: [
+        {
+          name: "emit_json",
+          description: "Return the extraction result as a single JSON object.",
+          input_schema: { type: "object", additionalProperties: true },
+        },
+      ],
+      tool_choice: { type: "tool", name: "emit_json" },
+    };
+    const headers = {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    };
+    const betas = [];
+    if (Number(basePayload.max_tokens) > 8192)
+      betas.push("output-128k-2025-02-19");
+    if (betas.length) headers["anthropic-beta"] = betas.join(",");
+
+    let usedFallback = false;
+    let resObj = null;
+    const firstTry = await fetchWithFallback(
+      finalUrl,
+      {
+        method: "POST",
+        headers,
+        body: JSON.stringify(toolPayload),
+      },
+      timeoutMs,
+      "Vertex Claude extractor",
+      true,
+    );
+    resObj = firstTry?.res;
+    if (!isResponseLike(resObj) || !resObj.ok) {
+      const errText = await readResponseErrorText(resObj);
+      const msg = String(errText || "").toLowerCase();
+      const toolsUnsupported =
+        msg.includes("tool") ||
+        msg.includes("input_schema") ||
+        msg.includes("tool_choice");
+      if (!toolsUnsupported) {
+        throw new Error(
+          `HTTP ${isResponseLike(resObj) ? resObj.status : 0}: ${String(errText || "").slice(0, 500)}`,
+        );
+      }
+      usedFallback = true;
+      const fallbackTry = await fetchWithFallback(
+        finalUrl,
+        {
+          method: "POST",
+          headers,
+          body: JSON.stringify(basePayload),
+        },
+        timeoutMs,
+        "Vertex Claude extractor (fallback)",
+        true,
+      );
+      resObj = fallbackTry?.res;
+      if (!isResponseLike(resObj) || !resObj.ok) {
+        const fallbackErrText = await readResponseErrorText(resObj);
+        throw new Error(
+          `HTTP ${isResponseLike(resObj) ? resObj.status : 0}: ${String(fallbackErrText || "").slice(0, 500)}`,
+        );
+      }
+    }
+    const data = await withTimeout(
+      readResponseJson(resObj),
+      timeoutMs,
+      "Vertex Claude extractor body read timeout",
+    );
+    const contentBlocks = Array.isArray(data?.content) ? data.content : [];
+    const toolUse = contentBlocks.find(
+      (x) =>
+        x?.type === "tool_use" &&
+        x?.name === "emit_json" &&
+        x?.input &&
+        typeof x.input === "object",
+    );
+    if (toolUse && !usedFallback) {
+      const raw = JSON.stringify(toolUse.input);
+      return { parsed: toolUse.input, raw };
+    }
+    const content = contentBlocks
+      .map((x) => (x?.type === "text" ? safeTrim(x?.text) : ""))
+      .filter(Boolean)
+      .join("\n")
+      .trim();
+    if (!content)
+      throw new Error("Vertex Claude extractor returned empty content.");
     return { parsed: parsePossiblyWrappedJson(content), raw: content };
   }
 
@@ -9609,10 +10131,7 @@ CORRECT EXAMPLE:
       return EXTRACTOR_MODEL_OPTIONS.filter((m) =>
         m.value.startsWith("gemini-"),
       );
-    if (p === "vertex_ai")
-      return EXTRACTOR_MODEL_OPTIONS.filter((m) =>
-        m.value.startsWith("gemini-"),
-      );
+    if (p === "vertex_ai") return VERTEX_EXTRACTOR_MODEL_OPTIONS;
     if (p === "anthropic")
       return EXTRACTOR_MODEL_OPTIONS.filter((m) =>
         m.value.startsWith("claude-"),
@@ -10019,11 +10538,10 @@ CORRECT EXAMPLE:
 
     try {
       const bearerToken = await getCopilotBearerToken(rawKey);
-      const authKey = bearerToken || rawKey;
       let headers = {
         Accept: "application/json",
-        Authorization: `Bearer ${authKey}`,
       };
+      headers = await applyCopilotAuthHeaders(headers, bearerToken || rawKey);
       const { res } = await fetchWithFallback(
         COPILOT_MODELS_URL,
         { method: "GET", headers },
@@ -10118,6 +10636,24 @@ CORRECT EXAMPLE:
         return { value, label: label || value };
       })
       .filter(Boolean);
+  }
+
+  function getProviderKeyPlaceholder(provider) {
+    const p = safeTrim(provider || "");
+    if (p === "vertex_ai")
+      return "Paste the full Google Service Account JSON here";
+    if (p === "github_copilot")
+      return "Paste your GitHub OAuth/Copilot token here";
+    return "API key";
+  }
+
+  function getProviderUrlPlaceholder(provider) {
+    const p = safeTrim(provider || "");
+    if (p === "vertex_ai")
+      return "https://aiplatform.googleapis.com/v1/projects/YOUR_PROJECT_ID/locations/global/publishers/google/models";
+    if (p === "github_copilot")
+      return "https://api.githubcopilot.com/chat/completions";
+    return "Request URL";
   }
 
   function bindScrollableSuggestionDropdown({
@@ -10361,6 +10897,22 @@ CORRECT EXAMPLE:
         font-family: 'Consolas', 'Monaco', 'Lucida Console', 'Courier New', monospace; resize:vertical; outline:none;
       }
       .pse-entry-list { display:flex; flex-direction:column; gap:8px; margin-top:8px; }
+      .pse-json-tools {
+        display:flex;
+        align-items:center;
+        justify-content:flex-start;
+        gap:10px;
+        margin-bottom:12px;
+        padding:0;
+        border:0;
+        background:transparent;
+      }
+      .pse-json-tools-actions {
+        display:flex;
+        gap:8px;
+        flex-wrap:wrap;
+        width:100%;
+      }
       .pse-call-card {
         border:none; border-left:4px solid var(--pse-accent-blue);
         background:var(--pse-section-bg);
@@ -10480,6 +11032,9 @@ CORRECT EXAMPLE:
         .pse-call-row2 { grid-template-columns: 1fr; }
         .pse-entry-grid { grid-template-columns: 1fr; }
         .pse-rewrite-grid { grid-template-columns: 1fr; }
+        .pse-json-tools { flex-direction:column; align-items:stretch; }
+        .pse-json-tools-actions { width:100%; }
+        .pse-json-tools-actions .pse-btn-outline { flex:1; }
         .pse-entry-remove { width:100%; }
         .pse-entry-remove.compact { width:28px; }
         .pse-btn-row { flex-direction:column; }
@@ -10580,7 +11135,7 @@ CORRECT EXAMPLE:
     overlayRoot.innerHTML = `
       <div class="pse-body">
         <div class="pse-card">
-          <h1 class="pse-title">👤 RisuAI Agent v3.0</h1>
+          <h1 class="pse-title">👤 RisuAI Agent v3.1</h1>
           <div id="pse-status" class="pse-status"></div>
           ${renderModelDatalists()}
 
@@ -10638,7 +11193,7 @@ CORRECT EXAMPLE:
 
           <div class="pse-page" data-page="8">
             <!-- Reset (No block) -->
-            <button id="pse-reset-agent-defaults" class="pse-btn" type="button" style="padding:8px 14px;font-size:12px;white-space:nowrap;width:100%;background:var(--pse-accent-greyblue);margin-bottom:12px;">${_T.btn_reset}</button>
+            <button id="pse-reset-agent-defaults" class="pse-btn" type="button" style="padding:7px 12px;font-size:12px;white-space:nowrap;width:100%;margin-bottom:12px;background:var(--pse-accent-rose);">${_T.btn_reset}</button>
 
             <!-- Mode Info (Amber) -->
             <div class="pse-section amber" style="padding: 0; overflow: hidden;">
@@ -10707,7 +11262,7 @@ CORRECT EXAMPLE:
               <label class="pse-label" style="color:var(--pse-text);">${_T.lbl_url}</label>
               <input id="extractor_a_url" class="pse-input" value="${String(configCache.extractor_a_url || "").replace(/"/g, "&quot;")}" />
               <label class="pse-label" style="color:var(--pse-text);">${_T.lbl_key}</label>
-              <input id="extractor_a_key" class="pse-input" type="text" value="${String(configCache.extractor_a_key || "").replace(/"/g, "&quot;")}" />
+              <textarea id="extractor_a_key" class="pse-input" rows="1" style="min-height:36px;resize:vertical;white-space:pre;" spellcheck="false">${escapeHtml(String(configCache.extractor_a_key || ""))}</textarea>
               <label class="pse-label" style="color:var(--pse-text);">${_T.lbl_model}</label>
               <input id="extractor_a_model" class="pse-input" autocomplete="off" value="${String(configCache.extractor_a_model || "").replace(/"/g, "&quot;")}" />
               <div id="extractor_a_model_suggestions" class="pse-model-suggestions"></div>
@@ -10740,7 +11295,7 @@ CORRECT EXAMPLE:
               <label class="pse-label" style="color:var(--pse-text);">${_T.lbl_url}</label>
               <input id="extractor_b_url" class="pse-input" value="${String(configCache.extractor_b_url || "").replace(/"/g, "&quot;")}" />
               <label class="pse-label" style="color:var(--pse-text);">${_T.lbl_key}</label>
-              <input id="extractor_b_key" class="pse-input" type="text" value="${String(configCache.extractor_b_key || "").replace(/"/g, "&quot;")}" />
+              <textarea id="extractor_b_key" class="pse-input" rows="1" style="min-height:36px;resize:vertical;white-space:pre;" spellcheck="false">${escapeHtml(String(configCache.extractor_b_key || ""))}</textarea>
               <label class="pse-label" style="color:var(--pse-text);">${_T.lbl_model}</label>
               <input id="extractor_b_model" class="pse-input" autocomplete="off" value="${String(configCache.extractor_b_model || "").replace(/"/g, "&quot;")}" />
               <div id="extractor_b_model_suggestions" class="pse-model-suggestions"></div>
@@ -10801,6 +11356,13 @@ CORRECT EXAMPLE:
                 <button id="pse-preset-4" class="pse-preset-btn pse-subtab" type="button">${_T.tab_preset2_new || _T.tab_preset4}</button>
               </div>
               <div id="pse-lore-presets-container">
+                <div class="pse-json-tools">
+                  <div class="pse-json-tools-actions">
+                    <button class="pse-btn cache pse-json-export-btn" type="button" style="flex:1;padding:7px 12px;font-size:12px;">${_T.btn_json_export}</button>
+                    <button class="pse-btn close pse-json-import-btn" type="button" style="flex:1;padding:7px 12px;font-size:12px;">${_T.btn_json_import}</button>
+                    <input class="pse-json-import-input" type="file" accept="${_T.json_file_accept}" style="display:none;" />
+                  </div>
+                </div>
                 <div id="model_call_list" class="pse-entry-list"></div>
                 <button id="add_model_call" class="pse-add-entry" type="button">${_T.btn_add_call}</button>
               </div>
@@ -10828,6 +11390,13 @@ CORRECT EXAMPLE:
                 </div>
               </div>
               <div id="pse-persona-container" style="display:none; flex-direction:column; border-top: 1px dashed rgba(128,128,128,0.2); padding-top: 12px; margin-top: 12px;">
+                <div class="pse-json-tools">
+                  <div class="pse-json-tools-actions">
+                    <button class="pse-btn cache pse-json-export-btn" type="button" style="flex:1;padding:7px 12px;font-size:12px;">${_T.btn_json_export}</button>
+                    <button class="pse-btn close pse-json-import-btn" type="button" style="flex:1;padding:7px 12px;font-size:12px;">${_T.btn_json_import}</button>
+                    <input class="pse-json-import-input" type="file" accept="${_T.json_file_accept}" style="display:none;" />
+                  </div>
+                </div>
                 <div id="persona_call_list" class="pse-entry-list"></div>
                 <button id="add_persona_call" class="pse-add-entry" type="button">${_T.btn_add_call}</button>
               </div>
@@ -10857,15 +11426,13 @@ CORRECT EXAMPLE:
 
           <div class="pse-page" data-page="6">
             <div style="display:flex;gap:8px;margin-bottom:10px;">
-              <button id="pse-refresh-cache" class="pse-btn cache" type="button" style="flex:1;padding:7px 12px;font-size:12px;">${_T.btn_refresh_cache}</button>
-              <button id="pse-clear-cache" class="pse-btn close" type="button" style="flex:1;padding:7px 12px;font-size:12px;">${_T.btn_clear_cache}</button>
+              <button id="pse-clear-cache" class="pse-btn" type="button" style="flex:1;padding:7px 12px;font-size:12px;background:var(--pse-accent-rose);">${_T.btn_clear_cache}</button>
             </div>
             <div id="pse-embed-cache-list" class="pse-entry-list"></div>
             <textarea id="init_bootstrap_model_anchor_prompt" style="display:none;">${escapeHtml(String(configCache.init_bootstrap_model_anchor_prompt || DEFAULTS.init_bootstrap_model_anchor_prompt))}</textarea>
           </div>
 
           <div class="pse-btn-row">
-            <button id="pse-save" class="pse-btn save">${_T.btn_save}</button>
             <button id="pse-close" class="pse-btn close">${_T.btn_close}</button>
           </div>
         </div>
@@ -11107,7 +11674,7 @@ CORRECT EXAMPLE:
                   ? "var(--pse-accent-amber)"
                   : "var(--pse-accent-green)";
                 const encodedStatus = escapeHtml(JSON.stringify(status));
-                return `<button class="pse-entry-remove" type="button" data-persona-note-btn="1" data-persona-pair-status="${encodedStatus}" title="角色萃取條目" style="border-color:${iconColor};color:${iconColor};min-width:34px;">
+                return `<button class="pse-entry-remove" type="button" data-persona-note-btn="1" data-persona-pair-status="${encodedStatus}" title="${_T.lbl_persona_entries}" style="border-color:${iconColor};color:${iconColor};min-width:34px;">
                   <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="display:block;margin:auto;"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
                 </button>`;
               })()}
@@ -11211,11 +11778,6 @@ CORRECT EXAMPLE:
       });
     });
 
-    document
-      .getElementById("pse-refresh-cache")
-      ?.addEventListener("click", async () => {
-        await renderEmbeddingCacheList();
-      });
     document
       .getElementById("pse-clear-cache")
       ?.addEventListener("click", async () => {
@@ -11534,7 +12096,7 @@ CORRECT EXAMPLE:
           const buildRows = (currentStatus) => {
             const chars = Object.keys(currentStatus);
             if (chars.length === 0)
-              return `<div style="color:var(--pse-muted);font-size:12px;padding:8px 0;">No character data found.</div>`;
+              return `<div style="color:var(--pse-muted);font-size:12px;padding:8px 0;">${_T.lbl_no_persona_data}</div>`;
             return chars
               .map((n) => {
                 const s = currentStatus[n];
@@ -11557,7 +12119,7 @@ CORRECT EXAMPLE:
               <span style="font-size:12px;font-weight:600;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${escapeHtml(n)}</span>
               <span style="font-size:11px;color:${invColor};font-weight:700;white-space:nowrap;" title="rp_persona_inventory">Inv ${invIcon}</span>
               <span style="font-size:11px;color:${coreColor};font-weight:700;white-space:nowrap;" title="rp_character_core">Core ${coreIcon}</span>
-              <button data-delete-persona-char="${escapeHtml(n)}" style="border:1px solid var(--pse-section-border);background:var(--pse-input-bg);color:var(--pse-muted);border-radius:5px;width:24px;height:24px;cursor:pointer;font-size:13px;line-height:1;flex-shrink:0;display:flex;align-items:center;justify-content:center;" title="刪除此角色的快取">✕</button>
+              <button data-delete-persona-char="${escapeHtml(n)}" style="border:1px solid var(--pse-section-border);background:var(--pse-input-bg);color:var(--pse-muted);border-radius:5px;width:24px;height:24px;cursor:pointer;font-size:13px;line-height:1;flex-shrink:0;display:flex;align-items:center;justify-content:center;" title="${_T.lbl_delete_char_cache}">✕</button>
             </div>`;
               })
               .join("");
@@ -11571,7 +12133,7 @@ CORRECT EXAMPLE:
           overlay.innerHTML = `
           <div style="background:var(--pse-card-bg);color:var(--pse-card-text);border-radius:12px;padding:18px;width:min(360px,90vw);max-height:80vh;display:flex;flex-direction:column;box-shadow:0 14px 40px rgba(0,0,0,0.4);">
             <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
-              <div style="font-size:14px;font-weight:700;">角色萃取條目</div>
+              <div style="font-size:14px;font-weight:700;">${_T.lbl_persona_entries}</div>
               <div style="display:flex;align-items:center;gap:6px;">
                 <button id="pse-persona-note-refresh" style="border:1px solid var(--pse-section-border);background:var(--pse-input-bg);color:var(--pse-card-text);border-radius:6px;padding:0 10px;height:28px;cursor:pointer;font-size:11px;white-space:nowrap;">${_T.btn_refresh_persona}</button>
                 <button id="pse-persona-note-close" style="border:0;background:var(--pse-section-bg);color:var(--pse-card-text);border-radius:6px;width:28px;height:28px;cursor:pointer;font-size:15px;line-height:1;">✕</button>
@@ -11888,6 +12450,73 @@ CORRECT EXAMPLE:
             : uiModelCalls1;
     let uiPersonaCalls = parsePersonaCalls(configCache.persona_calls);
 
+    const getInfoJsonState = () => {
+      if (uiInfoMode === "persona") {
+        return {
+          mode: "persona",
+          tabKey: "persona_calls",
+          fileStem: "persona-calls",
+          calls: uiPersonaCalls,
+        };
+      }
+      if (uiSubTab === 4) {
+        return {
+          mode: "preset",
+          tabKey: "model_calls_4",
+          fileStem: "preset-4",
+          calls: uiModelCalls4,
+        };
+      }
+      if (uiSubTab === 3) {
+        return {
+          mode: "preset",
+          tabKey: "model_calls_3",
+          fileStem: "preset-3",
+          calls: uiModelCalls3,
+        };
+      }
+      if (uiSubTab === 2) {
+        return {
+          mode: "preset",
+          tabKey: "model_calls_2",
+          fileStem: "preset-2",
+          calls: uiModelCalls2,
+        };
+      }
+      return {
+        mode: "preset",
+        tabKey: "model_calls",
+        fileStem: "preset-1",
+        calls: uiModelCalls1,
+      };
+    };
+
+    const syncCurrentInfoJsonState = () => {
+      if (uiInfoMode === "persona") {
+        syncUiPersonaCalls();
+        return;
+      }
+      if (uiSubTab !== "common") {
+        syncUiModelCalls();
+        if (uiSubTab === 1) uiModelCalls1 = uiModelCalls;
+        else if (uiSubTab === 2) uiModelCalls2 = uiModelCalls;
+        else if (uiSubTab === 3) uiModelCalls3 = uiModelCalls;
+        else if (uiSubTab === 4) uiModelCalls4 = uiModelCalls;
+      }
+    };
+
+    const downloadJsonFile = (filename, text) => {
+      const blob = new Blob([text], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const anchor = document.createElement("a");
+      anchor.href = url;
+      anchor.download = filename;
+      document.body.appendChild(anchor);
+      anchor.click();
+      anchor.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 0);
+    };
+
     const renderCallEntries = (call, callIndex, options = {}) => {
       const showWriteMode = options.showWriteMode !== false;
       const showAlwaysActive = options.showAlwaysActive !== false;
@@ -11999,6 +12628,339 @@ CORRECT EXAMPLE:
         showFreq: false,
         compactRemove: true,
       });
+
+    const exportCurrentInfoJson = () => {
+      syncCurrentInfoJsonState();
+      const state = getInfoJsonState();
+      const payload = {
+        schema: "risuai-agent-call-config",
+        version: 1,
+        mode: state.mode,
+        tab: state.tabKey,
+        exported_at: new Date().toISOString(),
+        calls: state.calls,
+      };
+      downloadJsonFile(
+        `risuai-agent-${state.fileStem}.json`,
+        JSON.stringify(payload, null, 2),
+      );
+      showStatus(_T.st_json_exported, "ok");
+    };
+
+    const importCurrentInfoJson = async (file) => {
+      if (!file) return;
+      try {
+        const rawText = await file.text();
+        const state = getInfoJsonState();
+        const importedCalls = parseImportedCallPayload(rawText, state.mode);
+
+        if (state.mode === "persona") {
+          uiPersonaCalls = importedCalls;
+          renderPersonaCalls();
+        } else {
+          uiModelCalls = importedCalls;
+          if (uiSubTab === 1) uiModelCalls1 = importedCalls;
+          else if (uiSubTab === 2) uiModelCalls2 = importedCalls;
+          else if (uiSubTab === 3) uiModelCalls3 = importedCalls;
+          else if (uiSubTab === 4) uiModelCalls4 = importedCalls;
+          renderModelCalls();
+        }
+        await saveCurrentSettings();
+        showStatus(_T.st_json_imported, "ok");
+      } catch (error) {
+        const message =
+          error?.code === "invalid_mode"
+            ? _T.err_json_import_mode
+            : _T.err_json_import_invalid;
+        showStatus(message, "err");
+        try {
+          alert(message);
+        } catch {}
+      }
+    };
+
+    const collectFormData = () => {
+      const exAProv = safeTrim(
+        document.getElementById("extractor_a_provider")?.value || "custom_api",
+      );
+      const exAMod = safeTrim(
+        document.getElementById("extractor_a_model")?.value || "",
+      );
+      const exAKey = safeTrim(
+        document.getElementById("extractor_a_key")?.value || "",
+      );
+      if (exAProv && exAMod) uiExtractorAProviderModelMap[exAProv] = exAMod;
+      if (exAProv && exAKey) uiExtractorAProviderKeyMap[exAProv] = exAKey;
+
+      const exBProv = safeTrim(
+        document.getElementById("extractor_b_provider")?.value || "custom_api",
+      );
+      const exBMod = safeTrim(
+        document.getElementById("extractor_b_model")?.value || "",
+      );
+      const exBKey = safeTrim(
+        document.getElementById("extractor_b_key")?.value || "",
+      );
+      if (exBProv && exBMod) uiExtractorBProviderModelMap[exBProv] = exBMod;
+      if (exBProv && exBKey) uiExtractorBProviderKeyMap[exBProv] = exBKey;
+
+      const embProv = safeTrim(
+        document.getElementById("embedding_provider")?.value || "custom_api",
+      );
+      const embKey = safeTrim(
+        document.getElementById("embedding_key")?.value || "",
+      );
+      const embMod = safeTrim(
+        document.getElementById("embedding_model")?.value || "",
+      );
+      if (embProv && embMod) uiEmbeddingProviderModelMap[embProv] = embMod;
+      if (embProv && embKey) uiEmbeddingProviderKeyMap[embProv] = embKey;
+
+      if (uiSubTab !== "common") {
+        syncUiModelCalls();
+        if (uiSubTab === 1) uiModelCalls1 = uiModelCalls;
+        else if (uiSubTab === 2) uiModelCalls2 = uiModelCalls;
+        else if (uiSubTab === 3) uiModelCalls3 = uiModelCalls;
+        else if (uiSubTab === 4) uiModelCalls4 = uiModelCalls;
+      }
+      if (uiInfoMode === "persona") {
+        syncUiPersonaCalls();
+      }
+
+      return {
+        extractor_a_provider: exAProv,
+        extractor_a_format: safeTrim(
+          document.getElementById("extractor_a_format")?.value || "openai",
+        ),
+        extractor_a_url: safeTrim(
+          document.getElementById("extractor_a_url")?.value,
+        ),
+        extractor_a_key: exAKey,
+        extractor_a_model: exAMod,
+        extractor_a_provider_model_map: JSON.stringify(
+          uiExtractorAProviderModelMap,
+        ),
+        extractor_a_provider_url_map: JSON.stringify(getUrlMapA()),
+        extractor_a_provider_key_map: JSON.stringify(uiExtractorAProviderKeyMap),
+        extractor_a_temperature: Math.max(
+          0,
+          Math.min(
+            2,
+            Number(
+              document.getElementById("extractor_a_temperature")?.value || 0,
+            ),
+          ),
+        ),
+        extractor_b_provider: exBProv,
+        extractor_b_format: safeTrim(
+          document.getElementById("extractor_b_format")?.value || "openai",
+        ),
+        extractor_b_url: safeTrim(
+          document.getElementById("extractor_b_url")?.value,
+        ),
+        extractor_b_key: exBKey,
+        extractor_b_model: exBMod,
+        extractor_b_provider_model_map: JSON.stringify(
+          uiExtractorBProviderModelMap,
+        ),
+        extractor_b_provider_url_map: JSON.stringify(getUrlMapB()),
+        extractor_b_provider_key_map: JSON.stringify(uiExtractorBProviderKeyMap),
+        extractor_b_temperature: Math.max(
+          0,
+          Math.min(
+            2,
+            Number(
+              document.getElementById("extractor_b_temperature")?.value || 0,
+            ),
+          ),
+        ),
+        embedding_provider: embProv,
+        embedding_format: safeTrim(
+          document.getElementById("embedding_format")?.value || "openai",
+        ),
+        embedding_model: embMod,
+        embedding_url: safeTrim(document.getElementById("embedding_url")?.value),
+        embedding_key: embKey,
+        embedding_request_model: (() => {
+          const preset =
+            EMBEDDING_PROVIDER_PRESETS[embProv] ||
+            EMBEDDING_PROVIDER_PRESETS.custom_api;
+          if (embProv === "custom_api")
+            return safeTrim(
+              document.getElementById("embedding_request_model")?.value ||
+                embMod,
+            );
+          return safeTrim(
+            EMBEDDING_MODEL_TO_REQUEST[embMod] ||
+              embMod ||
+              preset.requestModel ||
+              "",
+          );
+        })(),
+        embedding_provider_model_map: JSON.stringify(uiEmbeddingProviderModelMap),
+        embedding_provider_url_map: JSON.stringify(uiEmbeddingProviderUrlMap),
+        embedding_provider_key_map: JSON.stringify(uiEmbeddingProviderKeyMap),
+        model_calls: JSON.stringify(uiModelCalls1),
+        model_calls_2: JSON.stringify(uiModelCalls2),
+        model_calls_3: JSON.stringify(uiModelCalls3),
+        model_calls_4: JSON.stringify(uiModelCalls4),
+        persona_calls: JSON.stringify(uiPersonaCalls),
+        active_preset: uiActivePreset,
+        advanced_model_anchor_prompt:
+          document.getElementById("advanced_model_anchor_prompt")?.value ?? "",
+        advanced_prefill_prompt:
+          document.getElementById("advanced_prefill_prompt")?.value ?? "",
+        advanced_prereply_prompt:
+          document.getElementById("advanced_prereply_prompt")?.value ?? "",
+        kb_features_enabled: 1,
+        read_mod_lorebook: document.getElementById("read_mod_lorebook")?.checked
+          ? 1
+          : 0,
+        new_preset_enabled: 1,
+        vector_search_enabled: 1,
+        vector_search_query_dialogue_rounds: Math.max(
+          1,
+          toInt(
+            document.getElementById("vector_search_query_dialogue_rounds")?.value,
+            DEFAULTS.vector_search_query_dialogue_rounds,
+          ),
+        ),
+        vector_search_top_k: Math.max(
+          1,
+          toInt(
+            document.getElementById("vector_search_top_k")?.value,
+            DEFAULTS.vector_search_top_k,
+          ),
+        ),
+        vector_search_min_score: Math.max(
+          0,
+          Number(
+            document.getElementById("vector_search_min_score")?.value ||
+              DEFAULTS.vector_search_min_score,
+          ),
+        ),
+        vector_search_query_dialogue_rounds_2: Math.max(
+          1,
+          toInt(
+            document.getElementById("vector_search_query_dialogue_rounds_2")?.value,
+            DEFAULTS.vector_search_query_dialogue_rounds_2,
+          ),
+        ),
+        vector_search_top_k_2: Math.max(
+          1,
+          toInt(
+            document.getElementById("vector_search_top_k_2")?.value,
+            DEFAULTS.vector_search_top_k_2,
+          ),
+        ),
+        vector_search_min_score_2: Math.max(
+          0,
+          Number(
+            document.getElementById("vector_search_min_score_2")?.value ||
+              DEFAULTS.vector_search_min_score_2,
+          ),
+        ),
+        init_bootstrap_target_model:
+          safeTrim(
+            document.getElementById("init_bootstrap_target_model")?.value ||
+              DEFAULTS.init_bootstrap_target_model,
+          ) === "B"
+            ? "B"
+            : "A",
+        init_bootstrap_model_anchor_prompt:
+          document.getElementById("init_bootstrap_model_anchor_prompt")?.value ??
+          "",
+        extractor_a_thinking_enabled: document.getElementById(
+          "extractor_a_thinking_enabled",
+        )?.checked
+          ? 1
+          : 0,
+        extractor_a_thinking_level: safeTrim(
+          document.getElementById("extractor_a_thinking_level")?.value ||
+            "medium",
+        ),
+        extractor_b_thinking_enabled: document.getElementById(
+          "extractor_b_thinking_enabled",
+        )?.checked
+          ? 1
+          : 0,
+        extractor_b_thinking_level: safeTrim(
+          document.getElementById("extractor_b_thinking_level")?.value ||
+            "medium",
+        ),
+        extractor_a_concurrency: toInt(
+          document.getElementById("extractor_a_concurrency")?.value,
+          1,
+        ),
+        extractor_b_concurrency: toInt(
+          document.getElementById("extractor_b_concurrency")?.value,
+          1,
+        ),
+        context_messages: configCache.context_messages,
+        timeout_ms: configCache.timeout_ms,
+        card_enable_settings: (() => {
+          const cardList = document.querySelectorAll(
+            "#pse-card-enable-list .pse-entry-block",
+          );
+          const cs = {};
+          cardList.forEach((block) => {
+            const cid = block.getAttribute("data-card-id");
+            if (!cid) return;
+            cs[cid] = {
+              memory_extract:
+                block.querySelector(".pse-card-memory")?.value || "1",
+              vector_search:
+                block.querySelector(".pse-card-vector")?.value || "off",
+              card_disabled: block.querySelector(".pse-card-disabled")?.checked
+                ? 1
+                : 0,
+            };
+          });
+          return JSON.stringify(cs);
+        })(),
+      };
+    };
+
+    let autosaveTimer = null;
+    let autosaveInFlight = false;
+    let autosaveQueued = false;
+
+    const saveCurrentSettings = async (options = {}) => {
+      const showSuccess = options.showSuccess === true;
+      const successMessage = options.successMessage || _T.st_saved;
+      const formData = collectFormData();
+      await saveConfigFromUI(formData);
+      if (showSuccess) {
+        showStatus(successMessage, "ok");
+      }
+    };
+
+    const runAutosave = async () => {
+      if (autosaveInFlight) {
+        autosaveQueued = true;
+        return;
+      }
+      autosaveInFlight = true;
+      try {
+        await saveCurrentSettings();
+      } catch (e) {
+        showStatus(_T.st_save_fail + (e?.message || String(e)), "err");
+      } finally {
+        autosaveInFlight = false;
+        if (autosaveQueued) {
+          autosaveQueued = false;
+          runAutosave().catch(() => {});
+        }
+      }
+    };
+
+    const scheduleAutosave = (delay = 500) => {
+      if (autosaveTimer) clearTimeout(autosaveTimer);
+      autosaveTimer = setTimeout(() => {
+        autosaveTimer = null;
+        runAutosave().catch(() => {});
+      }, delay);
+    };
 
     const readCallsFromContainer = (containerEl, existingCalls) => {
       const cards = Array.from(
@@ -12239,6 +13201,40 @@ CORRECT EXAMPLE:
     setPresetButtons(uiSubTab);
     renderModelCalls();
 
+    document.querySelectorAll(".pse-json-export-btn").forEach((btn) => {
+      btn.addEventListener("click", exportCurrentInfoJson);
+    });
+    document.querySelectorAll(".pse-json-import-btn").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        btn
+          .closest(".pse-json-tools")
+          ?.querySelector(".pse-json-import-input")
+          ?.click();
+      });
+    });
+    document.querySelectorAll(".pse-json-import-input").forEach((input) => {
+      input.addEventListener("change", async (e) => {
+        const file = e.target?.files?.[0];
+        await importCurrentInfoJson(file);
+        e.target.value = "";
+      });
+    });
+
+    document.querySelector(".pse-card")?.addEventListener("input", (e) => {
+      const target = e.target;
+      if (!(target instanceof HTMLElement)) return;
+      if (!target.closest("input, textarea, select")) return;
+      if (target.matches(".pse-json-import-input")) return;
+      scheduleAutosave(700);
+    });
+    document.querySelector(".pse-card")?.addEventListener("change", (e) => {
+      const target = e.target;
+      if (!(target instanceof HTMLElement)) return;
+      if (!target.closest("input, textarea, select")) return;
+      if (target.matches(".pse-json-import-input")) return;
+      scheduleAutosave(150);
+    });
+
     document.getElementById("add_model_call")?.addEventListener("click", () => {
       syncUiModelCalls();
       const nextIndex = uiModelCalls.length;
@@ -12257,6 +13253,7 @@ CORRECT EXAMPLE:
         ),
       );
       renderModelCalls();
+      scheduleAutosave(0);
     });
     document
       .getElementById("add_persona_call")
@@ -12278,6 +13275,7 @@ CORRECT EXAMPLE:
           ),
         );
         renderPersonaCalls();
+        scheduleAutosave(0);
       });
 
     const bindCallListHandlers = (
@@ -12303,6 +13301,7 @@ CORRECT EXAMPLE:
             );
             setCalls(calls);
             renderFn();
+            scheduleAutosave(0);
           }
           return;
         }
@@ -12327,9 +13326,10 @@ CORRECT EXAMPLE:
                   },
                   0,
                 ),
-              );
+            );
             setCalls(calls);
             renderFn();
+            scheduleAutosave(0);
           }
           return;
         }
@@ -12356,6 +13356,7 @@ CORRECT EXAMPLE:
               : [defaultOutputEntry(calls[callIndex].target_model)];
             setCalls(calls);
             renderFn();
+            scheduleAutosave(0);
           }
         }
       });
@@ -12413,6 +13414,7 @@ CORRECT EXAMPLE:
       .getElementById("pse-reset-agent-defaults")
       ?.addEventListener("click", async () => {
         try {
+          if (!confirm(_T.confirm_reset)) return;
           const resetFormData = {
             ...configCache,
 
@@ -12631,6 +13633,34 @@ CORRECT EXAMPLE:
       refresh(false).catch(() => {});
     };
 
+    const bindProviderFieldHints = (providerId, urlId, keyId) => {
+      const providerEl = document.getElementById(providerId);
+      const urlEl = document.getElementById(urlId);
+      const keyEl = document.getElementById(keyId);
+      if (!providerEl) return;
+      const sync = () => {
+        const provider = safeTrim(providerEl.value || "");
+        if (urlEl) {
+          urlEl.placeholder = getProviderUrlPlaceholder(provider);
+          urlEl.title =
+            provider === "vertex_ai"
+              ? "Vertex AI uses your Service Account JSON to derive the project and OAuth token automatically."
+              : urlEl.placeholder;
+        }
+        if (keyEl) {
+          keyEl.placeholder = getProviderKeyPlaceholder(provider);
+          keyEl.title =
+            provider === "vertex_ai"
+              ? "Paste the entire Service Account JSON body, not a file path or temporary bearer token."
+              : provider === "github_copilot"
+                ? "Paste the GitHub OAuth/Copilot token. The plugin will exchange it for a short-lived Copilot session token automatically."
+                : keyEl.placeholder;
+        }
+      };
+      providerEl.addEventListener("change", sync);
+      sync();
+    };
+
     bindProviderDrivenModelAndFormat(
       "extractor_a_provider",
       "extractor_a_format",
@@ -12648,6 +13678,16 @@ CORRECT EXAMPLE:
       "embedding_format",
       "",
       true,
+    );
+    bindProviderFieldHints(
+      "extractor_a_provider",
+      "extractor_a_url",
+      "extractor_a_key",
+    );
+    bindProviderFieldHints(
+      "extractor_b_provider",
+      "extractor_b_url",
+      "extractor_b_key",
     );
 
     let uiExtractorAProviderModelMap = parseSimpleStringMap(
@@ -12958,267 +13998,6 @@ CORRECT EXAMPLE:
       datalistId: MODEL_DATALIST_EMBED_ID,
     });
 
-    document.getElementById("pse-save")?.addEventListener("click", async () => {
-      try {
-        const exAProv = safeTrim(
-          document.getElementById("extractor_a_provider")?.value ||
-            "custom_api",
-        );
-        const exAMod = safeTrim(
-          document.getElementById("extractor_a_model")?.value || "",
-        );
-        const exAKey = safeTrim(
-          document.getElementById("extractor_a_key")?.value || "",
-        );
-        if (exAProv && exAMod) uiExtractorAProviderModelMap[exAProv] = exAMod;
-        if (exAProv && exAKey) uiExtractorAProviderKeyMap[exAProv] = exAKey;
-        const exBProv = safeTrim(
-          document.getElementById("extractor_b_provider")?.value ||
-            "custom_api",
-        );
-        const exBMod = safeTrim(
-          document.getElementById("extractor_b_model")?.value || "",
-        );
-        const exBKey = safeTrim(
-          document.getElementById("extractor_b_key")?.value || "",
-        );
-        if (exBProv && exBMod) uiExtractorBProviderModelMap[exBProv] = exBMod;
-        if (exBProv && exBKey) uiExtractorBProviderKeyMap[exBProv] = exBKey;
-        const embProv = safeTrim(
-          document.getElementById("embedding_provider")?.value || "custom_api",
-        );
-        const embKey = safeTrim(
-          document.getElementById("embedding_key")?.value || "",
-        );
-        const embMod = safeTrim(
-          document.getElementById("embedding_model")?.value || "",
-        );
-        if (embProv && embMod) uiEmbeddingProviderModelMap[embProv] = embMod;
-        if (embProv && embKey) uiEmbeddingProviderKeyMap[embProv] = embKey;
-
-        if (uiSubTab !== "common") {
-          syncUiModelCalls();
-          if (uiSubTab === 1) uiModelCalls1 = uiModelCalls;
-          else if (uiSubTab === 2) uiModelCalls2 = uiModelCalls;
-          else if (uiSubTab === 3) uiModelCalls3 = uiModelCalls;
-          else if (uiSubTab === 4) uiModelCalls4 = uiModelCalls;
-        }
-        if (uiInfoMode === "persona") {
-          syncUiPersonaCalls();
-        }
-
-        const formData = {
-          extractor_a_provider: exAProv,
-          extractor_a_format: safeTrim(
-            document.getElementById("extractor_a_format")?.value || "openai",
-          ),
-          extractor_a_url: safeTrim(
-            document.getElementById("extractor_a_url")?.value,
-          ),
-          extractor_a_key: exAKey,
-          extractor_a_model: exAMod,
-          extractor_a_provider_model_map: JSON.stringify(
-            uiExtractorAProviderModelMap,
-          ),
-          extractor_a_provider_url_map: JSON.stringify(getUrlMapA()),
-          extractor_a_provider_key_map: JSON.stringify(
-            uiExtractorAProviderKeyMap,
-          ),
-          extractor_a_temperature: Math.max(
-            0,
-            Math.min(
-              2,
-              Number(
-                document.getElementById("extractor_a_temperature")?.value || 0,
-              ),
-            ),
-          ),
-          extractor_b_provider: exBProv,
-          extractor_b_format: safeTrim(
-            document.getElementById("extractor_b_format")?.value || "openai",
-          ),
-          extractor_b_url: safeTrim(
-            document.getElementById("extractor_b_url")?.value,
-          ),
-          extractor_b_key: exBKey,
-          extractor_b_model: exBMod,
-          extractor_b_provider_model_map: JSON.stringify(
-            uiExtractorBProviderModelMap,
-          ),
-          extractor_b_provider_url_map: JSON.stringify(getUrlMapB()),
-          extractor_b_provider_key_map: JSON.stringify(
-            uiExtractorBProviderKeyMap,
-          ),
-          extractor_b_temperature: Math.max(
-            0,
-            Math.min(
-              2,
-              Number(
-                document.getElementById("extractor_b_temperature")?.value || 0,
-              ),
-            ),
-          ),
-          embedding_provider: embProv,
-          embedding_format: safeTrim(
-            document.getElementById("embedding_format")?.value || "openai",
-          ),
-          embedding_model: embMod,
-          embedding_url: safeTrim(
-            document.getElementById("embedding_url")?.value,
-          ),
-          embedding_key: embKey,
-          embedding_request_model: (() => {
-            const preset =
-              EMBEDDING_PROVIDER_PRESETS[embProv] ||
-              EMBEDDING_PROVIDER_PRESETS.custom_api;
-            if (embProv === "custom_api")
-              return safeTrim(
-                document.getElementById("embedding_request_model")?.value ||
-                  embMod,
-              );
-            return safeTrim(
-              EMBEDDING_MODEL_TO_REQUEST[embMod] ||
-                embMod ||
-                preset.requestModel ||
-                "",
-            );
-          })(),
-          embedding_provider_model_map: JSON.stringify(
-            uiEmbeddingProviderModelMap,
-          ),
-          embedding_provider_url_map: JSON.stringify(uiEmbeddingProviderUrlMap),
-          embedding_provider_key_map: JSON.stringify(uiEmbeddingProviderKeyMap),
-          model_calls: JSON.stringify(uiModelCalls1),
-          model_calls_2: JSON.stringify(uiModelCalls2),
-          model_calls_3: JSON.stringify(uiModelCalls3),
-          model_calls_4: JSON.stringify(uiModelCalls4),
-          persona_calls: JSON.stringify(uiPersonaCalls),
-          active_preset: uiActivePreset,
-          advanced_model_anchor_prompt:
-            document.getElementById("advanced_model_anchor_prompt")?.value ??
-            "",
-          advanced_prefill_prompt:
-            document.getElementById("advanced_prefill_prompt")?.value ?? "",
-          advanced_prereply_prompt:
-            document.getElementById("advanced_prereply_prompt")?.value ?? "",
-          kb_features_enabled: 1,
-          read_mod_lorebook: document.getElementById("read_mod_lorebook")
-            ?.checked
-            ? 1
-            : 0,
-          new_preset_enabled: 1,
-          vector_search_enabled: 1,
-          vector_search_query_dialogue_rounds: Math.max(
-            1,
-            toInt(
-              document.getElementById("vector_search_query_dialogue_rounds")
-                ?.value,
-              DEFAULTS.vector_search_query_dialogue_rounds,
-            ),
-          ),
-          vector_search_top_k: Math.max(
-            1,
-            toInt(
-              document.getElementById("vector_search_top_k")?.value,
-              DEFAULTS.vector_search_top_k,
-            ),
-          ),
-          vector_search_min_score: Math.max(
-            0,
-            Number(
-              document.getElementById("vector_search_min_score")?.value ||
-                DEFAULTS.vector_search_min_score,
-            ),
-          ),
-          vector_search_query_dialogue_rounds_2: Math.max(
-            1,
-            toInt(
-              document.getElementById("vector_search_query_dialogue_rounds_2")
-                ?.value,
-              DEFAULTS.vector_search_query_dialogue_rounds_2,
-            ),
-          ),
-          vector_search_top_k_2: Math.max(
-            1,
-            toInt(
-              document.getElementById("vector_search_top_k_2")?.value,
-              DEFAULTS.vector_search_top_k_2,
-            ),
-          ),
-          vector_search_min_score_2: Math.max(
-            0,
-            Number(
-              document.getElementById("vector_search_min_score_2")?.value ||
-                DEFAULTS.vector_search_min_score_2,
-            ),
-          ),
-          init_bootstrap_target_model:
-            safeTrim(
-              document.getElementById("init_bootstrap_target_model")?.value ||
-                DEFAULTS.init_bootstrap_target_model,
-            ) === "B"
-              ? "B"
-              : "A",
-          init_bootstrap_model_anchor_prompt:
-            document.getElementById("init_bootstrap_model_anchor_prompt")
-              ?.value ?? "",
-          extractor_a_thinking_enabled: document.getElementById(
-            "extractor_a_thinking_enabled",
-          )?.checked
-            ? 1
-            : 0,
-          extractor_a_thinking_level: safeTrim(
-            document.getElementById("extractor_a_thinking_level")?.value ||
-              "medium",
-          ),
-          extractor_b_thinking_enabled: document.getElementById(
-            "extractor_b_thinking_enabled",
-          )?.checked
-            ? 1
-            : 0,
-          extractor_b_thinking_level: safeTrim(
-            document.getElementById("extractor_b_thinking_level")?.value ||
-              "medium",
-          ),
-          extractor_a_concurrency: toInt(
-            document.getElementById("extractor_a_concurrency")?.value,
-            1,
-          ),
-          extractor_b_concurrency: toInt(
-            document.getElementById("extractor_b_concurrency")?.value,
-            1,
-          ),
-          context_messages: configCache.context_messages,
-          timeout_ms: configCache.timeout_ms,
-          card_enable_settings: (() => {
-            const cardList = document.querySelectorAll(
-              "#pse-card-enable-list .pse-entry-block",
-            );
-            const cs = {};
-            cardList.forEach((block) => {
-              const cid = block.getAttribute("data-card-id");
-              if (!cid) return;
-              cs[cid] = {
-                memory_extract:
-                  block.querySelector(".pse-card-memory")?.value || "1",
-                vector_search:
-                  block.querySelector(".pse-card-vector")?.value || "off",
-                card_disabled: block.querySelector(".pse-card-disabled")
-                  ?.checked
-                  ? 1
-                  : 0,
-              };
-            });
-            return JSON.stringify(cs);
-          })(),
-        };
-        await saveConfigFromUI(formData);
-        showStatus(_T.st_saved, "ok");
-      } catch (e) {
-        showStatus(_T.st_save_fail + (e?.message || String(e)), "err");
-      }
-    });
-
     document
       .getElementById("pse-close")
       ?.addEventListener("click", async () => {
@@ -13228,6 +14007,17 @@ CORRECT EXAMPLE:
           await Risuai.hideContainer();
         } catch {}
       });
+
+    overlayRoot.addEventListener("click", async (e) => {
+      if (e.target !== overlayRoot && !e.target?.classList?.contains("pse-body")) {
+        return;
+      }
+      const overlay = document.getElementById("pse-overlay-root");
+      if (overlay) overlay.remove();
+      try {
+        await Risuai.hideContainer();
+      } catch {}
+    });
   }
 
   async function initSettingEntry() {
