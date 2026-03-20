@@ -27,10 +27,10 @@ Instead of forcing your main AI model to juggle memory, world-building, and acti
 <table>
   <tr>
     <td valign="top">
-      <img src="./image/plugin image 1.png" width="45%">
+      <img src="./image/plugin image 1.png" width="100%">
     </td>
     <td valign="top">
-      <img src="./image/plugin image 2.png" width="45%">
+      <img src="./image/plugin image 2.png" width="70%">
     </td>
   </tr>
 </table>
