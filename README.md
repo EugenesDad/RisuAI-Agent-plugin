@@ -22,6 +22,21 @@ Instead of forcing your main AI model to juggle memory, world-building, and acti
 
 ---
 
+## 🖼️ Plugin UI
+
+<table>
+  <tr>
+    <td valign="top">
+      <img src="./image/plugin image 1.png" width="100%">
+    </td>
+    <td valign="top">
+      <img src="./image/plugin image 2.png" width="100%">
+    </td>
+  </tr>
+</table>
+
+---
+
 ## ✨ Core Features
 
 *   🦾 **Information Extraction:** Distills long, sprawling chat histories into high-density, easily digestible information blocks, completely replacing traditional Supa/HypaMemory and saving massive amounts of tokens.
