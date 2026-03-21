@@ -1,9 +1,9 @@
 //@name 👤 RisuAI Agent
-//@display-name 👤 RisuAI Agent v3.1
+//@display-name 👤 RisuAI Agent v3.1.1
 //@author penguineugene@protonmail.com
 //@link https://github.com/EugenesDad/RisuAI-Agent-plugin
 //@api 3.0
-//@version 3.1
+//@version 3.1.1
 
 (async () => {
   function _mapLangCode(raw) {
@@ -1737,7 +1737,7 @@ Practical conflict rule:
   let _langInitialized = false;
 
   const PLUGIN_NAME = "👤 RisuAI Agent";
-  const PLUGIN_VER = "3.1";
+  const PLUGIN_VER = "3.1.1";
   const LOG = "[RisuAIAgent]";
   const SYSTEM_INJECT_TAG = "PLUGIN_PARALLEL_STATUS";
   const SYSTEM_REWRITE_TAG = "PLUGIN_PARALLEL_REWRITE";
@@ -4925,6 +4925,15 @@ CORRECT EXAMPLE:
     } catch {}
   }
 
+  const SYNC_TO_PLUGIN_STORAGE_KEYS = new Set([
+    "extractor_a_key",
+    "extractor_b_key",
+    "embedding_key",
+    "extractor_a_provider_key_map",
+    "extractor_b_provider_key_map",
+    "embedding_provider_key_map",
+  ]);
+
   async function refreshConfig() {
     const next = { ...DEFAULTS };
     for (const key of Object.keys(DEFAULTS)) {
@@ -4932,13 +4941,21 @@ CORRECT EXAMPLE:
       const localValue = await Risuai.safeLocalStorage.getItem(
         SETTING_KEYS[key],
       );
+      let pluginSyncValue;
+      if (SYNC_TO_PLUGIN_STORAGE_KEYS.has(key)) {
+        try {
+          pluginSyncValue = await Risuai.pluginStorage.getItem(
+            "sync_" + SETTING_KEYS[key],
+          );
+        } catch {}
+      }
       const normalizeVal = (v) => {
         if (v === undefined || v === null) return undefined;
         if (typeof v === "object") return JSON.stringify(v);
         return String(v);
       };
       const merged =
-        normalizeVal(localValue) ?? normalizeVal(argValue) ?? DEFAULTS[key];
+        normalizeVal(localValue) ?? normalizeVal(pluginSyncValue) ?? normalizeVal(argValue) ?? DEFAULTS[key];
       next[key] = merged;
     }
 
@@ -5231,6 +5248,12 @@ CORRECT EXAMPLE:
                 : String(value);
           await Risuai.safeLocalStorage.setItem(storageKey, strVal);
           await safeSetArgument(key, strVal);
+          /* Dual-write key-related fields to pluginStorage for cross-device sync */
+          if (SYNC_TO_PLUGIN_STORAGE_KEYS.has(key)) {
+            try {
+              await Risuai.pluginStorage.setItem("sync_" + storageKey, strVal);
+            } catch {}
+          }
         } catch (err) {
           throw new Error(
             `saveConfigFromUI failed at "${key}": ${err?.message || String(err)}`,
@@ -11135,7 +11158,7 @@ CORRECT EXAMPLE:
     overlayRoot.innerHTML = `
       <div class="pse-body">
         <div class="pse-card">
-          <h1 class="pse-title">👤 RisuAI Agent v3.1</h1>
+          <h1 class="pse-title">👤 RisuAI Agent v3.1.1</h1>
           <div id="pse-status" class="pse-status"></div>
           ${renderModelDatalists()}
 
@@ -11444,6 +11467,46 @@ CORRECT EXAMPLE:
     if (_existingOverlay) _existingOverlay.remove();
     requestAnimationFrame(() => {
       overlayRoot.style.opacity = "1";
+    });
+
+    /* ── Bind close / overlay dismiss immediately so buttons work before heavy init ── */
+    document
+      .getElementById("pse-close")
+      ?.addEventListener("click", async () => {
+        const overlay = document.getElementById("pse-overlay-root");
+        if (overlay) overlay.remove();
+        try {
+          await Risuai.hideContainer();
+        } catch {}
+      });
+
+    overlayRoot.addEventListener("click", async (e) => {
+      if (e.target !== overlayRoot && !e.target?.classList?.contains("pse-body")) {
+        return;
+      }
+      const overlay = document.getElementById("pse-overlay-root");
+      if (overlay) overlay.remove();
+      try {
+        await Risuai.hideContainer();
+      } catch {}
+    });
+
+    /* ── Bind tab switching immediately ── */
+    const setPage = (page) => {
+      document.querySelectorAll(".pse-tab").forEach((el) => {
+        el.classList.toggle("active", el.getAttribute("data-page") === page);
+      });
+      document.querySelectorAll(".pse-page").forEach((el) => {
+        el.classList.toggle("active", el.getAttribute("data-page") === page);
+      });
+    };
+    document.querySelectorAll(".pse-tab").forEach((el) => {
+      el.addEventListener("click", () => {
+        if (el.classList.contains("frozen")) return;
+        const page = el.getAttribute("data-page");
+        if (!page) return;
+        setPage(page);
+      });
     });
 
     const renderEmbeddingCacheList = async () => {
@@ -11766,9 +11829,7 @@ CORRECT EXAMPLE:
       }
     };
 
-    try {
-      await renderEmbeddingCacheList();
-    } catch {}
+    Promise.resolve().then(() => renderEmbeddingCacheList()).catch(() => {});
     document.querySelectorAll(".pse-lang-btn").forEach((btn) => {
       btn.addEventListener("click", async () => {
         const lang = btn.dataset.lang;
@@ -11946,26 +12007,9 @@ CORRECT EXAMPLE:
       });
     });
 
-    const setPage = (page) => {
-      document.querySelectorAll(".pse-tab").forEach((el) => {
-        el.classList.toggle("active", el.getAttribute("data-page") === page);
-      });
-      document.querySelectorAll(".pse-page").forEach((el) => {
-        el.classList.toggle("active", el.getAttribute("data-page") === page);
-      });
-    };
-    document.querySelectorAll(".pse-tab").forEach((el) => {
-      el.addEventListener("click", () => {
-        if (el.classList.contains("frozen")) return;
-        const page = el.getAttribute("data-page");
-        if (!page) return;
-        setPage(page);
-      });
-    });
+    /* setPage and tab click handlers were already bound above, right after DOM insertion */
 
-    try {
-      await renderCardEnableList();
-    } catch {}
+    Promise.resolve().then(() => renderCardEnableList()).catch(() => {});
 
     document
       .getElementById("pse-card-enable-list")
@@ -13998,26 +14042,7 @@ CORRECT EXAMPLE:
       datalistId: MODEL_DATALIST_EMBED_ID,
     });
 
-    document
-      .getElementById("pse-close")
-      ?.addEventListener("click", async () => {
-        const overlay = document.getElementById("pse-overlay-root");
-        if (overlay) overlay.remove();
-        try {
-          await Risuai.hideContainer();
-        } catch {}
-      });
-
-    overlayRoot.addEventListener("click", async (e) => {
-      if (e.target !== overlayRoot && !e.target?.classList?.contains("pse-body")) {
-        return;
-      }
-      const overlay = document.getElementById("pse-overlay-root");
-      if (overlay) overlay.remove();
-      try {
-        await Risuai.hideContainer();
-      } catch {}
-    });
+    /* close / overlay dismiss event listeners were already bound above, right after DOM insertion */
   }
 
   async function initSettingEntry() {
