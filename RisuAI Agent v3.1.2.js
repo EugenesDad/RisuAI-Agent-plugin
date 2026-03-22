@@ -1,9 +1,9 @@
 //@name 👤 RisuAI Agent
-//@display-name 👤 RisuAI Agent v3.1.1
+//@display-name 👤 RisuAI Agent v3.1.2
 //@author penguineugene@protonmail.com
 //@link https://github.com/EugenesDad/RisuAI-Agent-plugin
 //@api 3.0
-//@version 3.1.1
+//@version 3.1.2
 
 (async () => {
   function _mapLangCode(raw) {
@@ -1737,7 +1737,7 @@ Practical conflict rule:
   let _langInitialized = false;
 
   const PLUGIN_NAME = "👤 RisuAI Agent";
-  const PLUGIN_VER = "3.1.1";
+  const PLUGIN_VER = "3.1.2";
   const LOG = "[RisuAIAgent]";
   const SYSTEM_INJECT_TAG = "PLUGIN_PARALLEL_STATUS";
   const SYSTEM_REWRITE_TAG = "PLUGIN_PARALLEL_REWRITE";
@@ -3190,7 +3190,6 @@ RULES:
     advanced_prefill_prompt: `Now, let's start extracting. Once you are ready, say 'Ready.'`,
     advanced_prereply_prompt: "Ready.",
     read_mod_lorebook: 0,
-    new_preset_enabled: 1,
     vector_search_enabled: 0,
     vector_search_query_dialogue_rounds: 2,
     vector_search_top_k: 6,
@@ -3237,7 +3236,6 @@ CORRECT EXAMPLE:
     model_calls_3: NEW_PRESET1_CALLS,
     model_calls_4: NEW_PRESET2_CALLS,
     active_preset: 1,
-    kb_features_enabled: 0,
     ui_language: "en",
     card_enable_settings: "{}",
     vector_search_query_dialogue_rounds_2: 2,
@@ -3279,7 +3277,6 @@ CORRECT EXAMPLE:
     advanced_prefill_prompt: "pse_advanced_prefill_prompt",
     advanced_prereply_prompt: "pse_advanced_prereply_prompt",
     read_mod_lorebook: "pse_read_mod_lorebook",
-    new_preset_enabled: "pse_new_preset_enabled",
     vector_search_enabled: "pse_vector_search_enabled",
     vector_search_query_dialogue_rounds:
       "pse_vector_search_query_dialogue_rounds",
@@ -3301,7 +3298,6 @@ CORRECT EXAMPLE:
     model_calls_3: "pse_model_calls_3",
     model_calls_4: "pse_model_calls_4",
     active_preset: "pse_active_preset",
-    kb_features_enabled: "pse_kb_features_enabled",
     card_enable_settings: "pse_card_enable_settings",
     vector_search_query_dialogue_rounds_2:
       "pse_vector_search_query_dialogue_rounds_2",
@@ -5084,8 +5080,6 @@ CORRECT EXAMPLE:
 
     next.read_mod_lorebook =
       toInt(next.read_mod_lorebook, DEFAULTS.read_mod_lorebook) === 1 ? 1 : 0;
-    next.new_preset_enabled = 1;
-    next.kb_features_enabled = 1;
     next.vector_search_enabled = 1;
     next.vector_search_query_dialogue_rounds = Math.max(
       1,
@@ -11158,7 +11152,7 @@ CORRECT EXAMPLE:
     overlayRoot.innerHTML = `
       <div class="pse-body">
         <div class="pse-card">
-          <h1 class="pse-title">👤 RisuAI Agent v3.1.1</h1>
+          <h1 class="pse-title">👤 RisuAI Agent v3.1.2</h1>
           <div id="pse-status" class="pse-status"></div>
           ${renderModelDatalists()}
 
@@ -11892,12 +11886,11 @@ CORRECT EXAMPLE:
             const gradientColor = isEven
               ? "rgba(41, 121, 255, 0.08)"
               : "rgba(0, 230, 118, 0.08)";
-            const isDisabled =
-              cs.card_disabled === undefined ||
-              cs.card_disabled === null ||
-              cs.card_disabled === 1 ||
-              cs.card_disabled === "1" ||
-              cs.card_disabled === true;
+            const isDisabled = !(
+              cs.card_disabled === 0 ||
+              cs.card_disabled === false ||
+              cs.card_disabled === "0"
+            );
 
             const memExtract =
               cs.memory_extract &&
@@ -12856,11 +12849,9 @@ CORRECT EXAMPLE:
           document.getElementById("advanced_prefill_prompt")?.value ?? "",
         advanced_prereply_prompt:
           document.getElementById("advanced_prereply_prompt")?.value ?? "",
-        kb_features_enabled: 1,
         read_mod_lorebook: document.getElementById("read_mod_lorebook")?.checked
           ? 1
           : 0,
-        new_preset_enabled: 1,
         vector_search_enabled: 1,
         vector_search_query_dialogue_rounds: Math.max(
           1,
@@ -13471,8 +13462,6 @@ CORRECT EXAMPLE:
             advanced_model_anchor_prompt: DEFAULTS.advanced_model_anchor_prompt,
             advanced_prefill_prompt: DEFAULTS.advanced_prefill_prompt,
             advanced_prereply_prompt: DEFAULTS.advanced_prereply_prompt,
-            kb_features_enabled: 1,
-            new_preset_enabled: 1,
 
             vector_search_enabled: DEFAULTS.vector_search_enabled,
             vector_search_query_dialogue_rounds:
@@ -14146,10 +14135,11 @@ CORRECT EXAMPLE:
             displayRawCharId ||
             (displayCharName ? `name_${simpleHash(displayCharName)}` : "-1");
           const displayCardCfg = displayCardSettings[displayCharId] || {};
-          const displayCardDisabled =
-            displayCardCfg.card_disabled === true ||
-            displayCardCfg.card_disabled === 1 ||
-            displayCardCfg.card_disabled === "1";
+          const displayCardDisabled = !(
+            displayCardCfg.card_disabled === 0 ||
+            displayCardCfg.card_disabled === false ||
+            displayCardCfg.card_disabled === "0"
+          );
           if (!displayCardDisabled) {
             const displayMemoryPreset = ["1", "2", "3", "4"].includes(
               String(displayCardCfg.memory_extract),
@@ -14217,10 +14207,11 @@ CORRECT EXAMPLE:
       const charId =
         rawCharId || (charName ? `name_${simpleHash(charName)}` : "-1");
       const cardCfg = cardSettings[charId] || {};
-      const cardIsDisabled =
-        cardCfg.card_disabled === true ||
-        cardCfg.card_disabled === 1 ||
-        cardCfg.card_disabled === "1";
+      const cardIsDisabled = !(
+        cardCfg.card_disabled === 0 ||
+        cardCfg.card_disabled === false ||
+        cardCfg.card_disabled === "0"
+      );
       if (cardIsDisabled) {
         await Risuai.safeLocalStorage.setItem(
           requestKeys.lastExtractorMode,
