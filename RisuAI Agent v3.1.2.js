@@ -3566,6 +3566,277 @@ CORRECT EXAMPLE:
   let _currentIsCardReorgEnabled = false;
   let _currentIsNewPreset = false;
 
+// ============================================================
+// [INJECTED] MEMORY SYSTEM ENGINE v2.1
+// ============================================================
+// ============================================================
+// [CORE] MEMORY SYSTEM ENGINE v2.1 (Final Enterprise)
+// Fixes: GC Throttling, Content Safety, Score Bias, Long-term Dedup
+// ============================================================
+
+const MemoryEngine = (() => {
+    // 1. Configuration
+    const CONFIG = {
+        version: "mem_v2.1",
+        maxLimit: 100,
+        threshold: 4,
+        dedupRange: 20,        // Recent items to check
+        dedupRandomSample: 30, // [Fix 1] Random old items to check
+        defaultDecay: 20,
+        cacheClearThreshold: 500,
+        gcFrequency: 5,        // [Fix 4] Run GC only every N turns (Performance)
+        ttlValues: { core: -1, episodicMult: 30, context: 30 },
+        weights: { importance: 0.2 },
+        debug: false,
+        loreComment: "pse_extracted_memory"
+    };
+
+    // 2. Utilities
+    const simpleHash = (str) => {
+        if(!str) return 0;
+        let hash = 0;
+        for (let i = 0; i < str.length; i++) {
+            hash = ((hash << 5) - hash) + str.charCodeAt(i);
+            hash |= 0;
+        }
+        return hash;
+    };
+
+    const tokenize = (text) => {
+        if (!text) return [];
+        return text.toLowerCase()
+            .replace(/[^\w가-힣\s]/g, ' ')
+            .split(/\s+/)
+            .filter(w => w.length > 1);
+    };
+
+    const normalizeSimilarity = (sim) => {
+        if (typeof sim !== 'number') return 0;
+        if (sim > 1.0) return Math.min(1.0, sim / 100);
+        return Math.max(0, Math.min(1, sim));
+    };
+
+    const _log = (msg) => {
+        if (CONFIG.debug) console.log(`[MemoryEngine v2.1] ${msg}`);
+    };
+
+    // 3. Caching
+    const metaCache = new Map();
+
+    const getSafeKey = (entry) => {
+        return entry.id || `mem_${simpleHash(entry.content || "null")}`;
+    };
+
+    const getCachedMeta = (entry) => {
+        if (!entry || typeof entry.content !== 'string') return null;
+        const key = getSafeKey(entry);
+
+        if (metaCache.size > CONFIG.cacheClearThreshold) metaCache.clear();
+        if (metaCache.has(key)) return metaCache.get(key);
+
+        const meta = parseMeta(entry.content);
+        metaCache.set(key, meta);
+        return meta;
+    };
+
+    const parseMeta = (raw) => {
+        try {
+            const match = raw.match(/<!--MEM:({[\s\S]*?})-->/);
+            if (match && match[1]) {
+                const p = JSON.parse(match[1]);
+                return {
+                    t: Number(p.t) || 0,
+                    ttl: Number(p.ttl) || 0,
+                    imp: Number(p.imp) || 5,
+                    type: p.type || 'context'
+                };
+            }
+        } catch (e) { /* Ignore */ }
+        return { t: 0, ttl: 0, imp: 5, type: 'context' };
+    };
+
+    // 4. Logic Core
+    const calcRecency = (turn, currentTurn) => {
+        if (!Number.isFinite(turn) || !Number.isFinite(currentTurn)) return 0;
+        const age = currentTurn - turn;
+        return (age < 0) ? 1 : Math.exp(-age / CONFIG.defaultDecay);
+    };
+
+    const calcTTL = (content, imp) => {
+        let type = 'context';
+        if (/(이름|나이|직업|성별|거주|관계|특징)/.test(content) || imp >= 9) type = 'core';
+        else if (imp >= 6) type = 'episodic';
+
+        const ttl = (type === 'core') ? -1 : 
+                    (type === 'episodic') ? imp * CONFIG.ttlValues.episodicMult : 
+                    CONFIG.ttlValues.context;
+        return { type, ttl };
+    };
+
+    const isExpired = (meta, currentTurn) => {
+        if (!meta) return true;
+        if (meta.ttl === -1) return false;
+        if (meta.ttl === 0 && meta.t === 0) return false; 
+        if (meta.ttl <= 0) return true;
+        return (meta.t + meta.ttl) < currentTurn;
+    };
+
+    const getWordOverlap = (a, b) => {
+        const wA = tokenize(a);
+        const wB = tokenize(b);
+        if (wA.length === 0 || wB.length === 0) return 0;
+        const sA = new Set(wA);
+        const sB = new Set(wB);
+        let inter = 0;
+        sA.forEach(w => { if (sB.has(w)) inter++; });
+        return inter / Math.min(sA.size, sB.size);
+    };
+
+    // 5. Public API
+    return {
+        CONFIG,
+
+        prepareMemory: (data, currentTurn, existingList) => {
+            const { content, importance } = data;
+
+            // [Fix 2] Content Safety
+            if (!content || typeof content !== 'string' || content.trim().length < 5) return null;
+            if (importance < CONFIG.threshold) return null;
+
+            // [Fix 1] Enhanced Dedup: Recent + Random Sample
+            const recent = existingList.slice(-CONFIG.dedupRange);
+
+            // Pick random old items to prevent long-term duplicates
+            const oldItems = existingList.slice(0, existingList.length - CONFIG.dedupRange);
+            const randomSample = [];
+            if (oldItems.length > 0) {
+                // Simple random pick (deterministic for performance, e.g., every 5th item or random)
+                // For strict random: pick N items
+                for(let i=0; i<CONFIG.dedupRandomSample && i<oldItems.length; i++) {
+                    const idx = Math.floor(Math.random() * oldItems.length);
+                    randomSample.push(oldItems[idx]);
+                }
+            }
+
+            const checkPool = [...recent, ...randomSample];
+
+            for (const item of checkPool) {
+                if (!item || !item.content) continue;
+
+                // Fast String Check
+                const snippet = content.substring(0, 50);
+                if (snippet.length > 10 && item.content.includes(snippet)) {
+                    _log("Dedup: String match (History)");
+                    return null;
+                }
+
+                // Semantic Check
+                if (Math.abs(item.content.length - content.length) < 100) {
+                    if (getWordOverlap(item.content, content) > 0.6) {
+                        _log("Dedup: Semantic match (History)");
+                        return null;
+                    }
+                }
+            }
+
+            const { type, ttl } = calcTTL(content, importance);
+            const meta = { t: currentTurn, ttl, imp: importance, type };
+
+            _log(`Saving Memory: imp=${importance}, type=${type}`);
+
+            return {
+                key: "",
+                comment: CONFIG.loreComment,
+                content: `<!--MEM:${JSON.stringify(meta)}-->\n${content}`,
+                mode: "normal",
+                insertorder: 100,
+                alwaysActive: true
+            };
+        },
+
+        retrieveMemories: (query, currentTurn, candidates) => {
+            const isHistorical = /\b(처음|예전|과거|시작|기억나|전에)\b/.test(query);
+            const IMP_W = CONFIG.weights.importance;
+            const REM_W = 1 - IMP_W;
+            const REC_R = isHistorical ? 0.1 : 0.4;
+            const recW = REM_W * REC_R;
+            const simW = REM_W * (1 - REC_R);
+
+            const valid = [];
+            for (const entry of candidates) {
+                const meta = getCachedMeta(entry);
+                if (!meta) continue;
+                if (isExpired(meta, currentTurn)) continue;
+
+                const normImp = meta.imp / 10;
+                const recency = calcRecency(meta.t, currentTurn);
+                const sim = normalizeSimilarity(entry.similarity || 0);
+
+                // [Fix 3] Logic Fix: Importance Bias Correction
+                // Prevents high-importance but irrelevant memories from dominating.
+                // Score = (Sim * SimW) + (Rec * RecW) + (Imp * ImpW * Sim)
+                const score = 
+                    (sim * simW) +
+                    (recency * recW) +
+                    (normImp * IMP_W * sim); 
+
+                valid.push({ ...entry, _score: score });
+            }
+
+            const result = valid.sort((a, b) => b._score - a._score).slice(0, 15);
+            _log(`Retrieved ${result.length} memories from ${candidates.length} candidates.`);
+            return result;
+        },
+
+        cleanupMemories: (allEntries, currentTurn) => {
+            // [Fix 4] GC Throttling: Only run every N turns to save performance
+            if (currentTurn % CONFIG.gcFrequency !== 0) {
+                return { cleanedList: null, deletedCount: 0 }; // Indicate no-op
+            }
+
+            const toDelete = new Set();
+
+            // 1. Find expired
+            allEntries.forEach(e => {
+                if (e.comment !== CONFIG.loreComment) return;
+                const meta = getCachedMeta(e);
+                if (!meta || isExpired(meta, currentTurn)) {
+                    toDelete.add(getSafeKey(e));
+                }
+            });
+
+            // 2. Check Limit
+            const validCount = allEntries.filter(e => e.comment === CONFIG.loreComment && !toDelete.has(getSafeKey(e))).length;
+            if (validCount > CONFIG.maxLimit) {
+                const candidates = allEntries
+                    .filter(e => e.comment === CONFIG.loreComment && !toDelete.has(getSafeKey(e)))
+                    .map(e => {
+                        const meta = getCachedMeta(e);
+                        if (!meta) return { ...e, _delScore: -999 };
+                        if (meta.type === 'core') return { ...e, _delScore: 999 };
+                        return { ...e, _delScore: (meta.imp / 10 * 0.6) + (calcRecency(meta.t, currentTurn) * 0.4) };
+                    })
+                    .sort((a, b) => a._delScore - b._delScore);
+
+                const needed = validCount - CONFIG.maxLimit;
+                candidates.slice(0, needed).forEach(e => toDelete.add(getSafeKey(e)));
+            }
+
+            const cleanedList = allEntries.filter(e => !toDelete.has(getSafeKey(e)));
+            toDelete.forEach(k => metaCache.delete(k));
+
+            _log(`GC Run: Pruned ${toDelete.size} memories.`);
+            return { cleanedList, deletedCount: toDelete.size };
+        },
+
+        getManagedEntries: (localLore) => {
+            if (!Array.isArray(localLore)) return [];
+            return localLore.filter(e => e.comment === CONFIG.loreComment);
+        }
+    };
+})();
+
+
   function isKbFeatureEnabled() {
     return _currentIsCardReorgEnabled;
   }
