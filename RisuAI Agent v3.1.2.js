@@ -1,9 +1,9 @@
 //@name 👤 RisuAI Agent
-//@display-name 👤 RisuAI Agent v3.1.2
+//@display-name 👤 RisuAI Agent v3.1.2-Memory-Custom-V1
 //@author penguineugene@protonmail.com
 //@link https://github.com/EugenesDad/RisuAI-Agent-plugin
 //@api 3.0
-//@version 3.1.2
+//@version v3.1.2-memory-custom-v1
 
 (async () => {
   function _mapLangCode(raw) {
@@ -253,6 +253,11 @@
       warn_cbs_mod:
         "Since CBS syntax cannot be parsed currently, please decide whether to enable this after reviewing the Mod's Lorebook content.",
       btn_reset_factory: "Reset All to Factory Defaults",
+      btn_new_chat_lore: "New Chat (Keep Lorebook)",
+      confirm_new_chat_lore:
+        "Create a new chat from current chat while preserving lorebook and memory data?",
+      st_new_chat_created: "New chat created with lorebook preserved.",
+      st_new_chat_fail: "Failed to create new chat: ",
       editor_cancel: "Cancel",
       editor_apply: "Apply",
       aria_close: "Close",
@@ -822,6 +827,11 @@ Practical conflict rule:
       warn_cbs_mod:
         "CBS 구문 분석을 지원하지 않으므로, 모드 로어북 내용을 확인하신 뒤 활성화 여부를 결정해 주세요.",
       btn_reset_factory: "모든 설정을 기본값으로 초기화",
+      btn_new_chat_lore: "새 채팅 생성 (로어북 유지)",
+      confirm_new_chat_lore:
+        "현재 채팅에서 로어북과 기억 데이터를 유지한 새 채팅을 만드시겠습니까?",
+      st_new_chat_created: "로어북을 유지한 새 채팅이 생성되었습니다.",
+      st_new_chat_fail: "새 채팅 생성 실패: ",
       editor_cancel: "취소",
       editor_apply: "적용",
       aria_close: "닫기",
@@ -1284,6 +1294,11 @@ Practical conflict rule:
       warn_cbs_mod:
         "因為無法解析 CBS 語法，所以請在檢視模組的 Lorebook 內容後，自行決定是否開啟。",
       btn_reset_factory: "將所有設定重置為出廠預設",
+      btn_new_chat_lore: "新建聊天 (保留 Lorebook)",
+      confirm_new_chat_lore:
+        "要從目前聊天建立新聊天並保留 Lorebook 與記憶資料嗎？",
+      st_new_chat_created: "已建立保留 Lorebook 的新聊天。",
+      st_new_chat_fail: "新建聊天失敗: ",
       editor_cancel: "取消",
       editor_apply: "應用",
       aria_close: "關閉",
@@ -3190,6 +3205,7 @@ RULES:
     advanced_prefill_prompt: `Now, let's start extracting. Once you are ready, say 'Ready.'`,
     advanced_prereply_prompt: "Ready.",
     read_mod_lorebook: 0,
+    new_preset_enabled: 1,
     vector_search_enabled: 0,
     vector_search_query_dialogue_rounds: 2,
     vector_search_top_k: 6,
@@ -3236,6 +3252,7 @@ CORRECT EXAMPLE:
     model_calls_3: NEW_PRESET1_CALLS,
     model_calls_4: NEW_PRESET2_CALLS,
     active_preset: 1,
+    kb_features_enabled: 0,
     ui_language: "en",
     card_enable_settings: "{}",
     vector_search_query_dialogue_rounds_2: 2,
@@ -3277,6 +3294,7 @@ CORRECT EXAMPLE:
     advanced_prefill_prompt: "pse_advanced_prefill_prompt",
     advanced_prereply_prompt: "pse_advanced_prereply_prompt",
     read_mod_lorebook: "pse_read_mod_lorebook",
+    new_preset_enabled: "pse_new_preset_enabled",
     vector_search_enabled: "pse_vector_search_enabled",
     vector_search_query_dialogue_rounds:
       "pse_vector_search_query_dialogue_rounds",
@@ -3298,6 +3316,7 @@ CORRECT EXAMPLE:
     model_calls_3: "pse_model_calls_3",
     model_calls_4: "pse_model_calls_4",
     active_preset: "pse_active_preset",
+    kb_features_enabled: "pse_kb_features_enabled",
     card_enable_settings: "pse_card_enable_settings",
     vector_search_query_dialogue_rounds_2:
       "pse_vector_search_query_dialogue_rounds_2",
@@ -3541,6 +3560,8 @@ CORRECT EXAMPLE:
   const sessionStep0HandledHashByScope = new Map();
   let embeddingCacheStore = null;
   let configCache = {};
+  let cardEnableSettingsCacheRaw = null;
+  let cardEnableSettingsCacheParsed = {};
 
   let _currentIsCardReorgEnabled = false;
   let _currentIsNewPreset = false;
@@ -4922,38 +4943,38 @@ CORRECT EXAMPLE:
   }
 
   const SYNC_TO_PLUGIN_STORAGE_KEYS = new Set([
-    "extractor_a_key",
-    "extractor_b_key",
-    "embedding_key",
-    "extractor_a_provider_key_map",
-    "extractor_b_provider_key_map",
-    "embedding_provider_key_map",
-  ]);
+    "extractor_a_key",
+    "extractor_b_key",
+    "embedding_key",
+    "extractor_a_provider_key_map",
+    "extractor_b_provider_key_map",
+    "embedding_provider_key_map",
+  ]);
 
-  async function refreshConfig() {
-    const next = { ...DEFAULTS };
-    for (const key of Object.keys(DEFAULTS)) {
-      const argValue = await safeGetArgument(key);
-      const localValue = await Risuai.safeLocalStorage.getItem(
-        SETTING_KEYS[key],
-      );
-      let pluginSyncValue;
-      if (SYNC_TO_PLUGIN_STORAGE_KEYS.has(key)) {
-        try {
-          pluginSyncValue = await Risuai.pluginStorage.getItem(
-            "sync_" + SETTING_KEYS[key],
-          );
-        } catch {}
-      }
-      const normalizeVal = (v) => {
-        if (v === undefined || v === null) return undefined;
-        if (typeof v === "object") return JSON.stringify(v);
-        return String(v);
-      };
-      const merged =
-        normalizeVal(localValue) ?? normalizeVal(pluginSyncValue) ?? normalizeVal(argValue) ?? DEFAULTS[key];
-      next[key] = merged;
-    }
+  async function refreshConfig() {
+    const next = { ...DEFAULTS };
+    for (const key of Object.keys(DEFAULTS)) {
+      const argValue = await safeGetArgument(key);
+      const localValue = await Risuai.safeLocalStorage.getItem(
+        SETTING_KEYS[key],
+      );
+      let pluginSyncValue;
+      if (SYNC_TO_PLUGIN_STORAGE_KEYS.has(key)) {
+        try {
+          pluginSyncValue = await Risuai.pluginStorage.getItem(
+            "sync_" + SETTING_KEYS[key],
+          );
+        } catch {}
+      }
+      const normalizeVal = (v) => {
+        if (v === undefined || v === null) return undefined;
+        if (typeof v === "object") return JSON.stringify(v);
+        return String(v);
+      };
+      const merged =
+        normalizeVal(localValue) ?? normalizeVal(pluginSyncValue) ?? normalizeVal(argValue) ?? DEFAULTS[key];
+      next[key] = merged;
+    }
 
     next.context_messages = Math.max(
       1,
@@ -5080,6 +5101,8 @@ CORRECT EXAMPLE:
 
     next.read_mod_lorebook =
       toInt(next.read_mod_lorebook, DEFAULTS.read_mod_lorebook) === 1 ? 1 : 0;
+    next.new_preset_enabled = 1;
+    next.kb_features_enabled = 1;
     next.vector_search_enabled = 1;
     next.vector_search_query_dialogue_rounds = Math.max(
       1,
@@ -5235,20 +5258,20 @@ CORRECT EXAMPLE:
         try {
           const value = formData[key];
           const strVal =
-            value === undefined || value === null
-              ? ""
-              : typeof value === "object"
-                ? JSON.stringify(value)
-                : String(value);
-          await Risuai.safeLocalStorage.setItem(storageKey, strVal);
-          await safeSetArgument(key, strVal);
-          /* Dual-write key-related fields to pluginStorage for cross-device sync */
-          if (SYNC_TO_PLUGIN_STORAGE_KEYS.has(key)) {
-            try {
-              await Risuai.pluginStorage.setItem("sync_" + storageKey, strVal);
-            } catch {}
-          }
-        } catch (err) {
+            value === undefined || value === null
+              ? ""
+              : typeof value === "object"
+                ? JSON.stringify(value)
+                : String(value);
+          await Risuai.safeLocalStorage.setItem(storageKey, strVal);
+          await safeSetArgument(key, strVal);
+          /* Dual-write key-related fields to pluginStorage for cross-device sync */
+          if (SYNC_TO_PLUGIN_STORAGE_KEYS.has(key)) {
+            try {
+              await Risuai.pluginStorage.setItem("sync_" + storageKey, strVal);
+            } catch {}
+          }
+        } catch (err) {
           throw new Error(
             `saveConfigFromUI failed at "${key}": ${err?.message || String(err)}`,
           );
@@ -5672,6 +5695,417 @@ CORRECT EXAMPLE:
     return src;
   }
 
+  function parseDefaultVariables(raw) {
+    return String(raw || "")
+      .split(/\r?\n/g)
+      .map((line) => line.trim())
+      .filter(Boolean)
+      .map((line) => {
+        const eq = line.indexOf("=");
+        if (eq === -1) return null;
+        return [line.slice(0, eq).trim(), line.slice(eq + 1)];
+      })
+      .filter((pair) => pair && pair[0]);
+  }
+
+  function splitTopLevelCbsByDoubleColon(raw) {
+    const src = String(raw || "");
+    const result = [];
+    let current = "";
+    let braceDepth = 0;
+    let parenDepth = 0;
+    for (let i = 0; i < src.length; i += 1) {
+      const two = src.slice(i, i + 2);
+      if (two === "{{") {
+        braceDepth += 1;
+        current += two;
+        i += 1;
+        continue;
+      }
+      if (two === "}}" && braceDepth > 0) {
+        braceDepth -= 1;
+        current += two;
+        i += 1;
+        continue;
+      }
+      if (src[i] === "(") parenDepth += 1;
+      if (src[i] === ")" && parenDepth > 0) parenDepth -= 1;
+      if (two === "::" && braceDepth === 0 && parenDepth === 0) {
+        result.push(current);
+        current = "";
+        i += 1;
+        continue;
+      }
+      current += src[i];
+    }
+    result.push(current);
+    return result;
+  }
+
+  function readCbsTagAt(text, startIndex) {
+    if (String(text || "").slice(startIndex, startIndex + 2) !== "{{") {
+      return null;
+    }
+    let depth = 1;
+    let i = startIndex + 2;
+    while (i < text.length - 1) {
+      const two = text.slice(i, i + 2);
+      if (two === "{{") {
+        depth += 1;
+        i += 2;
+        continue;
+      }
+      if (two === "}}") {
+        depth -= 1;
+        i += 2;
+        if (depth === 0) {
+          return {
+            start: startIndex,
+            end: i,
+            raw: text.slice(startIndex, i),
+            inner: text.slice(startIndex + 2, i - 2),
+          };
+        }
+        continue;
+      }
+      i += 1;
+    }
+    return null;
+  }
+
+  function findNextCbsTag(text, startIndex) {
+    const src = String(text || "");
+    for (let i = startIndex; i < src.length - 1; i += 1) {
+      if (src[i] === "{" && src[i + 1] === "{") {
+        return readCbsTagAt(src, i);
+      }
+    }
+    return null;
+  }
+
+  function extractCbsBlock(text, startTag, blockName) {
+    let depth = 1;
+    let cursor = startTag.end;
+    let elseTag = null;
+    while (cursor < text.length) {
+      const tag = findNextCbsTag(text, cursor);
+      if (!tag) break;
+      const inner = safeTrim(tag.inner);
+      if (inner.startsWith(`#${blockName} `)) {
+        depth += 1;
+      } else if (inner === `/${blockName}`) {
+        depth -= 1;
+        if (depth === 0) {
+          return {
+            body: text.slice(startTag.end, elseTag ? elseTag.start : tag.start),
+            elseBody: elseTag ? text.slice(elseTag.end, tag.start) : "",
+            end: tag.end,
+          };
+        }
+      } else if (inner === "else" && depth === 1 && blockName === "if") {
+        elseTag = tag;
+      }
+      cursor = tag.end;
+    }
+    return {
+      body: text.slice(startTag.end),
+      elseBody: "",
+      end: text.length,
+    };
+  }
+
+  async function getStandaloneCbsRuntime() {
+    const { char, chat } = await getCurrentCharAndChatSafe();
+    let db = null;
+    try {
+      db = await Risuai.getDatabase();
+    } catch {}
+    const vars = Object.create(null);
+    for (const [k, v] of parseDefaultVariables(char?.defaultVariables)) {
+      vars[k] = String(v ?? "");
+    }
+    for (const [k, v] of parseDefaultVariables(db?.templateDefaultVariables)) {
+      if (!(k in vars)) vars[k] = String(v ?? "");
+    }
+    const scriptState =
+      chat?.scriptstate && typeof chat.scriptstate === "object"
+        ? chat.scriptstate
+        : {};
+    for (const [rawKey, value] of Object.entries(scriptState)) {
+      const key = String(rawKey || "").replace(/^\$/, "");
+      vars[key] = value == null ? "null" : String(value);
+    }
+    const globalVars =
+      db?.globalChatVariables && typeof db.globalChatVariables === "object"
+        ? db.globalChatVariables
+        : {};
+    const userName = safeTrim(db?.username || "User");
+    
+    // [보수] {{ujb}} 및 {{system_note}} 연동을 위해 globalNote 명시적 매핑
+    const finalDb = {
+      ...db,
+      globalNote: chat?.localLore?.globalNote || db?.globalNote || ""
+    };
+
+    return {
+      char,
+      chat,
+      db: finalDb,
+      vars,
+      globalVars,
+      userName,
+      functions: Object.create(null),
+    };
+  }
+
+  function evalStandaloneCbsCalc(expression) {
+    const src = String(expression || "")
+      .replace(/\s+/g, " ")
+      .trim();
+    if (!src) return "";
+    const looksConditional = /[<>=!&|]/.test(src);
+    if (src.includes("{{") || src.includes("}}") || src.includes("[CBS_")) {
+      return looksConditional ? "0" : src;
+    }
+    if (!/^[\d\s()+\-*/%<>=!&|.,'"_[\]A-Za-z]+$/.test(src)) {
+      return looksConditional ? "0" : src;
+    }
+    try {
+      const result = Function(`"use strict"; return (${src});`)();
+      if (typeof result === "boolean") return result ? "1" : "0";
+      return result == null ? "" : String(result);
+    } catch {
+      return looksConditional ? "0" : src;
+    }
+  }
+
+  function isStandaloneCbsTruthy(value) {
+    const src = safeTrim(String(value ?? ""));
+    if (!src) return false;
+    if (src === "0") return false;
+    if (src.toLowerCase() === "false") return false;
+    if (src.toLowerCase() === "null") return false;
+    return true;
+  }
+
+  async function evalStandaloneCbsExpr(inner, runtime, args = []) {
+    let expr = safeTrim(inner);
+    if (!expr) return "";
+    if (expr.includes("{{")) {
+      expr = safeTrim(await renderStandaloneCbsText(expr, runtime, args));
+      if (!expr) return "";
+    }
+    if (expr === "char" || expr === "Char") {
+      return safeTrim(runtime?.char?.name || "Char");
+    }
+    if (expr === "user" || expr === "User") {
+      return runtime?.userName || "User";
+    }
+
+    const parts = splitTopLevelCbsByDoubleColon(expr).map((s) => String(s ?? ""));
+    const head = safeTrim(parts[0] || "");
+
+    if (head === "arg") {
+      const index = Math.max(0, (parseInt(safeTrim(parts[1] || "1"), 10) || 1) - 1);
+      return args[index] ?? "null";
+    }
+
+    if (head === "getvar") {
+      const keyRaw = parts.slice(1).join("::");
+      const key = safeTrim(await renderStandaloneCbsText(keyRaw, runtime, args));
+      if (!key) return "null";
+      if (Object.prototype.hasOwnProperty.call(runtime.vars, key)) {
+        return runtime.vars[key];
+      }
+      if (Object.prototype.hasOwnProperty.call(runtime.globalVars, key)) {
+        return runtime.globalVars[key];
+      }
+      return "null";
+    }
+
+    if (head === "calc") {
+      const expression = await renderStandaloneCbsText(
+        parts.slice(1).join("::"),
+        runtime,
+        args,
+      );
+      return evalStandaloneCbsCalc(expression);
+    }
+
+    if (head === "call") {
+      const fnName = safeTrim(await renderStandaloneCbsText(parts[1] || "", runtime, args));
+      const fnBody = runtime.functions[fnName];
+      if (!fnBody) return "";
+      const callArgs = [];
+      for (let i = 2; i < parts.length; i += 1) {
+        callArgs.push(await renderStandaloneCbsText(parts[i], runtime, args));
+      }
+      return await renderStandaloneCbsText(fnBody, runtime, callArgs);
+    }
+
+    // --- 추가된 CBS 유틸리티 및 비교 연산자 ---
+    if (head === "none") return "";
+    if (head === "char_desc") return safeTrim(runtime?.char?.desc || runtime?.char?.description || "");
+    if (head === "ujb" || head === "system_note") return safeTrim(runtime?.db?.globalNote || "");
+
+    if (head === "random") {
+      const choices = parts.slice(1);
+      if (choices.length === 0) return "";
+      const randIdx = Math.floor(Math.random() * choices.length);
+      return await renderStandaloneCbsText(choices[randIdx], runtime, args);
+    }
+
+    if (["equal", "not_equal", "greater", "greater_equal", "less", "less_equal"].includes(head)) {
+      const v1 = await renderStandaloneCbsText(parts[1] || "", runtime, args);
+      const v2 = await renderStandaloneCbsText(parts[2] || "", runtime, args);
+      const n1 = Number(v1);
+      const n2 = Number(v2);
+      const isNum = !isNaN(n1) && !isNaN(n2);
+      switch(head) {
+        case "equal": return v1 === v2 ? "1" : "0";
+        case "not_equal": return v1 !== v2 ? "1" : "0";
+        case "greater": return (isNum ? n1 > n2 : v1 > v2) ? "1" : "0";
+        case "greater_equal": return (isNum ? n1 >= n2 : v1 >= v2) ? "1" : "0";
+        case "less": return (isNum ? n1 < n2 : v1 < v2) ? "1" : "0";
+        case "less_equal": return (isNum ? n1 <= n2 : v1 <= v2) ? "1" : "0";
+      }
+    }
+    
+    if (head === "varrule_max" || head === "varrule_min") {
+      const key = safeTrim(await renderStandaloneCbsText(parts[1] || "", runtime, args));
+      const limit = Number(await renderStandaloneCbsText(parts[2] || "", runtime, args));
+      if (key && !isNaN(limit) && runtime.vars[key] !== undefined) {
+        const current = Number(runtime.vars[key]);
+        if (!isNaN(current)) {
+          runtime.vars[key] = head === "varrule_max" ? Math.min(current, limit).toString() : Math.max(current, limit).toString();
+        }
+      }
+      return "";
+    }
+    // -------------------------------------------
+
+    if (Object.prototype.hasOwnProperty.call(runtime.vars, expr)) {
+      return runtime.vars[expr];
+    }
+    if (Object.prototype.hasOwnProperty.call(runtime.globalVars, expr)) {
+      return runtime.globalVars[expr];
+    }
+
+    return expr;
+  }
+
+  async function renderStandaloneCbsText(text, runtime, args = []) {
+    const src = String(text ?? "");
+    if (!src || !src.includes("{{")) return src;
+    let out = "";
+    let cursor = 0;
+    while (cursor < src.length) {
+      const tag = findNextCbsTag(src, cursor);
+      if (!tag) {
+        out += src.slice(cursor);
+        break;
+      }
+      out += src.slice(cursor, tag.start);
+      const inner = safeTrim(tag.inner);
+
+      if (inner.startsWith("#func ")) {
+        const fnName = safeTrim(inner.slice(6));
+        const block = extractCbsBlock(src, tag, "func");
+        if (fnName) runtime.functions[fnName] = block.body;
+        cursor = block.end;
+        continue;
+      }
+
+      if (inner.startsWith("#if ")) {
+        const conditionRaw = inner.slice(4);
+        const block = extractCbsBlock(src, tag, "if");
+        const condition = await evalStandaloneCbsExpr(conditionRaw, runtime, args);
+        out += await renderStandaloneCbsText(
+          isStandaloneCbsTruthy(condition) ? block.body : block.elseBody,
+          runtime,
+          args,
+        );
+        cursor = block.end;
+        continue;
+      }
+
+      if (inner.startsWith("#unless ")) {
+        const conditionRaw = inner.slice(8);
+        const block = extractCbsBlock(src, tag, "unless");
+        const condition = await evalStandaloneCbsExpr(conditionRaw, runtime, args);
+        out += await renderStandaloneCbsText(
+          isStandaloneCbsTruthy(condition) ? block.elseBody : block.body,
+          runtime,
+          args,
+        );
+        cursor = block.end;
+        continue;
+      }
+
+      if (
+        inner === "else" ||
+        inner === "/if" ||
+        inner === "/unless" ||
+        inner === "/func"
+      ) {
+        cursor = tag.end;
+        continue;
+      }
+
+      out += await evalStandaloneCbsExpr(inner, runtime, args);
+      cursor = tag.end;
+    }
+    return out;
+  }
+
+  async function normalizeAgentCbsText(text) {
+    const src = String(text ?? "");
+    if (!src || !src.includes("{{")) return src;
+    try {
+      const runtime = await getStandaloneCbsRuntime();
+      const rendered = await renderStandaloneCbsText(src, runtime, []);
+      if (typeof rendered === "string") return rendered;
+      if (rendered != null) return String(rendered);
+    } catch (e) {
+      try {
+        await Risuai.log(
+          `${LOG} standalone CBS render fallback: ${e?.message || String(e)}`,
+        );
+      } catch {}
+    }
+    return cbsToIndexPlaceholders(src);
+  }
+
+  async function normalizeLorebookEntryForAgent(entry) {
+    if (!entry || typeof entry !== "object") return entry;
+    const contentSource =
+      typeof entry?.content === "string"
+        ? entry.content
+        : typeof entry?.prompt === "string"
+          ? entry.prompt
+          : "";
+    return {
+      ...entry,
+      content: await normalizeAgentCbsText(contentSource),
+      key: await normalizeAgentCbsText(entry?.key ?? entry?.keyword ?? ""),
+      secondkey: await normalizeAgentCbsText(
+        entry?.secondkey ?? entry?.secondary_keyword ?? "",
+      ),
+    };
+  }
+
+  async function normalizePromptMessagesForAgent(messages) {
+    const list = Array.isArray(messages) ? messages : [];
+    return await Promise.all(list.map(async (m) => {
+      if (!m || typeof m !== "object") return m;
+      if (typeof m.content !== "string" || !m.content.includes("{{")) return m;
+      return {
+        ...m,
+        content: await normalizeAgentCbsText(m.content),
+      };
+    }));
+  }
+
   function parseLorebookNames(raw) {
     return String(raw || "")
       .split(/[\n,]+/g)
@@ -5775,7 +6209,11 @@ CORRECT EXAMPLE:
   async function getCombinedLorebookEntries(char, chat) {
     const charLore = extractLorebookEntries(char);
     const moduleLore = await getModuleLorebookEntries(char, chat);
-    return charLore.concat(moduleLore);
+    return await Promise.all(
+      charLore.concat(moduleLore).map((entry) =>
+        normalizeLorebookEntryForAgent(entry),
+      ),
+    );
   }
 
   async function getLorebookContextByNames(names) {
@@ -6965,6 +7403,399 @@ CORRECT EXAMPLE:
     if (p === "2") return parseModelCalls(configCache.model_calls_2);
     return parseModelCalls(configCache.model_calls);
   }
+
+  function deepClone(value) {
+    try {
+      return JSON.parse(JSON.stringify(value));
+    } catch {
+      return value;
+    }
+  }
+
+  function getTurnOffsetFromLocalLore(localLore) {
+    if (!Array.isArray(localLore)) return 0;
+    const offsetEntry = localLore.find(
+      (l) => safeTrim(l?.comment) === "pse_turn_offset",
+    );
+    if (!offsetEntry || typeof offsetEntry.content !== "string") return 0;
+    return parseInt(String(offsetEntry.content).replace(/[^\d]/g, ""), 10) || 0;
+  }
+
+  function normalizeChatPayloadText(raw) {
+    let content = typeof raw === "string" ? raw.trim() : "";
+    if (!content) return "";
+    const gtMatch = content.match(/<GigaTrans>([\s\S]*?)<\/GigaTrans>/);
+    if (gtMatch) content = gtMatch[1].trim();
+    content = content
+      .replace(/<GT-CTRL[^/]*\/>/g, "")
+      .replace(/\[LBDATA START\][\s\S]*?\[LBDATA END\]/g, "")
+      .trim();
+    return content;
+  }
+
+  function getContinuedChapterBootstrapAssistantCandidates(chatData, charData) {
+    if (getTurnOffsetFromLocalLore(chatData?.localLore) <= 0) return [];
+    const candidates = [];
+    const seen = new Set();
+    const pushCandidate = (raw) => {
+      const normalized = normalizeChatPayloadText(raw);
+      if (!normalized || seen.has(normalized)) return;
+      seen.add(normalized);
+      candidates.push(normalized);
+    };
+
+    const greetingIndex = Number.isFinite(Number(chatData?.fmIndex))
+      ? Number(chatData.fmIndex)
+      : -1;
+    const alternateGreetings = Array.isArray(charData?.alternateGreetings)
+      ? charData.alternateGreetings
+      : [];
+    if (greetingIndex >= 0 && greetingIndex < alternateGreetings.length) {
+      pushCandidate(alternateGreetings[greetingIndex]);
+    } else {
+      pushCandidate(charData?.firstMessage);
+    }
+
+    const src = Array.isArray(chatData?.message) ? chatData.message : [];
+    let encounteredUser = false;
+    for (const m of src) {
+      if (m?.role === "user") {
+        encounteredUser = true;
+        break;
+      }
+      if (m?.role === "char") {
+        pushCandidate(m?.data);
+      }
+    }
+    if (!encounteredUser) {
+      for (const m of src) {
+        if (m?.role === "char") pushCandidate(m?.data);
+      }
+    }
+    return candidates;
+  }
+
+  function isContinuedChapterFirstTurnPending(chatData) {
+    if (getTurnOffsetFromLocalLore(chatData?.localLore) <= 0) return false;
+    const src = Array.isArray(chatData?.message) ? chatData.message : [];
+    return !src.some((m) => m?.role === "char");
+  }
+
+  function trimContinuedChapterBootstrapMessages(messages, localLore) {
+    const list = Array.isArray(messages) ? messages : [];
+    if (getTurnOffsetFromLocalLore(localLore) <= 0) return list;
+    let firstUserIndex = -1;
+    for (let i = 0; i < list.length; i += 1) {
+      if (list[i]?.role === "user") {
+        firstUserIndex = i;
+        break;
+      }
+    }
+    if (firstUserIndex <= 0) return list;
+    return list.slice(firstUserIndex);
+  }
+
+  function trimContinuedChapterBootstrapPromptMessages(messages, chatData, charData) {
+    const list = Array.isArray(messages) ? messages : [];
+    
+    // [복구] 방어 코드: 기억유지 새 챕터(turn offset > 0)가 아니면 원본 그대로 반환
+    if (getTurnOffsetFromLocalLore(chatData?.localLore) <= 0) return list;
+
+    // 1. 실제 대화 히스토리에서 유저/캐릭터 메시지 개수 카운트
+    const chatMessages = Array.isArray(chatData?.message) ? chatData.message : [];
+    let actualRoleCount = 0;
+    for (const m of chatMessages) {
+      if (m?.role === "user" || m?.role === "char") {
+        actualRoleCount += 1;
+      }
+    }
+
+    // 2. 최종 페이로드(messages)에서 user/assistant 역할을 가진 메시지의 인덱스 수집
+    const roleIndices = [];
+    for (let i = 0; i < list.length; i += 1) {
+      const role = list[i]?.role;
+      if (role === "user" || role === "assistant") {
+        roleIndices.push(i);
+      }
+    }
+
+    // 3. 맨 뒤에서부터 실제 대화 개수(actualRoleCount)만큼만 유효한 인덱스로 간주 (최소 1개 유지)
+    const countToKeep = Math.max(1, actualRoleCount);
+    const validIndices = new Set(roleIndices.slice(-countToKeep));
+
+    // 4. 수집된 유효 인덱스에 포함되지 않는 user/assistant 메시지(강제 주입된 첫 메시지 등)는 제거
+    const trimmed = [];
+    for (let i = 0; i < list.length; i += 1) {
+      const m = list[i];
+      if (m?.role === "user" || m?.role === "assistant") {
+        if (!validIndices.has(i)) {
+          continue; 
+        }
+      }
+      trimmed.push(m);
+    }
+
+    return trimmed;
+  }
+
+  function stripLastOutputBlockForContinuedFirstPending(messages, chatData) {
+    const list = Array.isArray(messages) ? messages : [];
+    if (!isContinuedChapterFirstTurnPending(chatData)) return list;
+    const trimmed = [];
+    let skipping = false;
+    for (let i = 0; i < list.length; i += 1) {
+      const current = list[i];
+      const content = safeTrim(current?.content);
+      if (current?.role === "assistant" && content === "<Last output>") {
+        skipping = true;
+        continue;
+      }
+      if (skipping) {
+        if (current?.role === "assistant" && content === "</Last output>") {
+          skipping = false;
+        }
+        continue;
+      }
+      trimmed.push(current);
+    }
+    return trimmed;
+  }
+
+  function getUserMessageStats(messages) {
+    const list = Array.isArray(messages) ? messages : [];
+    let count = 0;
+    let lastUserContent = "";
+    for (let i = 0; i < list.length; i++) {
+      const m = list[i];
+      if (m?.role === "user") {
+        count += 1;
+        lastUserContent = typeof m?.data === "string" ? m.data : "";
+      }
+    }
+    return { count, lastUserContent };
+  }
+
+  function getCardEnableSettingsMap() {
+    const raw = String(configCache.card_enable_settings || "{}");
+    if (raw === cardEnableSettingsCacheRaw) return cardEnableSettingsCacheParsed;
+    try {
+      const parsed = JSON.parse(raw);
+      cardEnableSettingsCacheParsed = parsed && typeof parsed === "object" ? parsed : {};
+    } catch {
+      cardEnableSettingsCacheParsed = {};
+    }
+    cardEnableSettingsCacheRaw = raw;
+    return cardEnableSettingsCacheParsed;
+  }
+
+  function getPluginManagedLoreNames() {
+    const out = new Set([
+      LOCAL_LORE_COMMENT,
+      "pse_turn_offset",
+      "pse_cloned_from_chat_meta",
+    ]);
+    const collect = (calls) => {
+      for (const call of calls || []) {
+        for (const entry of call?.entries || []) {
+          const n = safeTrim(entry?.lorebook_name || "");
+          if (n) out.add(n);
+        }
+      }
+    };
+    collect(parseModelCalls(configCache.model_calls));
+    collect(parseModelCalls(configCache.model_calls_2));
+    collect(parseModelCalls(configCache.model_calls_3));
+    collect(parseModelCalls(configCache.model_calls_4));
+    collect(parsePersonaCalls(configCache.persona_calls));
+    return out;
+  }
+
+  function isPluginGeneratedLoreEntry(entry, managedNames) {
+    const comment = safeTrim(entry?.comment || "");
+    const content = String(entry?.content || "");
+    if (managedNames.has(comment)) return true;
+    if (/<!--\s*written_at_turn:\s*\d+\s*-->/i.test(content)) return true;
+    if (/###\s*Turn\s*\d+/i.test(content) && managedNames.has(comment))
+      return true;
+    return false;
+  }
+
+  async function createNewChatKeepingLorebook() {
+    const { char, charIdx, chatIndex, chat } = await getCurrentCharAndChatSafe();
+    if (!chat || charIdx < 0 || chatIndex < 0) {
+      throw new Error("Current chat not found.");
+    }
+
+    const srcLocalLore = Array.isArray(chat.localLore) ? chat.localLore : [];
+    const preservedLocalLore = srcLocalLore.map((entry) => deepClone(entry));
+    const sourceRawUserCount = (Array.isArray(chat?.message) ? chat.message : [])
+      .filter((m) => m?.role === "user")
+      .length;
+    const sourceOffset = getTurnOffsetFromLocalLore(srcLocalLore);
+    const carryTurnOffset = Math.max(0, sourceRawUserCount + sourceOffset);
+    try {
+      await Risuai.log(
+        `${LOG} new-chat carry offset prepared: rawUser=${sourceRawUserCount}, prevOffset=${sourceOffset}, carryOffset=${carryTurnOffset}`,
+      );
+    } catch {}
+
+    const newChat = deepClone(chat);
+    newChat.message = [];
+    newChat.localLore = preservedLocalLore;
+    const newChatUid = `pse_${Date.now().toString(36)}_${Math.random()
+      .toString(36)
+      .slice(2, 10)}`;
+    if ("id" in newChat || newChat?.id != null) newChat.id = newChatUid;
+    if ("uuid" in newChat || newChat?.uuid != null)
+      newChat.uuid = `${newChatUid}_u`;
+    if ("chatId" in newChat || newChat?.chatId != null)
+      newChat.chatId = `${newChatUid}_c`;
+    const existingOffsetIndex = newChat.localLore.findIndex(
+      (l) => safeTrim(l?.comment) === "pse_turn_offset",
+    );
+    const offsetLoreEntry = {
+      key: "",
+      comment: "pse_turn_offset",
+      content: `## pse_turn_offset\n${carryTurnOffset}`,
+      mode: "normal",
+      insertorder: 999,
+      alwaysActive: true,
+      secondkey: "",
+      selective: false,
+      useRegex: false,
+    };
+    if (existingOffsetIndex >= 0) newChat.localLore[existingOffsetIndex] = offsetLoreEntry;
+    else newChat.localLore.push(offsetLoreEntry);
+    if (typeof newChat.name === "string" && safeTrim(newChat.name)) {
+      newChat.name = `${newChat.name} (New)`;
+    }
+
+    let newChatIndex = -1;
+    let createErr = null;
+    if (typeof Risuai.createNewChatFromData === "function") {
+      try {
+        newChatIndex = await Risuai.createNewChatFromData(charIdx, newChat);
+        if (
+          newChatIndex >= 0 &&
+          typeof Risuai.getChatFromIndex === "function" &&
+          typeof Risuai.setChatToIndex === "function"
+        ) {
+          const createdChat = await Risuai.getChatFromIndex(charIdx, newChatIndex);
+          if (createdChat) {
+            let modified = false;
+            for (const key of [
+              "plugins",
+              "modules",
+              "promptOverrides",
+              "regexOverrides",
+            ]) {
+              if (chat?.[key] !== undefined && createdChat?.[key] === undefined) {
+                createdChat[key] = deepClone(chat[key]);
+                modified = true;
+              }
+            }
+            if (modified) {
+              await Risuai.setChatToIndex(charIdx, newChatIndex, createdChat);
+            }
+          }
+        }
+      } catch (err) {
+        createErr = err;
+      }
+    }
+    if (newChatIndex < 0) {
+      if (
+        typeof Risuai.getCharacterFromIndex === "function" &&
+        typeof Risuai.setCharacterToIndex === "function"
+      ) {
+        const charObj = await Risuai.getCharacterFromIndex(charIdx);
+        if (!charObj) throw new Error("Character not found.");
+        const chats = Array.isArray(charObj?.chats)
+          ? charObj.chats
+          : Array.isArray(charObj?.chat)
+            ? charObj.chat
+            : [];
+        chats.push(newChat);
+        newChatIndex = chats.length - 1;
+        charObj.chats = chats;
+        charObj.chatPage = newChatIndex;
+        await Risuai.setCharacterToIndex(charIdx, charObj);
+      } else {
+        throw new Error(
+          "API method createNewChatFromData not found and character-level fallback is unavailable.",
+        );
+      }
+    }
+
+    if (newChatIndex >= 0) {
+      let switched = false;
+      if (typeof Risuai.setCurrentChatIndex === "function") {
+        try {
+          await Risuai.setCurrentChatIndex(newChatIndex);
+          switched = true;
+        } catch (switchErr) {
+          try {
+            await Risuai.log(
+              `${LOG} setCurrentChatIndex failed: ${switchErr?.message || String(switchErr)}`,
+            );
+          } catch {}
+        }
+      }
+      if (!switched) {
+        try {
+          if (
+            typeof Risuai.getCharacterFromIndex === "function" &&
+            typeof Risuai.setCharacterToIndex === "function"
+          ) {
+            const charObj = await Risuai.getCharacterFromIndex(charIdx);
+            if (charObj) {
+              charObj.chatPage = newChatIndex;
+              await Risuai.setCharacterToIndex(charIdx, charObj);
+              switched = true;
+            }
+          }
+          if (!switched) {
+            await Risuai.log(
+              `${LOG} setCurrentChatIndex API unavailable. New chat was created at index ${newChatIndex}, but automatic switch is not supported on this Risu build.`,
+            );
+          }
+        } catch (fallbackSwitchErr) {
+          try {
+            await Risuai.log(
+              `${LOG} fallback chat switch failed: ${fallbackSwitchErr?.message || String(fallbackSwitchErr)}`,
+            );
+          } catch {}
+        }
+      }
+    }
+    if (newChatIndex >= 0) {
+      const req = getRequestCacheKeysForScope(char);
+      try {
+        await Risuai.safeLocalStorage.removeItem(req.lastReqHash);
+      } catch {}
+      try {
+        await Risuai.safeLocalStorage.removeItem(req.lastExtractedData);
+      } catch {}
+      try {
+        await Risuai.safeLocalStorage.removeItem(req.regenSkip);
+      } catch {}
+      try {
+        await Risuai.safeLocalStorage.removeItem(
+          getFirstMessageHandledKey(req.scopeId, newChatIndex),
+        );
+      } catch {}
+    }
+    if (createErr) {
+      try {
+        await Risuai.log(
+          `${LOG} createNewChatFromData failed, fallback used: ${createErr?.message || String(createErr)}`,
+        );
+      } catch {}
+    }
+
+    return newChatIndex;
+  }
+
   function isModelCallDue(call, roundIndex) {
     const n = Math.max(1, toInt(call?.every_n_turns, 1));
     return roundIndex % n === 0;
@@ -8583,19 +9414,24 @@ CORRECT EXAMPLE:
   }
 
   async function injectKnowledgeIntoMessages(messages, queryText) {
-    const cleanInput = messages.filter(
-      (m) =>
-        !(
-          m?.role === "system" &&
-          typeof m?.content === "string" &&
-          m.content.startsWith(`<${KNOWLEDGE_BLOCK_TAG}>`)
-        ),
+    const { char, chat } = await getCurrentCharAndChatSafe();
+    const cleanInput = await normalizePromptMessagesForAgent(
+      trimContinuedChapterBootstrapPromptMessages(
+      messages.filter(
+        (m) =>
+          !(
+            m?.role === "system" &&
+            typeof m?.content === "string" &&
+            m.content.startsWith(`<${KNOWLEDGE_BLOCK_TAG}>`)
+          ),
+      ),
+      chat,
+      char,
+      ),
     );
     if (!isKbFeatureEnabled()) return cleanInput;
     const isChatRole = (role) =>
       role === "user" || role === "assistant" || role === "char";
-
-    const { char, chat } = await getCurrentCharAndChatSafe();
     const staticKeys = getStaticCacheKeysForScope(char);
     const staticRaw = await Risuai.pluginStorage.getItem(
       staticKeys.staticKnowledgeChunks,
@@ -8939,17 +9775,28 @@ CORRECT EXAMPLE:
         role: "system",
         content: `<${SYSTEM_INJECT_TAG}>\n${JSON.stringify(payload, null, 2)}\n</${SYSTEM_INJECT_TAG}>`,
       };
-      return [injectedMsg, ...clean];
+      const { chat } = await getCurrentCharAndChatSafe();
+      return stripLastOutputBlockForContinuedFirstPending(
+        [injectedMsg, ...clean],
+        chat,
+      );
     }
-    return clean;
+    const { chat } = await getCurrentCharAndChatSafe();
+    return stripLastOutputBlockForContinuedFirstPending(clean, chat);
   }
 
   async function getStaticDataPayload(char, chat, resolvedGlobalNote) {
     const lorebookEntries = await getCombinedLorebookEntries(char, chat);
+    const renderedDesc = await normalizeAgentCbsText(
+      char?.desc || char?.description || "",
+    );
+    const renderedGlobalNote = await normalizeAgentCbsText(
+      resolvedGlobalNote || "",
+    );
     return {
-      step0_preprocess_version: "cbs_placeholder_v2",
-      desc: char?.desc || char?.description,
-      globalNote: resolvedGlobalNote,
+      step0_preprocess_version: "agent_cbs_render_v1",
+      desc: renderedDesc,
+      globalNote: renderedGlobalNote,
       lorebook: lorebookEntries
         .filter((l) => l)
         .map((l) => ({
@@ -9574,8 +10421,14 @@ CORRECT EXAMPLE:
       });
     };
 
-    addChunks("Character Description", char?.desc || char?.description, true);
-    addChunks("Global Note", resolvedGlobalNote, true);
+    const renderedDescForChunks = await normalizeAgentCbsText(
+      char?.desc || char?.description,
+    );
+    const renderedGlobalForChunks = await normalizeAgentCbsText(
+      resolvedGlobalNote,
+    );
+    addChunks("Character Description", renderedDescForChunks, true);
+    addChunks("Global Note", renderedGlobalForChunks, true);
 
     const lorebook = await getCombinedLorebookEntries(char, chat);
     lorebook.forEach((l, idx) => {
@@ -11152,7 +12005,7 @@ CORRECT EXAMPLE:
     overlayRoot.innerHTML = `
       <div class="pse-body">
         <div class="pse-card">
-          <h1 class="pse-title">👤 RisuAI Agent v3.1.2</h1>
+          <h1 class="pse-title">👤 RisuAI Agent v3.1</h1>
           <div id="pse-status" class="pse-status"></div>
           ${renderModelDatalists()}
 
@@ -11211,6 +12064,7 @@ CORRECT EXAMPLE:
           <div class="pse-page" data-page="8">
             <!-- Reset (No block) -->
             <button id="pse-reset-agent-defaults" class="pse-btn" type="button" style="padding:7px 12px;font-size:12px;white-space:nowrap;width:100%;margin-bottom:12px;background:var(--pse-accent-rose);">${_T.btn_reset}</button>
+            <button id="pse-new-chat-with-lore" class="pse-btn cache" type="button" style="padding:7px 12px;font-size:12px;white-space:nowrap;width:100%;margin-bottom:12px;">${_T.btn_new_chat_lore}</button>
 
             <!-- Mode Info (Amber) -->
             <div class="pse-section amber" style="padding: 0; overflow: hidden;">
@@ -11461,46 +12315,6 @@ CORRECT EXAMPLE:
     if (_existingOverlay) _existingOverlay.remove();
     requestAnimationFrame(() => {
       overlayRoot.style.opacity = "1";
-    });
-
-    /* ── Bind close / overlay dismiss immediately so buttons work before heavy init ── */
-    document
-      .getElementById("pse-close")
-      ?.addEventListener("click", async () => {
-        const overlay = document.getElementById("pse-overlay-root");
-        if (overlay) overlay.remove();
-        try {
-          await Risuai.hideContainer();
-        } catch {}
-      });
-
-    overlayRoot.addEventListener("click", async (e) => {
-      if (e.target !== overlayRoot && !e.target?.classList?.contains("pse-body")) {
-        return;
-      }
-      const overlay = document.getElementById("pse-overlay-root");
-      if (overlay) overlay.remove();
-      try {
-        await Risuai.hideContainer();
-      } catch {}
-    });
-
-    /* ── Bind tab switching immediately ── */
-    const setPage = (page) => {
-      document.querySelectorAll(".pse-tab").forEach((el) => {
-        el.classList.toggle("active", el.getAttribute("data-page") === page);
-      });
-      document.querySelectorAll(".pse-page").forEach((el) => {
-        el.classList.toggle("active", el.getAttribute("data-page") === page);
-      });
-    };
-    document.querySelectorAll(".pse-tab").forEach((el) => {
-      el.addEventListener("click", () => {
-        if (el.classList.contains("frozen")) return;
-        const page = el.getAttribute("data-page");
-        if (!page) return;
-        setPage(page);
-      });
     });
 
     const renderEmbeddingCacheList = async () => {
@@ -11823,7 +12637,9 @@ CORRECT EXAMPLE:
       }
     };
 
-    Promise.resolve().then(() => renderEmbeddingCacheList()).catch(() => {});
+    try {
+      await renderEmbeddingCacheList();
+    } catch {}
     document.querySelectorAll(".pse-lang-btn").forEach((btn) => {
       btn.addEventListener("click", async () => {
         const lang = btn.dataset.lang;
@@ -11886,11 +12702,12 @@ CORRECT EXAMPLE:
             const gradientColor = isEven
               ? "rgba(41, 121, 255, 0.08)"
               : "rgba(0, 230, 118, 0.08)";
-            const isDisabled = !(
-              cs.card_disabled === 0 ||
-              cs.card_disabled === false ||
-              cs.card_disabled === "0"
-            );
+            const isDisabled =
+              cs.card_disabled === undefined ||
+              cs.card_disabled === null ||
+              cs.card_disabled === 1 ||
+              cs.card_disabled === "1" ||
+              cs.card_disabled === true;
 
             const memExtract =
               cs.memory_extract &&
@@ -12000,9 +12817,26 @@ CORRECT EXAMPLE:
       });
     });
 
-    /* setPage and tab click handlers were already bound above, right after DOM insertion */
+    const setPage = (page) => {
+      document.querySelectorAll(".pse-tab").forEach((el) => {
+        el.classList.toggle("active", el.getAttribute("data-page") === page);
+      });
+      document.querySelectorAll(".pse-page").forEach((el) => {
+        el.classList.toggle("active", el.getAttribute("data-page") === page);
+      });
+    };
+    document.querySelectorAll(".pse-tab").forEach((el) => {
+      el.addEventListener("click", () => {
+        if (el.classList.contains("frozen")) return;
+        const page = el.getAttribute("data-page");
+        if (!page) return;
+        setPage(page);
+      });
+    });
 
-    Promise.resolve().then(() => renderCardEnableList()).catch(() => {});
+    try {
+      await renderCardEnableList();
+    } catch {}
 
     document
       .getElementById("pse-card-enable-list")
@@ -12849,9 +13683,11 @@ CORRECT EXAMPLE:
           document.getElementById("advanced_prefill_prompt")?.value ?? "",
         advanced_prereply_prompt:
           document.getElementById("advanced_prereply_prompt")?.value ?? "",
+        kb_features_enabled: 1,
         read_mod_lorebook: document.getElementById("read_mod_lorebook")?.checked
           ? 1
           : 0,
+        new_preset_enabled: 1,
         vector_search_enabled: 1,
         vector_search_query_dialogue_rounds: Math.max(
           1,
@@ -13462,6 +14298,8 @@ CORRECT EXAMPLE:
             advanced_model_anchor_prompt: DEFAULTS.advanced_model_anchor_prompt,
             advanced_prefill_prompt: DEFAULTS.advanced_prefill_prompt,
             advanced_prereply_prompt: DEFAULTS.advanced_prereply_prompt,
+            kb_features_enabled: 1,
+            new_preset_enabled: 1,
 
             vector_search_enabled: DEFAULTS.vector_search_enabled,
             vector_search_query_dialogue_rounds:
@@ -13545,6 +14383,23 @@ CORRECT EXAMPLE:
           showStatus(_T.st_reset, "ok");
         } catch (e) {
           showStatus(_T.st_reset_fail + (e?.message || String(e)), "err");
+        }
+      });
+
+    document
+      .getElementById("pse-new-chat-with-lore")
+      ?.addEventListener("click", async () => {
+        try {
+          if (!confirm(_T.confirm_new_chat_lore)) return;
+          await createNewChatKeepingLorebook();
+          showStatus(_T.st_new_chat_created, "ok");
+          const overlay = document.getElementById("pse-overlay-root");
+          if (overlay) overlay.remove();
+          try {
+            await Risuai.hideContainer();
+          } catch {}
+        } catch (e) {
+          showStatus(_T.st_new_chat_fail + (e?.message || String(e)), "err");
         }
       });
 
@@ -14031,7 +14886,26 @@ CORRECT EXAMPLE:
       datalistId: MODEL_DATALIST_EMBED_ID,
     });
 
-    /* close / overlay dismiss event listeners were already bound above, right after DOM insertion */
+    document
+      .getElementById("pse-close")
+      ?.addEventListener("click", async () => {
+        const overlay = document.getElementById("pse-overlay-root");
+        if (overlay) overlay.remove();
+        try {
+          await Risuai.hideContainer();
+        } catch {}
+      });
+
+    overlayRoot.addEventListener("click", async (e) => {
+      if (e.target !== overlayRoot && !e.target?.classList?.contains("pse-body")) {
+        return;
+      }
+      const overlay = document.getElementById("pse-overlay-root");
+      if (overlay) overlay.remove();
+      try {
+        await Risuai.hideContainer();
+      } catch {}
+    });
   }
 
   async function initSettingEntry() {
@@ -14117,16 +14991,15 @@ CORRECT EXAMPLE:
         const displayMsgs = Array.isArray(displayChat?.message)
           ? displayChat.message
           : [];
-        const displayUserMsgCount = displayMsgs.filter(
-          (m) => m?.role === "user",
-        ).length;
+        
+        // 💡 [수정됨] 화면 렌더링 시 오프셋(이어받은 턴 수) 적용
+        const { count: rawDisplayUserCount } = getUserMessageStats(displayMsgs);
+        const displayTurnOffset = getTurnOffsetFromLocalLore(displayChat?.localLore);
+        const displayUserMsgCount = rawDisplayUserCount + displayTurnOffset;
+
         let displayCardCalls;
         try {
-          let displayCardSettings = {};
-          try {
-            displayCardSettings =
-              JSON.parse(configCache.card_enable_settings || "{}") || {};
-          } catch {}
+          const displayCardSettings = getCardEnableSettingsMap();
           const displayRawCharId = String(
             displayChar?.chaId || displayChar?.id || displayChar?._id || "",
           ).replace(/[^0-9a-zA-Z_-]/g, "");
@@ -14135,11 +15008,10 @@ CORRECT EXAMPLE:
             displayRawCharId ||
             (displayCharName ? `name_${simpleHash(displayCharName)}` : "-1");
           const displayCardCfg = displayCardSettings[displayCharId] || {};
-          const displayCardDisabled = !(
-            displayCardCfg.card_disabled === 0 ||
-            displayCardCfg.card_disabled === false ||
-            displayCardCfg.card_disabled === "0"
-          );
+          const displayCardDisabled =
+            displayCardCfg.card_disabled === true ||
+            displayCardCfg.card_disabled === 1 ||
+            displayCardCfg.card_disabled === "1";
           if (!displayCardDisabled) {
             const displayMemoryPreset = ["1", "2", "3", "4"].includes(
               String(displayCardCfg.memory_extract),
@@ -14183,23 +15055,25 @@ CORRECT EXAMPLE:
         "replacer_started",
       );
       const existingMsgs = Array.isArray(chat?.message) ? chat.message : [];
-      const userMsgCount = existingMsgs.filter(
-        (m) => m?.role === "user",
-      ).length;
+      
+      // 💡 [수정됨] 메시지 전송 시 턴 계산에 오프셋(이어받은 턴 수) 적용
+      const { count: rawUserCount, lastUserContent } = getUserMessageStats(existingMsgs);
+      const turnOffset = getTurnOffsetFromLocalLore(chat?.localLore);
+      const userMsgCount = rawUserCount + turnOffset;
+      try {
+        await Risuai.log(
+          `${LOG} turn-calc: rawUser=${rawUserCount}, offset=${turnOffset}, effectiveTurn=${userMsgCount}`,
+        );
+      } catch {}
+
       const isFirstMessage = userMsgCount <= 1;
-      const lastUserContent =
-        existingMsgs.filter((m) => m?.role === "user").pop()?.data || "";
       const firstMessageHandledKey = getFirstMessageHandledKey(
         requestKeys.scopeId,
         chatIndex,
       );
       const firstMessageMarker = simpleHash(String(lastUserContent || ""));
 
-      let cardSettings = {};
-      try {
-        cardSettings =
-          JSON.parse(configCache.card_enable_settings || "{}") || {};
-      } catch {}
+      const cardSettings = getCardEnableSettingsMap();
       const rawCharId = String(
         char?.chaId || char?.id || char?._id || "",
       ).replace(/[^0-9a-zA-Z_-]/g, "");
@@ -14207,11 +15081,10 @@ CORRECT EXAMPLE:
       const charId =
         rawCharId || (charName ? `name_${simpleHash(charName)}` : "-1");
       const cardCfg = cardSettings[charId] || {};
-      const cardIsDisabled = !(
-        cardCfg.card_disabled === 0 ||
-        cardCfg.card_disabled === false ||
-        cardCfg.card_disabled === "0"
-      );
+      const cardIsDisabled =
+        cardCfg.card_disabled === true ||
+        cardCfg.card_disabled === 1 ||
+        cardCfg.card_disabled === "1";
       if (cardIsDisabled) {
         await Risuai.safeLocalStorage.setItem(
           requestKeys.lastExtractorMode,
@@ -14656,7 +15529,8 @@ CORRECT EXAMPLE:
         const roundIndex = userMsgCount;
         const resolved = resolveExtractorConfig();
         const memoryEnabled = true;
-        const dueCalls = getModelCallsByPreset(cardMemoryPreset).filter((c) =>
+        const presetCalls = getModelCallsByPreset(cardMemoryPreset);
+        const dueCalls = presetCalls.filter((c) =>
           isModelCallDue(c, userMsgCount),
         );
 
@@ -14790,7 +15664,7 @@ CORRECT EXAMPLE:
           );
         }
 
-        const allCardCalls = getModelCallsByPreset(cardMemoryPreset);
+        const allCardCalls = presetCalls;
         await applyRetentionCleanup(userMsgCount, allCardCalls);
 
         if (dueCalls.length > 0) {
@@ -14813,26 +15687,29 @@ CORRECT EXAMPLE:
   }
 
   async function getConversationFromCurrentChat(limit, existingChat) {
-    let chatData = existingChat;
-    if (!chatData) {
-      const { chat } = await getCurrentCharAndChatSafe();
-      chatData = chat;
-    }
-    const src = Array.isArray(chatData?.message) ? chatData.message : [];
-    const out = [];
-    let firstUserSeen = false;
-    for (const m of src) {
-      const role =
-        m?.role === "char" ? "assistant" : m?.role === "user" ? "user" : null;
-      if (!role) continue;
-      const content = typeof m?.data === "string" ? m.data.trim() : "";
-      if (!content) continue;
-      if (role === "assistant" && !firstUserSeen) continue;
-      if (role === "user") firstUserSeen = true;
-      out.push({ role, content });
-    }
-    return out.slice(-Math.max(1, limit));
-  }
+    let chatData = existingChat;
+    if (!chatData) {
+      const { chat } = await getCurrentCharAndChatSafe();
+      chatData = chat;
+    }
+    const src = trimContinuedChapterBootstrapMessages(
+      Array.isArray(chatData?.message) ? chatData.message : [],
+      chatData?.localLore,
+    );
+    const out = [];
+    let firstUserSeen = false;
+    for (const m of src) {
+      const role =
+        m?.role === "char" ? "assistant" : m?.role === "user" ? "user" : null;
+      if (!role) continue;
+      let content = normalizeChatPayloadText(m?.data);
+      if (!content) continue;
+      if (role === "assistant" && !firstUserSeen) continue;
+      if (role === "user") firstUserSeen = true;
+      out.push({ role, content });
+    }
+    return out.slice(-Math.max(1, limit));
+  }
 
   console.log(`${LOG} INIT START`);
   try {
