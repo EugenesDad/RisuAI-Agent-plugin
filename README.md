@@ -30,7 +30,7 @@ Instead of forcing your main AI model to juggle memory, world-building, and acti
       <img src="./image/plugin image 1.png" width="100%">
     </td>
     <td valign="top">
-      <img src="./image/plugin image 2.png" width="70%">
+      <img src="./image/plugin image 2.png" width="100%">
     </td>
   </tr>
 </table>
@@ -50,7 +50,7 @@ Instead of forcing your main AI model to juggle memory, world-building, and acti
 
 ---
 
-## 🧋 V3 Preset Architecture
+## 🧋 Preset Architecture
 
 This plugin is designed to power [RisuAI](https://github.com/kwaroran/Risuai)'s most advanced prompt architecture to date. Characters remember more, responses are richer, and personalities are multi-dimensional.
 
