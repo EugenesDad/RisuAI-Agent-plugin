@@ -1,9 +1,9 @@
 //@name 👤 RisuAI Agent
-//@display-name 👤 RisuAI Agent v3.1.2
+//@display-name 👤 RisuAI Agent v4.0
 //@author penguineugene@protonmail.com
 //@link https://github.com/EugenesDad/RisuAI-Agent-plugin
 //@api 3.0
-//@version 3.1.2
+//@version 4.0
 
 (async () => {
   function _mapLangCode(raw) {
@@ -75,7 +75,6 @@
       tag_temp_closed: "Closed",
       warn_kb_feature_enable:
         "⚠️ Enabling Bot Reorganization and Vector Search changes the preset structure. CBS syntax cannot be parsed in this mode. Please review the setup guide and adjust your presets before enabling.",
-      lbl_enable_mod_lorebook: "Include Mod Lorebooks in vector search",
       lbl_enable_new_preset: "Enable new extraction presets",
       lbl_kb_feature_enable: "Enable Bot Reorganization and Vector Search",
       opt_vec_card_reorg: "Bot Reorg only",
@@ -101,12 +100,16 @@
       opt_aux_model: "Auxiliary Model",
       lbl_classify_anchor: "Classification Anchor Prompt",
       lbl_classify_model: "Classification Model",
-      lbl_read_mod_lorebook_short: "Read Mod Lorebook",
       sec_card_settings: "Bot Enable Settings",
       lbl_card_name: "Bot",
       lbl_memory_extract: "Enable Info Extraction",
       lbl_vector_search_card: "Enable Vector Search for Bot",
       lbl_card_disabled: "Disable this plugin",
+      btn_continue_chat: "Continue Chat",
+      dlg_continue_chat_title: "Choose A Chat To Continue",
+      dlg_continue_chat_empty: "This character has no chats yet.",
+      dlg_continue_chat_turns: "turns",
+      dlg_continue_chat_current: "current",
       opt_off: "Off",
       opt_preset1: "Setting 1",
       opt_preset2: "Setting 2",
@@ -145,6 +148,11 @@
       st_feature_coming: "Not available yet.",
       st_saved: "Settings saved.",
       st_save_fail: "Save failed: ",
+      st_continue_chat_done: "Created a continued chat and switched to it.",
+      st_continue_chat_failed: "Continue chat failed: ",
+      st_continue_chat_no_chat: "No active chat was found to continue.",
+      st_continue_chat_no_chat_for_card:
+        "This character has no available chat to continue.",
       st_reset: "Reset to Agent defaults.",
       st_reset_fail: "Reset failed: ",
       lbl_persona_entries: "Character Persona Entries",
@@ -165,23 +173,13 @@
 
                       <div style="display:grid; gap:8px;">
                         <div style="background:rgba(63, 81, 181, 0.1); border:1px solid rgba(63, 81, 181, 0.2); padding:8px; border-radius:6px;">
-                          <div style="color:var(--pse-accent-indigo); font-weight:bold; font-size:12px; margin-bottom:4px; border-bottom:1px solid rgba(63, 81, 181, 0.1);">✨ Extraction Mode</div>
-                          <div style="font-size:12px; color:var(--pse-text);">
-                            • <b>Bot Reorg:</b> Reclassifies bot entries into the most effective positions in the prompt structure.
-                          </div>
-                        </div>
-
-                        <div style="background:rgba(63, 81, 181, 0.1); border:1px solid rgba(63, 81, 181, 0.2); padding:8px; border-radius:6px;">
-                          <div style="color:var(--pse-accent-indigo); font-weight:bold; font-size:12px; margin-bottom:4px; border-bottom:1px solid rgba(63, 81, 181, 0.1);">🎬 Extraction + Director</div>
-                          <div style="font-size:12px; color:var(--pse-text);">
-                            • <b>Director:</b> Guides the plot and character reactions, enhancing depth and continuity.
-                          </div>
-                        </div>
-
-                        <div style="background:rgba(63, 81, 181, 0.1); border:1px solid rgba(63, 81, 181, 0.2); padding:8px; border-radius:6px;">
-                          <div style="color:var(--pse-accent-indigo); font-weight:bold; font-size:12px; margin-bottom:4px; border-bottom:1px solid rgba(63, 81, 181, 0.1);">⚙️ Director & Vector Search</div>
-                          <div style="font-size:12px; color:var(--pse-text);">
-                            • <b>Vector Search:</b> Replaces keyword matching with semantic search to increase info density.
+                          <div style="color:var(--pse-accent-indigo); font-weight:bold; font-size:12px; margin-bottom:4px; border-bottom:1px solid rgba(63, 81, 181, 0.1);">🧩 Feature Explanation</div>
+                          <div style="font-size:12px; color:var(--pse-text); display:grid; gap:4px;">
+                            <div>• <b>Director:</b> Guides the plot and character reactions, enhancing depth and continuity.</div>
+                            <div style="color: var(--pse-accent-red); font-size: 11px;">⚠️ Characters may be more realistic and harder to change in this mode.</div>
+                            <div style="color: var(--pse-accent-red); font-size: 11px;">⚠️ Requires significant prompt adjustments and familiarity with prompts.</div>
+                            <div>• <b>Bot Reorg:</b> Reclassifies bot entries into the most effective positions in the prompt structure.</div>
+                            <div>• <b>Vector Search:</b> Replaces keyword matching with semantic search to increase info density.</div>
                           </div>
                         </div>
                       </div>
@@ -218,8 +216,15 @@
                           <div style="background:rgba(33, 150, 243, 0.1); border:1px solid rgba(33, 150, 243, 0.2); padding:8px; border-radius:6px;">
                             <div style="color:var(--pse-accent-blue); font-weight:bold; font-size:12px; margin-bottom:4px; border-bottom:1px solid rgba(33, 150, 243, 0.1);">✨ Extraction Mode</div>
                             <div style="font-size:12px; color:var(--pse-text);">
-                              • <b>Setting 1:</b> Main (10-15 turns), Aux (2/turn + 3 turns)<br/>
-                              • <b>Setting 2:</b> Main (3-15 turns), Aux (3/turn + 2-3 turns)
+                              • <b>Setting 1:</b> Main (10, 15 turns), Aux (2/turn + 3 turns)<br/>
+                              • <b>Setting 2:</b> Main (3, 10, 15 turns), Aux (3/turn + 2, 3 turns)
+                            </div>
+                          </div>
+                          <div style="background:rgba(33, 150, 243, 0.1); border:1px solid rgba(33, 150, 243, 0.2); padding:8px; border-radius:6px;">
+                            <div style="color:var(--pse-accent-blue); font-weight:bold; font-size:12px; margin-bottom:4px; border-bottom:1px solid rgba(33, 150, 243, 0.1);">🎬 Extraction + Director</div>
+                            <div style="font-size:12px; color:var(--pse-text);">
+                              • <b>Setting 1:</b> Main (10, 15 turns), Aux (4/turn + 3 turns)<br/>
+                              • <b>Setting 2:</b> Main (4, 10, 15 turns), Aux (4/turn + 2, 3 turns)
                             </div>
                           </div>
                           <div style="background:rgba(33, 150, 243, 0.1); border:1px solid rgba(33, 150, 243, 0.2); padding:8px; border-radius:6px;">
@@ -232,26 +237,16 @@
                       </div>
                     </div>
 
-                    <!-- ⚠️ Important Notes (Red) -->
-                    <div style="border-left: 4px solid var(--pse-accent-red); background: rgba(244, 67, 54, 0.04); padding: 8px 12px; border-radius: 8px;">
-                      <b style="color: var(--pse-accent-red); font-size: 14px;">⚠️ Important Notes</b>
-                      <div style="margin-top: 8px; font-size: 12px; line-height: 1.6;">
-                        <div style="margin-bottom: 10px;">CBS syntax cannot be parsed; manual adjustment is required for <b>Bot Reorg</b> or <b>Vector Search</b>:</div>
-                        <div style="display: grid; gap: 8px;">
-                          <div style="display: flex; align-items: flex-start; gap: 8px; background: rgba(244, 67, 54, 0.06); border: 1px solid rgba(244, 67, 54, 0.15); padding: 10px; border-radius: 6px;">
-                            <div style="background: var(--pse-accent-red); color: white; padding: 2px 6px; border-radius: 4px; font-size: 10px; font-weight: bold; white-space: nowrap; margin-top: 1px;">Toggle</div>
-                            <div style="color: var(--pse-text);">Adjust directly to your desired <b>Enabled/Disabled</b> status.</div>
-                          </div>
-                          <div style="display: flex; align-items: flex-start; gap: 8px; background: rgba(244, 67, 54, 0.06); border: 1px solid rgba(244, 67, 54, 0.15); padding: 10px; border-radius: 6px;">
-                            <div style="background: var(--pse-accent-red); color: white; padding: 2px 6px; border-radius: 4px; font-size: 10px; font-weight: bold; white-space: nowrap; margin-top: 1px;">Parameter</div>
-                            <div style="color: var(--pse-text);">Move the entire entry content to <b>Author's Note</b>.</div>
-                          </div>
-                        </div>
+                    <!-- 🚀 Continue Chat (Teal) -->
+                    <div style="border-left: 4px solid var(--pse-accent-teal, #009688); background: rgba(0, 150, 136, 0.08); padding: 8px 12px; border-radius: 8px; margin-bottom: 16px;">
+                      <b style="color: var(--pse-accent-teal, #009688); font-size: 14px;">🚀 Continue Chat</b>
+                      <div style="margin-top: 6px; display: grid; gap: 4px; font-size: 12px; color: var(--pse-text);">
+                        <div>• Only use when you experience lag.</div>
+                        <div>• After clicking "Continue Chat", a list of chats for that character will appear. Click the record you want to continue.</div>
+                        <div>• You can then continue by using the record suffixed with "(continue)".</div>
                       </div>
                     </div>
                   </div>`,
-      warn_cbs_mod:
-        "Since CBS syntax cannot be parsed currently, please decide whether to enable this after reviewing the Mod's Lorebook content.",
       btn_reset_factory: "Reset All to Factory Defaults",
       editor_cancel: "Cancel",
       editor_apply: "Apply",
@@ -262,7 +257,6 @@
       yes: "Yes",
       no: "No",
       lbl_output_format: "Output Format (JSON Schema)",
-      lbl_read_mod_lorebook: "Read Mod Lorebook",
       warn_cbs_unsupported:
         "Attention: RisuAI Agent v3 currently does not support CBS syntax parsing. If your Mod or Bot Lorebook contains extensive CBS syntax, it is recommended not to enable this plugin for that bot.",
       ret_after_lbl: "After",
@@ -355,8 +349,6 @@
       help_tab_main: "Home",
       help_tab_p1: "Preset 1",
       help_tab_p2: "Preset 2",
-      help_tab_p3: "Preset 3",
-      help_tab_p4: "Preset 4",
       mode_guide_title: "📖 Mode Explanation & Model Call Guide",
       mode_guide_click: "(Click to expand/collapse)",
       help_html: `<div style="font-family: inherit; line-height: 1.5;">
@@ -476,135 +468,6 @@ Read upstream layers in this order. When layers conflict, higher layers win.
                         <button class="pse-btn pse-copy-sql-btn" type="button" style="width:100%;padding:6px;font-size:12px;background:var(--pse-accent-greyblue);">📋 Copy System Prompt</button>
                       </div>
                     </div>`,
-      help_p2_html: `<div style="border-left: 4px solid var(--pse-accent-rose); background: rgba(255, 23, 68, 0.05); padding: 12px; border-radius: 8px;">
-                      <b style="color: var(--pse-accent-rose); font-size: 14px;">🛠️ Preset Adjustment Guide</b>
-                      <div style="margin-top: 8px; font-size: 13px; line-height: 1.6; color: var(--pse-text);">
-                        <div style="margin-bottom: 4px;">1. <b>Delete fields:</b> Character Description, Lorebook, Global Note, Supa/HypaMemory.</div>
-                        <div style="margin-bottom: 4px;">2. <b>Advanced Settings:</b> Enter Chat > Check "Advanced", then set <b>Range Start</b> to <b>-10</b>.</div>
-                        <div>3. Copy the system prompt below, go to Bot > Prompts page, open the <b>top-most System Prompt</b>, and insert the prompt <b>at the very end</b>.</div>
-                      </div>
-                      <div style="margin-top:12px;">
-                        <textarea class="pse-code-window" readonly># PRIORITY ORDER
-Read upstream layers in this order. When layers conflict, higher layers win.
-
-# OUTPUT RITUAL
-Every response MUST follow this sequence.
-1. Write aaaaaa
-2. Write <pre_check>
-INTENT: ... | PRIORITY: ... | CONTINUITY: ... | EXECUTION: ...
-</pre_check>
-3. Write actual response.</textarea>
-                        <button class="pse-btn pse-copy-sql-btn" type="button" style="width:100%;padding:6px;font-size:12px;background:var(--pse-accent-greyblue);">📋 Copy System Prompt</button>
-                      </div>
-                    </div>`,
-      help_p3_html: `<div style="border-left: 4px solid var(--pse-accent-amber); background: rgba(255, 171, 0, 0.05); padding: 12px; border-radius: 8px;">
-                      <b style="color: var(--pse-accent-amber); font-size: 14px;">🛠️ Preset Adjustment Guide</b>
-                      <div style="margin-top: 8px; font-size: 13px; line-height: 1.6; color: var(--pse-text);">
-                        <div style="margin-bottom: 4px;">1. <b>Delete fields:</b> Supa/HypaMemory.</div>
-                        <div style="margin-bottom: 4px;">2. <b>Advanced Settings:</b> Enter Chat > Check "Advanced", then set <b>Range Start</b> to <b>-10</b>.</div>
-                        <div>3. Copy the system prompt below, go to Bot > Prompts page, open the <b>top-most System Prompt</b>, insert the prompt, and then <b style="color: var(--pse-accent-amber); font-size: 13px;">demote the AI's role to an Actor in the system prompt</b>.</div>
-                        <div>Demote any content originally at the <b style="color: var(--pse-accent-rose); font-size: 13px;">Director</b>, <b style="color: var(--pse-accent-rose); font-size: 13px;">Planner</b>, <b style="color: var(--pse-accent-rose); font-size: 13px;">Narrator</b>, or <b style="color: var(--pse-accent-rose); font-size: 13px;">Storyteller</b> levels to the <b style="color: var(--pse-accent-amber); font-size: 13px;">Actor</b> or <b style="color: var(--pse-accent-amber); font-size: 13px;">Executor</b> levels.</div>
-                      </div>
-                      <div style="margin-top:12px;">
-                        <textarea class="pse-code-window" readonly># CORE TASK
-- Perform one in-world response only.
-- Act as executor, not planner.
-- Use upstream plugin entries as the main continuity and routing source.
-- If upstream is silent or uncertain, prefer restraint over invention.
-
-# MEMORY LAW
-- Direct memory covers only recent turns.
-- Treat injected upstream layers (## rp_*, world notes, retrieved logs) as the main continuity source.
-- Do not invent unseen past events, hidden promises, strategic history, or emotional carryover absent from visible dialogue or injected layers.
-
-# ROLE BOUNDARY
-- Upstream plugin entries already handled most filtering, compression, routing, and low-frequency reflection.
-- Do not replace them with a sweeter, cleaner, or more convenient interpretation.
-- Your task is not to summarize the character, but to perform the next moment.
-
-# INFORMATION BOUNDARY
-- A character may know their own inner state.
-- For others, infer only from visible speech, action, silence, timing, and established memory.
-- Never write another character's hidden interior as certain fact unless clearly supported.
-
-# PRIORITY ORDER
-Read upstream layers in this order. When layers conflict, higher layers win.
-1. Hard constraints
-\`rp_logic_state.known_contradiction\` |  \`rp_turn_advice.response_guard\` | 
-2. Current portrayal
-\`rp_turn_advice.character_routing\` | \`rp_scene_and_role_state\`
-3. Durable continuity
-\`rp_persona_evolution_state\` | \`rp_persistent_memory\` | \`rp_arc_memory\` | \`rp_turn_trace\` | \`rp_facet_activation_ledger\` | 
-\`rp_recent_world_entries\` | \`rp_world_encyclopedia\`
-
-Practical conflict rule:
-- Hard constraints > Current portrayal > Durable continuity
-- If only Durable continuity is available, keep execution restrained and literal.
-- When in doubt, \`## rp_turn_advice\` is the most authoritative routing source.
-
-# EXECUTION RULES
-- Let \`rp_turn_advice\` decide the visible hierarchy.
-- Use \`rp_scene_and_role_state\` for tone, stakes, and current pressure.
-- Keep the response narrow: one main beat, one dominant facet, one clear stance.
-- If \`strict_directive\` restricts, obey it.
-- Never surface suppressed facets unless forced by the scene.{{/if}}</textarea>
-                        <button class="pse-btn pse-copy-sql-btn" type="button" style="width:100%;padding:6px;font-size:12px;background:var(--pse-accent-greyblue);">📋 Copy System Prompt</button>
-                      </div>
-                    </div>`,
-      help_p4_html: `<div style="border-left: 4px solid var(--pse-accent-rose); background: rgba(255, 23, 68, 0.05); padding: 12px; border-radius: 8px;">
-                      <b style="color: var(--pse-accent-rose); font-size: 14px;">🛠️ Preset Adjustment Guide</b>
-                      <div style="margin-top: 8px; font-size: 13px; line-height: 1.6; color: var(--pse-text);">
-                        <div style="margin-bottom: 4px;">1. <b>Delete fields:</b> Character Description, Lorebook, Global Note, Supa/HypaMemory.</div>
-                        <div style="margin-bottom: 4px;">2. <b>Advanced Settings:</b> Enter Chat > Check "Advanced", then set <b>Range Start</b> to <b>-10</b>.</div>
-                        <div>3. Copy the system prompt below, go to Bot > Prompts page, open the <b>top-most System Prompt</b>, insert the prompt, and then <b style="color: var(--pse-accent-rose); font-size: 13px;">demote the AI's role to an Actor in the system prompt</b>.</div>
-                        <div>Demote any content originally at the <b style="color: var(--pse-accent-amber); font-size: 13px;">Director</b>, <b style="color: var(--pse-accent-amber); font-size: 13px;">Planner</b>, <b style="color: var(--pse-accent-amber); font-size: 13px;">Narrator</b>, or <b style="color: var(--pse-accent-amber); font-size: 13px;">Storyteller</b> levels to the <b style="color: var(--pse-accent-rose); font-size: 13px;">Actor</b> or <b style="color: var(--pse-accent-rose); font-size: 13px;">Executor</b> levels.</div>
-                      </div>
-                      <div style="margin-top:12px;">
-                        <textarea class="pse-code-window" readonly># CORE TASK
-- Perform one in-world response only.
-- Act as executor, not planner.
-- Use upstream plugin entries as the main continuity and routing source.
-- If upstream is silent or uncertain, prefer restraint over invention.
-
-# MEMORY LAW
-- Direct memory covers only recent turns.
-- Treat injected upstream layers (## rp_*, world notes, retrieved logs) as the main continuity source.
-- Do not invent unseen past events, hidden promises, strategic history, or emotional carryover absent from visible dialogue or injected layers.
-
-# ROLE BOUNDARY
-- Upstream plugin entries already handled most filtering, compression, routing, and low-frequency reflection.
-- Do not replace them with a sweeter, cleaner, or more convenient interpretation.
-- Your task is not to summarize the character, but to perform the next moment.
-
-# INFORMATION BOUNDARY
-- A character may know their own inner state.
-- For others, infer only from visible speech, action, silence, timing, and established memory.
-- Never write another character's hidden interior as certain fact unless clearly supported.
-
-# PRIORITY ORDER
-Read upstream layers in this order. When layers conflict, higher layers win.
-1. Hard constraints
-\`rp_logic_state.known_contradiction\` |  \`rp_turn_advice.response_guard\` | 
-2. Current portrayal
-\`rp_turn_advice.character_routing\` | \`rp_scene_and_role_state\`
-3. Durable continuity
-\`rp_persona_evolution_state\` | \`rp_persistent_memory\` | \`rp_arc_memory\` | \`rp_turn_trace\` | \`rp_facet_activation_ledger\` | 
-\`rp_recent_world_entries\` | \`rp_world_encyclopedia\`
-
-Practical conflict rule:
-- Hard constraints > Current portrayal > Durable continuity
-- If only Durable continuity is available, keep execution restrained and literal.
-- When in doubt, \`## rp_turn_advice\` is the most authoritative routing source.
-
-# EXECUTION RULES
-- Let \`rp_turn_advice\` decide the visible hierarchy.
-- Use \`rp_scene_and_role_state\` for tone, stakes, and current pressure.
-- Keep the response narrow: one main beat, one dominant facet, one clear stance.
-- If \`strict_directive\` restricts, obey it.
-- Never surface suppressed facets unless forced by the scene.{{/if}}</textarea>
-                        <button class="pse-btn pse-copy-sql-btn" type="button" style="width:100%;padding:6px;font-size:12px;background:var(--pse-accent-greyblue);">📋 Copy System Prompt</button>
-                      </div>
-                    </div>`,
     },
     ko: {
       append: "추가",
@@ -644,7 +507,6 @@ Practical conflict rule:
       tag_temp_closed: "닫힘",
       warn_kb_feature_enable:
         "⚠️ 「봇 재구성」 모드에서는 CBS 구문 분석이 지원되지 않습니다. 사용이 필요한 경우 수동으로 조정해주세요. 설정 가이드를 확인한 뒤 활성화하시기 바랍니다.",
-      lbl_enable_mod_lorebook: "모드 로어북을 벡터 검색 범위에 포함",
       lbl_enable_new_preset: "새 추출 프리셋 활성화",
       lbl_kb_feature_enable: "봇 재구성 및 벡터 검색 활성화",
       opt_vec_card_reorg: "봇 재구성만 사용",
@@ -669,12 +531,16 @@ Practical conflict rule:
       opt_aux_model: "보조 모델",
       lbl_classify_anchor: "분류 앵커 프롬프트",
       lbl_classify_model: "분류 모델",
-      lbl_read_mod_lorebook_short: "모드 로어북 읽기",
       sec_card_settings: "봇 활성화 설정",
       lbl_card_name: "봇",
       lbl_memory_extract: "정보 추출 활성화",
       lbl_vector_search_card: "봇에 벡터 검색 적용",
       lbl_card_disabled: "이 플러그인 사용 안 함",
+      btn_continue_chat: "채팅 이어가기",
+      dlg_continue_chat_title: "이어갈 채팅 선택",
+      dlg_continue_chat_empty: "이 캐릭터에는 아직 채팅이 없습니다.",
+      dlg_continue_chat_turns: "턴",
+      dlg_continue_chat_current: "현재",
       opt_off: "끄기",
       opt_preset1: "설정 1",
       opt_preset2: "설정 2",
@@ -714,6 +580,11 @@ Practical conflict rule:
       st_feature_coming: "준비 중인 기능입니다.",
       st_saved: "설정이 저장되었습니다.",
       st_save_fail: "저장 실패: ",
+      st_continue_chat_done: "이어진 새 채팅을 만들고 그 창으로 전환했습니다.",
+      st_continue_chat_failed: "채팅 이어가기 실패: ",
+      st_continue_chat_no_chat: "이어갈 활성 채팅을 찾지 못했습니다.",
+      st_continue_chat_no_chat_for_card:
+        "이 캐릭터에는 이어갈 수 있는 채팅이 없습니다.",
       st_reset: "기본값으로 초기화되었습니다.",
       st_reset_fail: "초기화 실패: ",
       lbl_persona_entries: "캐릭터 페르소나 항목",
@@ -732,26 +603,14 @@ Practical conflict rule:
                         <div>• <b>추출:</b> 대화 내용을 압축하여 기존의 긴 기록을 대체하고 토큰을 절약합니다.</div>
                       </div>
 
-                      <div style="display:grid; gap:8px;">
-                        <div style="background:rgba(63, 81, 181, 0.1); border:1px solid rgba(63, 81, 181, 0.2); padding:8px; border-radius:6px;">
-                          <div style="color:var(--pse-accent-indigo); font-weight:bold; font-size:12px; margin-bottom:4px; border-bottom:1px solid rgba(63, 81, 181, 0.1);">✨ 추출 모드 (Extraction)</div>
-                          <div style="font-size:12px; color:var(--pse-text);">
-                            • <b>봇 재구성:</b> 봇 데이터를 분석하여 프롬프트 내 가장 효율적인 위치로 재배치합니다.
-                          </div>
-                        </div>
-
-                        <div style="background:rgba(63, 81, 181, 0.1); border:1px solid rgba(63, 81, 181, 0.2); padding:8px; border-radius:6px;">
-                          <div style="color:var(--pse-accent-indigo); font-weight:bold; font-size:12px; margin-bottom:4px; border-bottom:1px solid rgba(63, 81, 181, 0.1);">🎬 추출 + 디렉터 (Director)</div>
-                          <div style="font-size:12px; color:var(--pse-text);">
-                            • <b>디렉터:</b> 시나리오의 흐름과 캐릭터 반응을 가이드하여 깊이 있는 경험을 제공합니다.
-                          </div>
-                        </div>
-
-                        <div style="background:rgba(63, 81, 181, 0.1); border:1px solid rgba(63, 81, 181, 0.2); padding:8px; border-radius:6px;">
-                          <div style="color:var(--pse-accent-indigo); font-weight:bold; font-size:12px; margin-bottom:4px; border-bottom:1px solid rgba(63, 81, 181, 0.1);">⚙️ 디렉터 & 벡터 검색</div>
-                          <div style="font-size:12px; color:var(--pse-text);">
-                            • <b>벡터 검색:</b> 키워드 매칭 대신 의미 기반 검색을 통해 관련 정보의 밀도를 비약적으로 높입니다.
-                          </div>
+                      <div style="background:rgba(63, 81, 181, 0.1); border:1px solid rgba(63, 81, 181, 0.2); padding:8px; border-radius:6px;">
+                        <div style="color:var(--pse-accent-indigo); font-weight:bold; font-size:12px; margin-bottom:4px; border-bottom:1px solid rgba(63, 81, 181, 0.1);">🧩 기능 설명</div>
+                        <div style="font-size:12px; color:var(--pse-text); display:grid; gap:4px;">
+                          <div>• <b>디렉터:</b> 시나리오의 흐름과 캐릭터 반응을 가이드하여 깊이 있는 경험을 제공합니다.</div>
+                          <div style="color: var(--pse-accent-red); font-size: 11px;">⚠️ 캐릭터 연기가 현실에 더 가까워지며, 생각과 성격을 바꾸기가 더 어려워집니다.</div>
+                          <div style="color: var(--pse-accent-red); font-size: 11px;">⚠️ 프롬프트를 크게 조정해야 하며, 어느 정도의 프롬프트 수정 기초가 필요합니다.</div>
+                          <div>• <b>봇 재구성:</b> 봇 데이터를 분석하여 프롬프트 내 가장 효율적인 위치로 재배치합니다.</div>
+                          <div>• <b>벡터 검색:</b> 키워드 매칭 대신 의미 기반 검색을 통해 관련 정보의 밀도를 비약적으로 높입니다.</div>
                         </div>
                       </div>
                     </div>
@@ -787,8 +646,15 @@ Practical conflict rule:
                           <div style="background:rgba(33, 150, 243, 0.1); border:1px solid rgba(33, 150, 243, 0.2); padding:8px; border-radius:6px;">
                             <div style="color:var(--pse-accent-blue); font-weight:bold; font-size:12px; margin-bottom:4px; border-bottom:1px solid rgba(33, 150, 243, 0.1);">✨ 추출 모드</div>
                             <div style="font-size:12px; color:var(--pse-text);">
-                              • <b>설정 1:</b> 메인 (10-15턴마다), 보조 (턴당 2회 + 3턴마다)<br/>
-                              • <b>설정 2:</b> 메인 (3-15턴마다), 보조 (턴당 3회 + 2-3턴마다)
+                              • <b>설정 1:</b> 메인 (10, 15 턴마다), 보조 (턴당 2회 + 3턴마다)<br/>
+                              • <b>설정 2:</b> 메인 (3, 10, 15 턴마다), 보조 (턴당 3회 + 2, 3턴마다)
+                            </div>
+                          </div>
+                          <div style="background:rgba(33, 150, 243, 0.1); border:1px solid rgba(33, 150, 243, 0.2); padding:8px; border-radius:6px;">
+                            <div style="color:var(--pse-accent-blue); font-weight:bold; font-size:12px; margin-bottom:4px; border-bottom:1px solid rgba(33, 150, 243, 0.1);">🎬 추출 + 디렉터</div>
+                            <div style="font-size:12px; color:var(--pse-text);">
+                              • <b>설정 1:</b> 메인 (10, 15 턴마다), 보조 (턴당 4회 + 3턴마다)<br/>
+                              • <b>설정 2:</b> 메인 (4, 10, 15 턴마다), 보조 (턴당 4회 + 2, 3턴마다)
                             </div>
                           </div>
                           <div style="background:rgba(33, 150, 243, 0.1); border:1px solid rgba(33, 150, 243, 0.2); padding:8px; border-radius:6px;">
@@ -801,26 +667,16 @@ Practical conflict rule:
                       </div>
                     </div>
 
-                    <!-- ⚠️ 주의사항 (Red) -->
-                    <div style="border-left: 4px solid var(--pse-accent-red); background: rgba(244, 67, 54, 0.04); padding: 8px 12px; border-radius: 8px;">
-                      <b style="color: var(--pse-accent-red); font-size: 14px;">⚠️ 주의사항</b>
-                      <div style="margin-top: 8px; font-size: 12px; line-height: 1.6;">
-                        <div style="margin-bottom: 10px; color: var(--pse-text);">현재 CBS 구문 분석이 불가능하므로,<b>봇 재구성</b>이나 <b>벡터 검색</b> 사용 시 수동 조정이 필요합니다:</div>
-                        <div style="display: grid; gap: 8px;">
-                          <div style="display: flex; align-items: flex-start; gap: 8px; background: rgba(244, 67, 54, 0.06); border: 1px solid rgba(244, 67, 54, 0.15); padding: 10px; border-radius: 6px;">
-                            <div style="background: var(--pse-accent-red); color: white; padding: 2px 6px; border-radius: 4px; font-size: 10px; font-weight: bold; white-space: nowrap; margin-top: 1px;">스위치형</div>
-                            <div style="color: var(--pse-text);">원하는 <b>활성화/비활성화</b> 상태로 직접 조정하십시오.</div>
-                          </div>
-                          <div style="display: flex; align-items: flex-start; gap: 8px; background: rgba(244, 67, 54, 0.06); border: 1px solid rgba(244, 67, 54, 0.15); padding: 10px; border-radius: 6px;">
-                            <div style="background: var(--pse-accent-red); color: white; padding: 2px 6px; border-radius: 4px; font-size: 10px; font-weight: bold; white-space: nowrap; margin-top: 1px;">파라미터형</div>
-                            <div style="color: var(--pse-text);">전체 항목 내용을 <b>작가의 노트 (Author's Note)</b>로 이동해 주세요.</div>
-                          </div>
-                        </div>
+                    <!-- 🚀 채팅 이어가기 (Teal) -->
+                    <div style="border-left: 4px solid var(--pse-accent-teal, #009688); background: rgba(0, 150, 136, 0.08); padding: 8px 12px; border-radius: 8px; margin-bottom: 16px;">
+                      <b style="color: var(--pse-accent-teal, #009688); font-size: 14px;">🚀 채팅 이어가기</b>
+                      <div style="margin-top: 6px; display: grid; gap: 4px; font-size: 12px; color: var(--pse-text);">
+                        <div>• 렉이 느껴질 때 이 기능을 사용하세요.</div>
+                        <div>• 「채팅 이어가기」를 클릭하면 해당 캐릭터의 채팅 목록이 나타납니다. 이어가고 싶은 기록을 선택하세요.</div>
+                        <div>• 이후 접미사 (continue)가 붙은 기록을 사용하여 대화를 이어갈 수 있습니다.</div>
                       </div>
                     </div>
                   </div>`,
-      warn_cbs_mod:
-        "CBS 구문 분석을 지원하지 않으므로, 모드 로어북 내용을 확인하신 뒤 활성화 여부를 결정해 주세요.",
       btn_reset_factory: "모든 설정을 기본값으로 초기화",
       editor_cancel: "취소",
       editor_apply: "적용",
@@ -831,7 +687,6 @@ Practical conflict rule:
       yes: "예",
       no: "아니요",
       lbl_output_format: "출력 형식 (JSON Schema)",
-      lbl_read_mod_lorebook: "모드 로어북 읽기",
       warn_cbs_unsupported:
         "주의: 현재 RisuAI Agent v3는 CBS 구문 분석을 지원하지 않습니다. 로어북에 CBS 구문이 많은 경우 이 플러그인 비활성화를 권장합니다.",
       ret_after_lbl: "경과 후",
@@ -921,8 +776,6 @@ Practical conflict rule:
       help_tab_main: "홈",
       help_tab_p1: "프리셋 1",
       help_tab_p2: "프리셋 2",
-      help_tab_p3: "프리셋 3",
-      help_tab_p4: "프리셋 4",
       mode_guide_title: "📖 모드 설명 및 모델 호출 가이드",
       mode_guide_click: "(클릭하여 펼치기/접기)",
       help_html: `<div style="font-family: inherit; line-height: 1.5;">
@@ -1045,81 +898,6 @@ Read upstream layers in this order. When layers conflict, higher layers win.
                       <div style="margin-top: 8px; font-size: 13px; line-height: 1.6; color: var(--pse-text);">
                         <div style="margin-bottom: 4px;">1. <b>삭제 항목:</b> 캐릭터 설명(Character Description), 로어북(Lorebook), 글로벌 노트(Global Note), Supa/HypaMemory.</div>
                         <div style="margin-bottom: 4px;">2. <b>고급 설정:</b> 채팅 진입 > 「고급」 체크 후 「범위 시작」을 <b>-10</b>으로 설정.</div>
-                        <div>3. 아래의 시스템 프롬프트를 복사한 후, 봇 > 프롬프트 페이지로 이동하여 <b>최상단 시스템 프롬프트</b>를 열고 프롬프트를 <b>가장 마지막에</b> 삽입하십시오.</div>
-                      </div>
-                      <div style="margin-top:12px;">
-                        <textarea class="pse-code-window" readonly># PRIORITY ORDER
-Read upstream layers in this order. When layers conflict, higher layers win.
-
-# OUTPUT RITUAL
-Every response MUST follow this sequence.
-1. Write aaaaaa
-2. Write <pre_check>
-INTENT: ... | PRIORITY: ... | CONTINUITY: ... | EXECUTION: ...
-</pre_check>
-3. Write actual response.</textarea>
-                        <button class="pse-btn pse-copy-sql-btn" type="button" style="width:100%;padding:6px;font-size:12px;background:var(--pse-accent-greyblue);">📋 시스템 프롬프트 복사</button>
-                      </div>
-                    </div>`,
-      help_p3_html: `<div style="border-left: 4px solid var(--pse-accent-amber); background: rgba(255, 171, 0, 0.05); padding: 12px; border-radius: 8px;">
-                      <b style="color: var(--pse-accent-amber); font-size: 14px;">🛠️ 프리셋 조정 가이드</b>
-                      <div style="margin-top: 8px; font-size: 13px; line-height: 1.6; color: var(--pse-text);">
-                        <div style="margin-bottom: 4px;">1. <b>삭제 항목:</b> Supa/HypaMemory.</div>
-                        <div style="margin-bottom: 4px;">2. <b>고급 설정:</b> 채팅 진입 > 「고급」 체크 후 「범위 시작」을 <b>-10</b>으로 설정.</div>
-                        <div>3. 아래의 시스템 프롬프트를 복사한 후, 봇 > 프롬프트 페이지로 이동하여 <b>최상단 시스템 프롬프트</b>를 열고 프롬프트를 삽입한 다음, <b style="color: var(--pse-accent-amber); font-size: 13px;">시스템 프롬프트 안에서 AI의 신분을 배우(Actor)로 강등</b>시키세요.</div>
-                        <div>기존 프롬프트의 <b style="color: var(--pse-accent-rose); font-size: 13px;">Director</b>, <b style="color: var(--pse-accent-rose); font-size: 13px;">Planner</b>, <b style="color: var(--pse-accent-rose); font-size: 13px;">Narrator</b>, <b style="color: var(--pse-accent-rose); font-size: 13px;">Storyteller</b> 계층 관련 내용을 <b style="color: var(--pse-accent-amber); font-size: 13px;">Actor</b>, <b style="color: var(--pse-accent-amber); font-size: 13px;">Executor</b> 계층으로 강등시키십시오.</div>
-                      </div>
-                      <div style="margin-top:12px;">
-                        <textarea class="pse-code-window" readonly># CORE TASK
-- Perform one in-world response only.
-- Act as executor, not planner.
-- Use upstream plugin entries as the main continuity and routing source.
-- If upstream is silent or uncertain, prefer restraint over invention.
-
-# MEMORY LAW
-- Direct memory covers only recent turns.
-- Treat injected upstream layers (## rp_*, world notes, retrieved logs) as the main continuity source.
-- Do not invent unseen past events, hidden promises, strategic history, or emotional carryover absent from visible dialogue or injected layers.
-
-# ROLE BOUNDARY
-- Upstream plugin entries already handled most filtering, compression, routing, and low-frequency reflection.
-- Do not replace them with a sweeter, cleaner, or more convenient interpretation.
-- Your task is not to summarize the character, but to perform the next moment.
-
-# INFORMATION BOUNDARY
-- A character may know their own inner state.
-- For others, infer only from visible speech, action, silence, timing, and established memory.
-- Never write another character's hidden interior as certain fact unless clearly supported.
-
-# PRIORITY ORDER
-Read upstream layers in this order. When layers conflict, higher layers win.
-1. Hard constraints
-\`rp_logic_state.known_contradiction\` |  \`rp_turn_advice.response_guard\` | 
-2. Current portrayal
-\`rp_turn_advice.character_routing\` | \`rp_scene_and_role_state\`
-3. Durable continuity
-\`rp_persona_evolution_state\` | \`rp_persistent_memory\` | \`rp_arc_memory\` | \`rp_turn_trace\` | \`rp_facet_activation_ledger\` | 
-\`rp_recent_world_entries\` | \`rp_world_encyclopedia\`
-
-Practical conflict rule:
-- Hard constraints > Current portrayal > Durable continuity
-- If only Durable continuity is available, keep execution restrained and literal.
-- When in doubt, \`## rp_turn_advice\` is the most authoritative routing source.
-
-# EXECUTION RULES
-- Let \`rp_turn_advice\` decide the visible hierarchy.
-- Use \`rp_scene_and_role_state\` for tone, stakes, and current pressure.
-- Keep the response narrow: one main beat, one dominant facet, one clear stance.
-- If \`strict_directive\` restricts, obey it.
-- Never surface suppressed facets unless forced by the scene.{{/if}}</textarea>
-                        <button class="pse-btn pse-copy-sql-btn" type="button" style="width:100%;padding:6px;font-size:12px;background:var(--pse-accent-greyblue);">📋 시스템 프롬프트 복사</button>
-                      </div>
-                    </div>`,
-      help_p4_html: `<div style="border-left: 4px solid var(--pse-accent-rose); background: rgba(255, 23, 68, 0.05); padding: 12px; border-radius: 8px;">
-                      <b style="color: var(--pse-accent-rose); font-size: 14px;">🛠️ 프리셋 조정 가이드</b>
-                      <div style="margin-top: 8px; font-size: 13px; line-height: 1.6; color: var(--pse-text);">
-                        <div style="margin-bottom: 4px;">1. <b>삭제 항목:</b> 캐릭터 설명(Character Description), 로어북(Lorebook), 글로벌 노트(Global Note), Supa/HypaMemory.</div>
-                        <div style="margin-bottom: 4px;">2. <b>고급 설정:</b> 채팅 진입 > 「고급」 체크 후 「범위 시작」을 <b>-10</b>으로 설정.</div>
                         <div>3. 아래의 시스템 프롬프트를 복사한 후, 봇 > 프롬프트 페이지로 이동하여 <b>최상단 시스템 프롬프트</b>를 열고 프롬프트를 삽입한 다음, <b style="color: var(--pse-accent-rose); font-size: 13px;">시스템 프롬프트 안에서 AI의 신분을 배우(Actor)로 강등</b>시키세요.</div>
                         <div>기존 프롬프트의 <b style="color: var(--pse-accent-amber); font-size: 13px;">Director</b>, <b style="color: var(--pse-accent-amber); font-size: 13px;">Planner</b>, <b style="color: var(--pse-accent-amber); font-size: 13px;">Narrator</b>, <b style="color: var(--pse-accent-amber); font-size: 13px;">Storyteller</b> 계층 관련 내용을 <b style="color: var(--pse-accent-rose); font-size: 13px;">Actor</b>, <b style="color: var(--pse-accent-rose); font-size: 13px;">Executor</b> 계층으로 강등시키십시오.</div>
                       </div>
@@ -1209,7 +987,6 @@ Practical conflict rule:
       tag_temp_closed: "關閉",
       warn_kb_feature_enable:
         "⚠️ 啟用「卡片重組」與「向量搜尋」將改變預設提示詞結構，且目前不支援 CBS 語法解析。請先閱讀說明文件並手動調整提示詞後再行開啟。",
-      lbl_enable_mod_lorebook: "將模組中的 Lorebook 納入向量搜尋範圍",
       lbl_enable_new_preset: "啟用新版萃取預設",
       lbl_kb_feature_enable: "啟用卡片重組與向量搜尋功能",
       opt_vec_card_reorg: "僅啟用卡片重組",
@@ -1233,12 +1010,16 @@ Practical conflict rule:
       opt_aux_model: "輔助模型",
       lbl_classify_anchor: "分類定位提示詞",
       lbl_classify_model: "分類模型",
-      lbl_read_mod_lorebook_short: "讀取模組 Lorebook",
       sec_card_settings: "卡片功能開關",
       lbl_card_name: "卡片",
       lbl_memory_extract: "啟用資訊萃取",
       lbl_vector_search_card: "對此卡片啟用向量搜尋",
       lbl_card_disabled: "不啟用此插件",
+      btn_continue_chat: "接續聊天",
+      dlg_continue_chat_title: "選擇要接續的聊天",
+      dlg_continue_chat_empty: "這個角色目前沒有任何聊天。",
+      dlg_continue_chat_turns: "回合",
+      dlg_continue_chat_current: "目前",
       opt_off: "關閉",
       opt_preset1: "設定 1",
       opt_preset2: "設定 2",
@@ -1276,13 +1057,15 @@ Practical conflict rule:
       st_feature_coming: "尚未提供。",
       st_saved: "設定已成功儲存。",
       st_save_fail: "儲存失敗：",
+      st_continue_chat_done: "已建立接續聊天視窗並切換過去。",
+      st_continue_chat_failed: "接續聊天失敗：",
+      st_continue_chat_no_chat: "找不到可接續的目前聊天視窗。",
+      st_continue_chat_no_chat_for_card: "這個角色目前沒有可接續的聊天。",
       st_reset: "已重置為 Agent 預設值。",
       st_reset_fail: "重置失敗：",
       lbl_persona_entries: "角色萃取條目",
       lbl_delete_char_cache: "刪除此角色的快取",
       lbl_no_persona_data: "找不到角色資料。",
-      warn_cbs_mod:
-        "因為無法解析 CBS 語法，所以請在檢視模組的 Lorebook 內容後，自行決定是否開啟。",
       btn_reset_factory: "將所有設定重置為出廠預設",
       editor_cancel: "取消",
       editor_apply: "應用",
@@ -1293,9 +1076,6 @@ Practical conflict rule:
       yes: "是",
       no: "否",
       lbl_output_format: "輸出格式 (JSON Schema)",
-      lbl_read_mod_lorebook: "是否讀取模組 Lorebook",
-      warn_cbs_unsupported:
-        "注意：目前 RisuAI Agent v3 不支援解析 CBS 語法。若你的模組或角色卡 Lorebook 有許多 CBS 語法，則建議不要啟用本外掛。",
       ret_after_lbl: "於",
       ret_mid_lbl: "回合後自動清理，僅保留最新的",
       ret_end_lbl: "回合資料",
@@ -1394,28 +1174,15 @@ Practical conflict rule:
           </div>
 
             <div style="background:rgba(63, 81, 181, 0.1); border:1px solid rgba(63, 81, 181, 0.2); padding:8px; border-radius:6px;">
-              <div style="color:var(--pse-accent-beige); font-weight:bold; font-size:12px; margin-bottom:4px; border-bottom:1px solid rgba(63, 81, 181, 0.1);">• 導演：指導劇情、角色反應與變化，強化角色的立體感與劇情連貫度。</div>
-              <div style="font-size:12px; color:var(--pse-text);">
-                <span style="color: var(--pse-accent-red); font-size: 11px;">⚠️ 此模式角色演繹會更接近現實，想法跟性格將較難改變</span><br/>
-                <span style="color: var(--pse-accent-red); font-size: 11px;">⚠️ 需要對提示詞進行較大調整，要有一定的提示詞修改基礎</span>
+              <div style="color:var(--pse-accent-beige); font-weight:bold; font-size:12px; margin-bottom:4px; border-bottom:1px solid rgba(63, 81, 181, 0.1);">🧩 功能說明</div>
+              <div style="font-size:12px; color:var(--pse-text); display:grid; gap:4px;">
+                <div>• <b>導演：</b>指導劇情、角色反應與變化，強化角色的立體感與劇情連貫度。</div>
+                <div style="color: var(--pse-accent-red); font-size: 11px;">⚠️ 此模式角色演繹會更接近現實，想法跟性格將較難改變</div>
+                <div style="color: var(--pse-accent-red); font-size: 11px;">⚠️ 需要對提示詞進行較大調整，要有一定的提示詞修改基礎</div>
+                <div>• <b>卡片重組：</b>將卡片重新分類後，放進提示詞結構中最有效的位置。</div>
+                <div>• <b>向量搜尋：</b>取代傳統的關鍵字觸發，提高有效資訊密度。</div>
               </div>
             </div>
-
-          <div style="display:grid; gap:8px;">
-            <div style="background:rgba(63, 81, 181, 0.1); border:1px solid rgba(63, 81, 181, 0.2); padding:8px; border-radius:6px;">
-              <div style="color:var(--pse-accent-beige); font-weight:bold; font-size:12px; margin-bottom:4px; border-bottom:1px solid rgba(63, 81, 181, 0.1);">• 卡片重組：將卡片重新分類後，放進提示詞結構中最有效的位置。</div>
-              <div style="font-size:12px; color:var(--pse-text);">
-                <span style="color: var(--pse-accent-red); font-size: 11px;">⚠️ 此模式無法解析卡片中的CBS</span>
-              </div>
-            </div>
-            
-            <div style="background:rgba(63, 81, 181, 0.1); border:1px solid rgba(63, 81, 181, 0.2); padding:8px; border-radius:6px;">
-              <div style="color:var(--pse-accent-beige); font-weight:bold; font-size:12px; margin-bottom:4px; border-bottom:1px solid rgba(63, 81, 181, 0.1);">• 向量搜尋：取代傳統的關鍵字觸發，提高有效資訊密度。</div>
-              <div style="font-size:12px; color:var(--pse-text);">
-                <span style="color: var(--pse-accent-red); font-size: 11px;">⚠️ 此模式無法解析卡片中的CBS</span>
-              </div>
-            </div>
-          </div>
         </div>
 
         <!-- 📊 模型呼叫頻率 (Indigo themed sub-blocks) -->
@@ -1470,21 +1237,13 @@ Practical conflict rule:
           </div>
         </div>
 
-        <!-- ⚠️ 模式注意事項 (Red) -->
-        <div style="border-left: 4px solid var(--pse-accent-red); background: rgba(244, 67, 54, 0.04); padding: 8px 12px; border-radius: 8px;">
-          <b style="color: var(--pse-accent-red); font-size: 14px;">⚠️ 模式注意事項</b>
-          <div style="margin-top: 8px; font-size: 12px; line-height: 1.6;">
-            <div style="margin-bottom: 10px; color: var(--pse-text);">目前plugin V3不支援 <b>CBS語法</b> 解析。若您的條目中包含大量CBS，使用「卡片重組」或「向量搜尋」功能時可以如此調整：</div>
-            <div style="display: grid; gap: 8px;">
-              <div style="display: flex; align-items: flex-start; gap: 8px; background: rgba(244, 67, 54, 0.06); border: 1px solid rgba(244, 67, 54, 0.15); padding: 10px; border-radius: 6px;">
-                <div style="background: var(--pse-accent-red); color: white; padding: 2px 6px; border-radius: 4px; font-size: 10px; font-weight: bold; white-space: nowrap; margin-top: 1px;">開關型CBS</div>
-                <div style="color: var(--pse-text);">直接將條目調整為您需要的狀態。</div>
-              </div>
-              <div style="display: flex; align-items: flex-start; gap: 8px; background: rgba(244, 67, 54, 0.06); border: 1px solid rgba(244, 67, 54, 0.15); padding: 10px; border-radius: 6px;">
-                <div style="background: var(--pse-accent-red); color: white; padding: 2px 6px; border-radius: 4px; font-size: 10px; font-weight: bold; white-space: nowrap; margin-top: 1px;">參數型CBS</div>
-                <div style="color: var(--pse-text);">直接將整筆條目內容移動至<b>作者備註 (Author's Note)</b>。</div>
-              </div>
-            </div>
+        <!-- 🚀 接續聊天 (Teal) -->
+        <div style="border-left: 4px solid var(--pse-accent-teal, #009688); background: rgba(0, 150, 136, 0.08); padding: 8px 12px; border-radius: 8px; margin-bottom: 16px;">
+          <b style="color: var(--pse-accent-teal, #009688); font-size: 14px;">🚀 接續聊天</b>
+          <div style="margin-top: 6px; display: grid; gap: 4px; font-size: 12px; color: var(--pse-text);">
+            <div>• 感受到Lag時再使用即可。</div>
+            <div>• 點擊接續聊天之後，會跳出所有的聊天記錄。點擊你要接續的記錄即可。</div>
+            <div>• 接下來，即可直接使用後綴帶有(continue)的記錄，繼續遊玩。</div>
           </div>
         </div>
       </div>`,
@@ -1606,81 +1365,6 @@ Read upstream layers in this order. When layers conflict, higher layers win.
                       <div style="margin-top: 8px; font-size: 13px; line-height: 1.6; color: var(--pse-text);">
                         <div style="margin-bottom: 4px;">1. 刪除欄位：<b>角色敘述、Lorebook、全域備註、Supa/HypaMemory</b>。</div>
                         <div style="margin-bottom: 4px;">2. <b>進階設定：</b>進入聊天 > 勾選「進階」，然後將「範圍開始」設定為 <b>-10</b>。</div>
-                        <div>3. 複製以下系統提示詞後，進到聊天機器人 > 提示詞頁面，打開 <b>頂部的系統提示詞</b> 後，將提示詞插入於最尾端</div>
-                      </div>
-                      <div style="margin-top:12px;">
-                        <textarea class="pse-code-window" readonly># PRIORITY ORDER
-Read upstream layers in this order. When layers conflict, higher layers win.
-
-# OUTPUT RITUAL
-Every response MUST follow this sequence.
-1. Write aaaaaa
-2. Write <pre_check>
-INTENT: ... | PRIORITY: ... | CONTINUITY: ... | EXECUTION: ...
-</pre_check>
-3. Write actual response.</textarea>
-                        <button class="pse-btn pse-copy-sql-btn" type="button" style="width:100%;padding:6px;font-size:12px;background:var(--pse-accent-greyblue);">📋 複製系統提示詞</button>
-                      </div>
-                    </div>`,
-      help_p3_html: `<div style="border-left: 4px solid var(--pse-accent-amber); background: rgba(255, 171, 0, 0.05); padding: 12px; border-radius: 8px;">
-                      <b style="color: var(--pse-accent-amber); font-size: 14px;">🛠️ 預設提示詞 調整指南</b>
-                      <div style="margin-top: 8px; font-size: 13px; line-height: 1.6; color: var(--pse-text);">
-                        <div style="margin-bottom: 4px;">1. 刪除欄位：<b>Supa/HypaMemory</b>。</div>
-                        <div style="margin-bottom: 4px;">2. <b>進階設定：</b>進入聊天 > 勾選「進階」，然後將「範圍開始」設定為 <b>-10</b>。</div>
-                        <div>3. 複製以下系統提示詞後，進到聊天機器人 > 提示詞頁面，打開 <b>頂部的系統提示詞</b> 後，將提示詞插入，<b style="color: var(--pse-accent-amber); font-size: 13px;">然後將系統提示詞，將AI的身分降格成演員</b>。</div>
-                        <div>將原本提示詞中<b style="color: var(--pse-accent-rose); font-size: 13px;">Director</b>、<b style="color: var(--pse-accent-rose); font-size: 13px;">Planner</b>、<b style="color: var(--pse-accent-rose); font-size: 13px;">Narrator</b>、<b style="color: var(--pse-accent-rose); font-size: 13px;">Storyteller</b>層級的相關內容，降格成<b style="color: var(--pse-accent-amber); font-size: 13px;">Actor</b>、<b style="color: var(--pse-accent-amber); font-size: 13px;">Executor</b>層級。</div>
-                      </div>
-                      <div style="margin-top:12px;">
-                        <textarea class="pse-code-window" readonly># CORE TASK
-- Perform one in-world response only.
-- Act as executor, not planner.
-- Use upstream plugin entries as the main continuity and routing source.
-- If upstream is silent or uncertain, prefer restraint over invention.
-
-# MEMORY LAW
-- Direct memory covers only recent turns.
-- Treat injected upstream layers (## rp_*, world notes, retrieved logs) as the main continuity source.
-- Do not invent unseen past events, hidden promises, strategic history, or emotional carryover absent from visible dialogue or injected layers.
-
-# ROLE BOUNDARY
-- Upstream plugin entries already handled most filtering, compression, routing, and low-frequency reflection.
-- Do not replace them with a sweeter, cleaner, or more convenient interpretation.
-- Your task is not to summarize the character, but to perform the next moment.
-
-# INFORMATION BOUNDARY
-- A character may know their own inner state.
-- For others, infer only from visible speech, action, silence, timing, and established memory.
-- Never write another character's hidden interior as certain fact unless clearly supported.
-
-# PRIORITY ORDER
-Read upstream layers in this order. When layers conflict, higher layers win.
-1. Hard constraints
-\`rp_logic_state.known_contradiction\` |  \`rp_turn_advice.response_guard\` | 
-2. Current portrayal
-\`rp_turn_advice.character_routing\` | \`rp_scene_and_role_state\`
-3. Durable continuity
-\`rp_persona_evolution_state\` | \`rp_persistent_memory\` | \`rp_arc_memory\` | \`rp_turn_trace\` | \`rp_facet_activation_ledger\` | 
-\`rp_recent_world_entries\` | \`rp_world_encyclopedia\`
-
-Practical conflict rule:
-- Hard constraints > Current portrayal > Durable continuity
-- If only Durable continuity is available, keep execution restrained and literal.
-- When in doubt, \`## rp_turn_advice\` is the most authoritative routing source.
-
-# EXECUTION RULES
-- Let \`rp_turn_advice\` decide the visible hierarchy.
-- Use \`rp_scene_and_role_state\` for tone, stakes, and current pressure.
-- Keep the response narrow: one main beat, one dominant facet, one clear stance.
-- If \`strict_directive\` restricts, obey it.
-- Never surface suppressed facets unless forced by the scene.{{/if}}</textarea>
-                        <button class="pse-btn pse-copy-sql-btn" type="button" style="width:100%;padding:6px;font-size:12px;background:var(--pse-accent-greyblue);">📋 複製系統提示詞</button>
-                      </div>
-                    </div>`,
-      help_p4_html: `<div style="border-left: 4px solid var(--pse-accent-rose); background: rgba(255, 23, 68, 0.05); padding: 12px; border-radius: 8px;">
-                      <b style="color: var(--pse-accent-rose); font-size: 14px;">🛠️ 預設提示詞 調整指南</b>
-                      <div style="margin-top: 8px; font-size: 13px; line-height: 1.6; color: var(--pse-text);">
-                        <div style="margin-bottom: 4px;">1. 刪除欄位：<b>角色敘述、Lorebook、全域備註、Supa/HypaMemory</b>。</div>
-                        <div style="margin-bottom: 4px;">2. <b>進階設定：</b>進入聊天 > 勾選「進階」，然後將「範圍開始」設定為 <b>-10</b>。</div>
                         <div>3. 複製以下系統提示詞後，進到聊天機器人 > 提示詞頁面，打開 <b>頂部的系統提示詞</b> 後，將提示詞插入，<b style="color: var(--pse-accent-rose); font-size: 13px;">然後將系統提示詞，將AI的身分降格成演員</b>。</div>
 <div>將原本提示詞中<b style="color: var(--pse-accent-amber); font-size: 13px;">Director</b>、<b style="color: var(--pse-accent-amber); font-size: 13px;">Planner</b>、<b style="color: var(--pse-accent-amber); font-size: 13px;">Narrator</b>、<b style="color: var(--pse-accent-amber); font-size: 13px;">Storyteller</b>層級的相關內容，降格成<b style="color: var(--pse-accent-rose); font-size: 13px;">Actor</b>、<b style="color: var(--pse-accent-rose); font-size: 13px;">Executor</b>層級。</div>
                       </div>
@@ -1737,7 +1421,7 @@ Practical conflict rule:
   let _langInitialized = false;
 
   const PLUGIN_NAME = "👤 RisuAI Agent";
-  const PLUGIN_VER = "3.1.2";
+  const PLUGIN_VER = "4.0";
   const LOG = "[RisuAIAgent]";
   const SYSTEM_INJECT_TAG = "PLUGIN_PARALLEL_STATUS";
   const SYSTEM_REWRITE_TAG = "PLUGIN_PARALLEL_REWRITE";
@@ -3189,7 +2873,7 @@ RULES:
 4. Use only provided memory. If unsure, use null or [].`,
     advanced_prefill_prompt: `Now, let's start extracting. Once you are ready, say 'Ready.'`,
     advanced_prereply_prompt: "Ready.",
-    read_mod_lorebook: 0,
+    read_mod_lorebook: 1,
     vector_search_enabled: 0,
     vector_search_query_dialogue_rounds: 2,
     vector_search_top_k: 6,
@@ -3538,6 +3222,7 @@ CORRECT EXAMPLE:
   const uiIds = [];
   let replacerFn = null;
   let replacerRegistered = false;
+  let _lastEmbedErrorMsg = ""; // tracks last embedding failure for descriptive errors
   const sessionStep0HandledHashByScope = new Map();
   let embeddingCacheStore = null;
   let configCache = {};
@@ -3641,6 +3326,120 @@ CORRECT EXAMPLE:
 
   function safeTrim(v) {
     return typeof v === "string" ? v.trim() : "";
+  }
+
+  function deepCloneValue(v) {
+    if (v === null || v === undefined) return v;
+    if (typeof v !== "object") return v;
+    if (typeof structuredClone === "function") return structuredClone(v);
+    return JSON.parse(JSON.stringify(v));
+  }
+
+  function makeUid() {
+    try {
+      if (
+        typeof globalThis !== "undefined" &&
+        globalThis.crypto &&
+        typeof globalThis.crypto.randomUUID === "function"
+      ) {
+        return globalThis.crypto.randomUUID();
+      }
+    } catch {}
+    return `pse_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 10)}`;
+  }
+
+  function countUserMessages(messages) {
+    return Array.isArray(messages)
+      ? messages.filter((m) => m?.role === "user").length
+      : 0;
+  }
+
+  function getTurnOffsetFromLocalLore(localLore) {
+    if (!Array.isArray(localLore)) return 0;
+    const offsetEntry = localLore.find((l) => l?.comment === "pse_turn_offset");
+    if (!offsetEntry || typeof offsetEntry.content !== "string") return 0;
+    return parseInt(offsetEntry.content.replace(/[^\d-]/g, ""), 10) || 0;
+  }
+
+  function upsertTurnOffsetEntry(localLore, turnOffset) {
+    const nextLore = Array.isArray(localLore)
+      ? localLore.map((entry) => deepCloneValue(entry))
+      : [];
+    const normalizedOffset = Math.max(0, Math.floor(Number(turnOffset) || 0));
+    const nextEntry = {
+      key: "",
+      comment: "pse_turn_offset",
+      content: `## pse_turn_offset[${normalizedOffset}]`,
+      mode: "normal",
+      insertorder: 999,
+      alwaysActive: true,
+      secondkey: "",
+      selective: false,
+      useRegex: false,
+    };
+    const idx = nextLore.findIndex((entry) => entry?.comment === "pse_turn_offset");
+    if (idx >= 0) nextLore[idx] = { ...(nextLore[idx] || {}), ...nextEntry };
+    else nextLore.push(nextEntry);
+    return nextLore;
+  }
+
+  function sliceRecentDialogueTurns(messages, keepTurns = 5) {
+    const src = Array.isArray(messages) ? messages : [];
+    const maxTurns = Math.max(1, Math.floor(Number(keepTurns) || 5));
+    let seenUsers = 0;
+    let startIndex = 0;
+    for (let i = src.length - 1; i >= 0; i--) {
+      if (src[i]?.role === "user") {
+        seenUsers += 1;
+        if (seenUsers >= maxTurns) {
+          startIndex = i;
+          break;
+        }
+      }
+    }
+    if (seenUsers < maxTurns) startIndex = 0;
+    return src.slice(startIndex).map((msg) => deepCloneValue(msg));
+  }
+  function buildContinuedChat(sourceChat, keepTurns = 5) {
+    const source = sourceChat && typeof sourceChat === "object" ? sourceChat : {};
+    const sourceMessages = Array.isArray(source.message) ? source.message : [];
+    const carriedTurns =
+      countUserMessages(sourceMessages) +
+      getTurnOffsetFromLocalLore(source.localLore);
+    const keptMessages = sliceRecentDialogueTurns(sourceMessages, keepTurns);
+    const keptUserTurns = countUserMessages(keptMessages);
+    const nextTurnOffset = Math.max(0, carriedTurns - keptUserTurns);
+    const nextName = `${safeTrim(source.name || "New Chat")} (continue)`;
+
+    const continuedChat = {
+      message: keptMessages,
+      note: String(source.note || ""),
+      id: makeUid(),
+      name: nextName,
+      modules: Array.isArray(source.modules)
+        ? deepCloneValue(source.modules)
+        : [],
+      bindedPersona: source.bindedPersona,
+      fmIndex: -1,
+      folderId: source.folderId,
+      isStreaming: false,
+      localLore: upsertTurnOffsetEntry(source.localLore, nextTurnOffset),
+      lastDate: Date.now(),
+      scriptstate: source.scriptstate ? deepCloneValue(source.scriptstate) : {},
+      plugins: source.plugins ? deepCloneValue(source.plugins) : {},
+      promptOverrides: source.promptOverrides ? deepCloneValue(source.promptOverrides) : {},
+      regexOverrides: source.regexOverrides ? deepCloneValue(source.regexOverrides) : {},
+      groupMembers: source.groupMembers ? deepCloneValue(source.groupMembers) : [],
+    };
+    return {
+      chat: continuedChat,
+      meta: {
+        sourceUserTurns: countUserMessages(sourceMessages),
+        carriedTurns,
+        keptUserTurns,
+        nextTurnOffset,
+      },
+    };
   }
 
   const TURN_BLOCK_SPLIT_REGEX = /(?=###\s*Turn\s*\d+)/i;
@@ -3873,6 +3672,19 @@ CORRECT EXAMPLE:
     }
   }
 
+  function normalizeChatPayloadText(raw) {
+    let content = typeof raw === "string" ? raw.trim() : "";
+    if (!content) return "";
+    const gtMatch = content.match(/<GigaTrans>([\s\S]*?)<\/GigaTrans>/);
+    if (gtMatch) content = gtMatch[1].trim();
+    content = content
+      .replace(/<GT-CTRL[^/]*\/>/g, "")
+      .replace(/\[LBDATA START\][\s\S]*?\[LBDATA END\]/g, "")
+      .trim();
+    return content;
+  }
+
+
   function formatBytes(bytes) {
     const n = Number(bytes);
     if (!Number.isFinite(n) || n <= 0) return "0 B";
@@ -3902,7 +3714,14 @@ CORRECT EXAMPLE:
     );
     if (rawId) return rawId;
     const name = safeTrim(char?.name || "");
-    if (name) return `name_${simpleHash(name)}`;
+    if (name) {
+      const fallbackSeed = JSON.stringify({
+        name,
+        desc: safeTrim(char?.desc || char?.description || "").slice(0, 512),
+        creatorNotes: safeTrim(char?.creatorNotes || "").slice(0, 256),
+      });
+      return `name_${simpleHash(fallbackSeed)}`;
+    }
     return "-1";
   }
 
@@ -3928,35 +3747,165 @@ CORRECT EXAMPLE:
     };
   }
 
-  function getRequestCacheKeysForScope(char) {
+  function getRequestCacheKeysForScope(char, chat = null, chatIndex = -1) {
     const scopeId = getScopeId(char);
+    const suffix = chat ? `::${getChatScopedKey(chat, chatIndex)}` : "";
     return {
       scopeId,
-      lastReqHash: makeScopedStorageKey(LAST_REQ_HASH_KEY, scopeId),
-      lastExtractedData: makeScopedStorageKey(LAST_EXTRACTED_DATA_KEY, scopeId),
-      regenSkip: makeScopedStorageKey(REGEN_SKIP_KEY, scopeId),
-      lastSyncError: makeScopedStorageKey(LAST_SYNC_ERROR_KEY, scopeId),
-      lastExtractorMode: makeScopedStorageKey(LAST_EXTRACTOR_MODE_KEY, scopeId),
+      lastReqHash: `${makeScopedStorageKey(LAST_REQ_HASH_KEY, scopeId)}${suffix}`,
+      lastExtractedData: `${makeScopedStorageKey(LAST_EXTRACTED_DATA_KEY, scopeId)}${suffix}`,
+      regenSkip: `${makeScopedStorageKey(REGEN_SKIP_KEY, scopeId)}${suffix}`,
+      lastSyncError: `${makeScopedStorageKey(LAST_SYNC_ERROR_KEY, scopeId)}${suffix}`,
+      lastExtractorMode: `${makeScopedStorageKey(LAST_EXTRACTOR_MODE_KEY, scopeId)}${suffix}`,
     };
   }
 
-  function getFirstMessageHandledKey(scopeId, chatIndex) {
-    const safeScope =
-      String(scopeId || "-1").replace(/[^0-9a-zA-Z_-]/g, "") || "-1";
+  function getChatScopedKey(chat, chatIndex) {
+    const rawId = String(chat?.id || chat?._id || chat?.chatId || "").replace(
+      /[^0-9a-zA-Z_-]/g,
+      "",
+    );
+    if (rawId) return `id_${rawId}`;
+    const stableSeed = {
+      name: safeTrim(chat?.name || ""),
+      note: safeTrim(chat?.note || ""),
+      folderId: String(chat?.folderId || ""),
+      bindedPersona: String(chat?.bindedPersona || ""),
+      firstMessages: Array.isArray(chat?.message)
+        ? chat.message
+            .filter((m) => m?.role === "user" || m?.role === "char")
+            .slice(0, 3)
+            .map((m) => ({
+              role: safeTrim(m?.role || ""),
+              content: safeTrim(m?.data || m?.content || "").slice(0, 160),
+            }))
+        : [],
+    };
+    const stableFingerprint = simpleHash(JSON.stringify(stableSeed));
+    if (stableFingerprint) return `anon_${stableFingerprint}`;
     const safeChat = Number.isFinite(Number(chatIndex))
       ? Math.floor(Number(chatIndex))
       : -1;
-    return `${FIRST_MESSAGE_HANDLED_KEY}::${safeScope}::chat_${safeChat}`;
+    return `idx_${safeChat}`;
+  }
+
+  function getChatIdentityFingerprint(chat) {
+    const msgCount = Array.isArray(chat?.message) ? chat.message.length : 0;
+    const localLoreCount = Array.isArray(chat?.localLore)
+      ? chat.localLore.length
+      : 0;
+    const lastMsg = msgCount > 0 ? chat.message[msgCount - 1] : null;
+    const lastMsgRole = safeTrim(lastMsg?.role || "");
+    const lastMsgContent = safeTrim(lastMsg?.data || lastMsg?.content || "").slice(
+      -120,
+    );
+    return simpleHash(
+      JSON.stringify({
+        name: safeTrim(chat?.name || ""),
+        note: safeTrim(chat?.note || ""),
+        lastDate: Number(chat?.lastDate || 0),
+        folderId: String(chat?.folderId || ""),
+        bindedPersona: String(chat?.bindedPersona || ""),
+        msgCount,
+        localLoreCount,
+        lastMsgRole,
+        lastMsgContent,
+      }),
+    );
+  }
+
+  function findChatIndexInCharacter(char, targetChat, fallbackIndex = -1) {
+    const chats = Array.isArray(char?.chats) ? char.chats : [];
+    if (!chats.length) return -1;
+
+    const targetId = String(
+      targetChat?.id || targetChat?._id || targetChat?.chatId || "",
+    ).replace(/[^0-9a-zA-Z_-]/g, "");
+    if (targetId) {
+      const idMatchIndex = chats.findIndex((chat) => {
+        const chatId = String(
+          chat?.id || chat?._id || chat?.chatId || "",
+        ).replace(/[^0-9a-zA-Z_-]/g, "");
+        return !!chatId && chatId === targetId;
+      });
+      if (idMatchIndex >= 0) return idMatchIndex;
+    }
+
+    const targetFingerprint = getChatIdentityFingerprint(targetChat);
+    const fingerprintMatches = chats
+      .map((chat, idx) => ({
+        idx,
+        fingerprint: getChatIdentityFingerprint(chat),
+      }))
+      .filter((entry) => entry.fingerprint === targetFingerprint);
+    if (fingerprintMatches.length === 1) return fingerprintMatches[0].idx;
+
+    const targetChatKey = getChatScopedKey(targetChat, fallbackIndex);
+    if (targetChatKey && !String(targetChatKey).startsWith("idx_")) {
+      const keyMatches = chats
+        .map((chat, idx) => ({
+          idx,
+          key: getChatScopedKey(chat, idx),
+        }))
+        .filter((entry) => entry.key === targetChatKey);
+      if (keyMatches.length === 1) return keyMatches[0].idx;
+    }
+
+    const safeFallback = Number.isFinite(Number(fallbackIndex))
+      ? Math.floor(Number(fallbackIndex))
+      : -1;
+    const canTrustFallback = String(targetChatKey).startsWith("id_");
+    if (canTrustFallback && safeFallback >= 0 && safeFallback < chats.length) {
+      const fallbackChat = chats[safeFallback];
+      const fallbackKey = getChatScopedKey(fallbackChat, safeFallback);
+      if (fallbackKey === targetChatKey) return safeFallback;
+    }
+    return -1;
+  }
+
+  async function getCurrentChatContextSafe() {
+    const base = await getCurrentCharAndChatSafe();
+    if (!base?.char || base.charIdx < 0 || !base.chat) return base;
+    try {
+      const latestChar =
+        typeof Risuai.getCharacterFromIndex === "function"
+          ? await Risuai.getCharacterFromIndex(base.charIdx)
+          : base.char;
+      const resolvedChatIndex = findChatIndexInCharacter(
+        latestChar,
+        base.chat,
+        base.chatIndex,
+      );
+      if (resolvedChatIndex < 0) return base;
+      const chats = Array.isArray(latestChar?.chats) ? latestChar.chats : [];
+      const resolvedChat = chats[resolvedChatIndex] || base.chat;
+      return {
+        char: latestChar || base.char,
+        charIdx: base.charIdx,
+        chatIndex: resolvedChatIndex,
+        chat: resolvedChat,
+      };
+    } catch {
+      return base;
+    }
+  }
+
+  function getFirstMessageHandledKey(scopeId, chat, chatIndex) {
+    const safeScope =
+      String(scopeId || "-1").replace(/[^0-9a-zA-Z_-]/g, "") || "-1";
+    const chatKey = getChatScopedKey(chat, chatIndex);
+    return `${FIRST_MESSAGE_HANDLED_KEY}::${safeScope}::${chatKey}`;
   }
 
   async function getScopedKeysForCurrentChat() {
-    const { char, chatIndex } = await getCurrentCharAndChatSafe();
-    const requestKeys = getRequestCacheKeysForScope(char);
+    const { char, chat, chatIndex } = await getCurrentChatContextSafe();
+    const requestKeys = getRequestCacheKeysForScope(char, chat, chatIndex);
     return {
       staticKeys: getStaticCacheKeysForScope(char),
       requestKeys,
       firstMessageHandledKey: getFirstMessageHandledKey(
         requestKeys.scopeId,
+        chat,
         chatIndex,
       ),
     };
@@ -4008,29 +3957,76 @@ CORRECT EXAMPLE:
     return embeddingCacheStore;
   }
 
-  async function saveEmbeddingCacheStore(storeToSave = null) {
+  async function saveEmbeddingCacheStore(storeToSave = null, options = {}) {
     const store = storeToSave || (await loadEmbeddingCacheStore());
+    const removedCardKeys = new Set(
+      Array.isArray(options?.removedCardKeys) ? options.removedCardKeys : [],
+    );
+    const replaceCardKeys = new Set(
+      Array.isArray(options?.replaceCardKeys) ? options.replaceCardKeys : [],
+    );
     store.updatedAt = Date.now();
     try {
-      const cardKeys = Object.keys(store.cards || {});
+      const mergedCards = {};
       try {
         const oldIdxRaw = await Risuai.pluginStorage.getItem(VCACHE_INDEX_KEY);
         if (oldIdxRaw) {
           const oldIdx = JSON.parse(oldIdxRaw);
           if (Array.isArray(oldIdx.cardKeys)) {
             for (const oldKey of oldIdx.cardKeys) {
-              if (!cardKeys.includes(oldKey)) {
-                await Risuai.pluginStorage.removeItem(
+              if (removedCardKeys.has(oldKey)) continue;
+              try {
+                const oldCardRaw = await Risuai.pluginStorage.getItem(
                   VCACHE_CARD_PREFIX + oldKey,
                 );
-              }
+                if (oldCardRaw) {
+                  const oldCard = JSON.parse(oldCardRaw);
+                  if (oldCard && oldCard.entries) mergedCards[oldKey] = oldCard;
+                }
+              } catch {}
             }
           }
         }
       } catch {}
-      for (const cardKey of cardKeys) {
-        const card = store.cards[cardKey];
+
+      for (const [cardKey, card] of Object.entries(store.cards || {})) {
         if (!card) continue;
+        if (removedCardKeys.has(cardKey)) continue;
+        const existingCard = mergedCards[cardKey];
+        if (
+          existingCard &&
+          !replaceCardKeys.has(cardKey) &&
+          existingCard.entries &&
+          card.entries
+        ) {
+          mergedCards[cardKey] = {
+            ...existingCard,
+            ...card,
+            entries: {
+              ...(existingCard.entries || {}),
+              ...(card.entries || {}),
+            },
+            updatedAt: Math.max(
+              Number(existingCard.updatedAt || 0),
+              Number(card.updatedAt || 0),
+              Date.now(),
+            ),
+          };
+        } else {
+          mergedCards[cardKey] = card;
+        }
+      }
+
+      for (const removedKey of removedCardKeys) {
+        delete mergedCards[removedKey];
+        try {
+          await Risuai.pluginStorage.removeItem(VCACHE_CARD_PREFIX + removedKey);
+        } catch {}
+      }
+
+      const cardKeys = Object.keys(mergedCards);
+      for (const cardKey of cardKeys) {
+        const card = mergedCards[cardKey];
         await Risuai.pluginStorage.setItem(
           VCACHE_CARD_PREFIX + cardKey,
           JSON.stringify(card),
@@ -4038,11 +4034,15 @@ CORRECT EXAMPLE:
       }
       const idx = {
         version: EMBEDDING_VECTOR_CACHE_VERSION,
-        updatedAt: store.updatedAt,
+        updatedAt: Date.now(),
         cardKeys,
       };
       await Risuai.pluginStorage.setItem(VCACHE_INDEX_KEY, JSON.stringify(idx));
-      embeddingCacheStore = store;
+      embeddingCacheStore = {
+        version: EMBEDDING_VECTOR_CACHE_VERSION,
+        updatedAt: idx.updatedAt,
+        cards: mergedCards,
+      };
     } catch (err) {
       console.warn(`${LOG} Vector cache pluginStorage save failed:`, err);
       try {
@@ -4141,7 +4141,7 @@ CORRECT EXAMPLE:
 
     let currentScopeId = null;
     try {
-      const { char } = await getCurrentCharAndChatSafe();
+      const { char } = await getCurrentChatContextSafe();
       currentScopeId = getScopeId(char);
     } catch {}
     if (currentScopeId) sessionStep0HandledHashByScope.delete(currentScopeId);
@@ -4226,7 +4226,7 @@ CORRECT EXAMPLE:
       for (const c of characters) {
         const charName = safeTrim(c?.name || "");
         const charId = c?.chaId || c?.id || c?._id || "-1";
-        const cardKey = makeCardCacheKey(charId, charName || "Character");
+        const cardKey = makeCardCacheKey(charId, charName || "Character", c);
         try {
           await Risuai.pluginStorage.removeItem(PCACHE_CARD_PREFIX + cardKey);
         } catch {}
@@ -4234,16 +4234,29 @@ CORRECT EXAMPLE:
     } catch {}
   }
 
-  function makeCardCacheKey(charId, charName) {
+  function makeCardCacheKey(charId, charName, charMeta = null) {
     const idStr = String(charId || "-1").replace(/[^0-9a-zA-Z_-]/g, "");
     const nameStr = safeTrim(charName || "Character");
-    return `${idStr}:${simpleHash(nameStr)}`;
+    if (idStr && idStr !== "-1") return `${idStr}:${simpleHash(nameStr)}`;
+    const meta =
+      charMeta && typeof charMeta === "object" && !Array.isArray(charMeta)
+        ? charMeta
+        : {};
+    const seed = JSON.stringify({
+      name: nameStr,
+      desc: safeTrim(meta?.desc || meta?.description || "").slice(0, 512),
+      creatorNotes: safeTrim(meta?.creatorNotes || "").slice(0, 256),
+      firstMsgs: Array.isArray(meta?.firstMessage)
+        ? meta.firstMessage.slice(0, 3).map((m) => safeTrim(m).slice(0, 120))
+        : [],
+    });
+    return `anon_${simpleHash(seed)}:${simpleHash(nameStr)}`;
   }
 
   async function getActiveCardKey(char) {
     const charName = safeTrim(char?.name || "Character");
     const charId = char?.chaId || char?.id || char?._id || "-1";
-    return makeCardCacheKey(charId, charName);
+    return makeCardCacheKey(charId, charName, char);
   }
 
   async function checkCacheExists(char) {
@@ -4778,7 +4791,11 @@ CORRECT EXAMPLE:
       for (const it of candidate) {
         if (isPlainObject(it)) Object.assign(merged, it);
       }
-      candidate = Object.keys(merged).length ? merged : null;
+      if (Object.keys(merged).length) {
+        candidate = merged;
+      } else {
+        candidate = normalizeNamedValueArrayToObject(candidate);
+      }
     }
 
     if (!isPlainObject(candidate)) return null;
@@ -4870,6 +4887,65 @@ CORRECT EXAMPLE:
       recovered.push({ entry: entry.entry, loreName: entry.loreName, content });
     }
     return recovered;
+  }
+
+  function normalizeNamedValueArrayToObject(value) {
+    if (!Array.isArray(value) || value.length === 0) return null;
+    const out = {};
+    let matched = 0;
+    for (const item of value) {
+      if (!item || typeof item !== "object" || Array.isArray(item)) continue;
+      const key = safeTrim(
+        item.lorebook_name ||
+          item.loreName ||
+          item.name ||
+          item.key ||
+          item.id ||
+          "",
+      );
+      if (!key) continue;
+      let itemValue = item.value;
+      if (itemValue === undefined) itemValue = item.content;
+      if (itemValue === undefined) itemValue = item.text;
+      if (itemValue === undefined) itemValue = item.data;
+      if (itemValue === undefined) continue;
+      out[key] = itemValue;
+      matched++;
+    }
+    return matched > 0 ? out : null;
+  }
+
+  function unwrapCommonValueContainer(value) {
+    let cur = value;
+    const seen = new Set();
+    while (
+      cur &&
+      typeof cur === "object" &&
+      !Array.isArray(cur) &&
+      !seen.has(cur)
+    ) {
+      seen.add(cur);
+      const keys = Object.keys(cur);
+      if (keys.length !== 1) break;
+      const onlyKey = keys[0];
+      const normKey = normalizeSectionKey(onlyKey);
+      if (
+        ![
+          "content",
+          "text",
+          "value",
+          "data",
+          "result",
+          "output",
+          "message",
+          "answer",
+        ].includes(normKey)
+      ) {
+        break;
+      }
+      cur = cur[onlyKey];
+    }
+    return cur;
   }
 
   function parseSimpleStringMap(raw) {
@@ -5080,7 +5156,14 @@ CORRECT EXAMPLE:
 
     next.read_mod_lorebook =
       toInt(next.read_mod_lorebook, DEFAULTS.read_mod_lorebook) === 1 ? 1 : 0;
-    next.vector_search_enabled = 1;
+    // Read the user-configured value instead of hardcoding 1.
+    // The effectiveVecConfig logic in _replacerBody will override this
+    // per-request, but keeping the stored value accurate avoids
+    // misleading reads elsewhere in the codebase.
+    next.vector_search_enabled = toInt(
+      next.vector_search_enabled,
+      DEFAULTS.vector_search_enabled,
+    );
     next.vector_search_query_dialogue_rounds = Math.max(
       1,
       toInt(
@@ -5672,6 +5755,860 @@ CORRECT EXAMPLE:
     return src;
   }
 
+
+  // ── CBS Standalone Runtime (ported from CBS Mock System) ──────────────
+  function parseDefaultVariables(raw) {
+    return String(raw || "")
+      .split(/\r?\n/g)
+      .map((line) => line.trim())
+      .filter(Boolean)
+      .map((line) => {
+        const eq = line.indexOf("=");
+        if (eq === -1) return null;
+        return [line.slice(0, eq).trim(), line.slice(eq + 1)];
+      })
+      .filter((pair) => pair && pair[0]);
+  }
+
+  function splitTopLevelCbsByDoubleColon(raw) {
+    const src = String(raw || "");
+    const result = [];
+    let current = "";
+    let braceDepth = 0;
+    let parenDepth = 0;
+    for (let i = 0; i < src.length; i += 1) {
+      const two = src.slice(i, i + 2);
+      if (two === "{{") {
+        braceDepth += 1;
+        current += two;
+        i += 1;
+        continue;
+      }
+      if (two === "}}" && braceDepth > 0) {
+        braceDepth -= 1;
+        current += two;
+        i += 1;
+        continue;
+      }
+      if (src[i] === "(") parenDepth += 1;
+      if (src[i] === ")" && parenDepth > 0) parenDepth -= 1;
+      if (two === "::" && braceDepth === 0 && parenDepth === 0) {
+        result.push(current);
+        current = "";
+        i += 1;
+        continue;
+      }
+      current += src[i];
+    }
+    result.push(current);
+    return result;
+  }
+
+  function readCbsTagAt(text, startIndex) {
+    if (String(text || "").slice(startIndex, startIndex + 2) !== "{{") {
+      return null;
+    }
+    let depth = 1;
+    let i = startIndex + 2;
+    while (i < text.length - 1) {
+      const two = text.slice(i, i + 2);
+      if (two === "{{") {
+        depth += 1;
+        i += 2;
+        continue;
+      }
+      if (two === "}}") {
+        depth -= 1;
+        i += 2;
+        if (depth === 0) {
+          return {
+            start: startIndex,
+            end: i,
+            raw: text.slice(startIndex, i),
+            inner: text.slice(startIndex + 2, i - 2),
+          };
+        }
+        continue;
+      }
+      i += 1;
+    }
+    return null;
+  }
+
+  function findNextCbsTag(text, startIndex) {
+    const src = String(text || "");
+    for (let i = startIndex; i < src.length - 1; i += 1) {
+      if (src[i] === "{" && src[i + 1] === "{") {
+        return readCbsTagAt(src, i);
+      }
+    }
+    return null;
+  }
+
+  function extractCbsBlock(text, startTag, blockName) {
+    let depth = 1;
+    let cursor = startTag.end;
+    let elseTag = null;
+    while (cursor < text.length) {
+      const tag = findNextCbsTag(text, cursor);
+      if (!tag) break;
+      const inner = safeTrim(tag.inner);
+      if (inner.startsWith(`#${blockName} `) || inner === `#${blockName}` || inner.startsWith(`#${blockName}::`)) {
+        depth += 1;
+      } else if (inner === `/${blockName}`) {
+        depth -= 1;
+        if (depth === 0) {
+          return {
+            body: text.slice(startTag.end, elseTag ? elseTag.start : tag.start),
+            elseBody: elseTag ? text.slice(elseTag.end, tag.start) : "",
+            end: tag.end,
+          };
+        }
+      } else if (
+        (inner === "else" || inner === ":else" || inner === ":then") &&
+        depth === 1 &&
+        ["if", "when", "unless", "each"].includes(blockName)
+      ) {
+        elseTag = tag;
+      }
+      cursor = tag.end;
+    }
+    return {
+      body: text.slice(startTag.end),
+      elseBody: "",
+      end: text.length,
+    };
+  }
+
+  async function getStandaloneCbsRuntime() {
+    const { char, chat, chatIndex } = await getCurrentCharAndChatSafe();
+    let db = null;
+    try {
+      db = await Risuai.getDatabase();
+    } catch {}
+    const vars = Object.create(null);
+    for (const [k, v] of parseDefaultVariables(char?.defaultVariables)) {
+      vars[k] = String(v ?? "");
+    }
+    for (const [k, v] of parseDefaultVariables(db?.templateDefaultVariables)) {
+      if (!(k in vars)) vars[k] = String(v ?? "");
+    }
+    const scriptState =
+      chat?.scriptstate && typeof chat.scriptstate === "object"
+        ? chat.scriptstate
+        : {};
+    for (const [rawKey, value] of Object.entries(scriptState)) {
+      const key = String(rawKey || "").replace(/^\$/, "");
+      vars[key] = value == null ? "null" : String(value);
+    }
+    const globalVars =
+      db?.globalChatVariables && typeof db.globalChatVariables === "object"
+        ? db.globalChatVariables
+        : {};
+    const userName = safeTrim(db?.username || "User");
+    
+    const finalDb = {
+      ...db,
+      // chat.localLore is an Array, not an object — reading .globalNote from it
+      // always returns undefined. Use db.globalNote as the sole source of truth.
+      globalNote: db?.globalNote || "",
+    };
+
+    const messages = Array.isArray(chat?.message) ? chat.message : [];
+    const lastMsg = messages.length > 0 ? messages[messages.length - 1] : null;
+
+    return {
+      char,
+      chat,
+      db: finalDb,
+      vars,
+      globalVars,
+      userName,
+      chatIndex,
+      messages,
+      lastMsg,
+      functions: Object.create(null),
+      tempVars: Object.create(null),
+      startTime: Date.now(),
+    };
+  }
+
+  function evalStandaloneCbsCalc(expression) {
+    const src = String(expression || "")
+      .replace(/\s+/g, " ")
+      .trim();
+    if (!src) return "";
+    const looksConditional = /[<>=!&|]/.test(src);
+    if (src.includes("{{") || src.includes("}}") || src.includes("[CBS_")) {
+      return looksConditional ? "0" : src;
+    }
+    if (!/^[\d\s()+\-*/%<>=!&|.,'"_[\]A-Za-z]+$/.test(src)) {
+      return looksConditional ? "0" : src;
+    }
+    try {
+      const result = Function(`"use strict"; return (${src});`)();
+      if (typeof result === "boolean") return result ? "1" : "0";
+      return result == null ? "" : String(result);
+    } catch {
+      return looksConditional ? "0" : src;
+    }
+  }
+
+  function isStandaloneCbsTruthy(value) {
+    const src = safeTrim(String(value ?? ""));
+    if (!src) return false;
+    if (src === "0") return false;
+    if (src.toLowerCase() === "false") return false;
+    if (src.toLowerCase() === "null") return false;
+    return true;
+  }
+
+  async function evalStandaloneCbsExpr(inner, runtime, args = []) {
+    let expr = safeTrim(inner);
+    if (!expr) return "";
+    if (expr.includes("{{")) {
+      expr = safeTrim(await renderStandaloneCbsText(expr, runtime, args));
+      if (!expr) return "";
+    }
+
+    const lowerExpr = expr.toLowerCase();
+    if (lowerExpr === "char" || lowerExpr === "bot") {
+      return safeTrim(runtime?.char?.name || "Char");
+    }
+    if (lowerExpr === "user") {
+      return runtime?.userName || "User";
+    }
+    if (lowerExpr === "role") {
+      return "system"; // Standalone evaluation usually occurs in system/extractor context
+    }
+    if (lowerExpr === "chatindex") {
+      return String(runtime?.chatIndex ?? 0);
+    }
+    if (lowerExpr === "lastmessageid") {
+      return String(Math.max(0, (runtime?.messages?.length ?? 1) - 1));
+    }
+    if (lowerExpr === "isfirstmsg") {
+      return (runtime?.messages?.length || 0) <= 1 ? "1" : "0";
+    }
+    if (lowerExpr === "personality") return safeTrim(runtime?.char?.personality || "");
+    if (lowerExpr === "description") return safeTrim(runtime?.char?.desc || runtime?.char?.description || "");
+    if (lowerExpr === "scenario") return safeTrim(runtime?.char?.scenario || "");
+    if (lowerExpr === "exampledialogue") return safeTrim(runtime?.char?.mesExamples || "");
+    if (lowerExpr === "persona") return safeTrim(runtime?.db?.persona || "");
+    if (lowerExpr === "mainprompt") return safeTrim(runtime?.db?.mainPrompt || "");
+    if (lowerExpr === "jb" || lowerExpr === "jailbreak") return safeTrim(runtime?.db?.jailbreak || "");
+    if (lowerExpr === "globalnote") return safeTrim(runtime?.db?.globalNote || "");
+    if (lowerExpr === "lastmessage") return safeTrim(runtime?.lastMsg?.data || "");
+    if (lowerExpr === "history") return JSON.stringify(runtime?.messages || []);
+    if (lowerExpr === "lorebook") {
+      const { char, chat } = runtime;
+      return JSON.stringify(extractLorebookEntries(char));
+    }
+    if (lowerExpr === "previouscharchat") {
+      const msgs = runtime?.messages || [];
+      for (let i = msgs.length - 1; i >= 0; i--) {
+        if (msgs[i].is_user === false || msgs[i].is_name === false) return safeTrim(msgs[i].data || "");
+      }
+      return "";
+    }
+    if (lowerExpr === "previoususerchat") {
+      const msgs = runtime?.messages || [];
+      for (let i = msgs.length - 1; i >= 0; i--) {
+        if (msgs[i].is_user === true) return safeTrim(msgs[i].data || "");
+      }
+      return "";
+    }
+    if (lowerExpr === "bkspc" || lowerExpr === "erase" || lowerExpr === "hiddenkey") return "";
+    if (lowerExpr === "jbtoggled") return "1";
+
+    // {{? expression}} — space-separated form per CBS guide (e.g. {{? 1+1}})
+    // Must be checked BEFORE the :: split because "? 1+1" has no :: separator.
+    if (expr.startsWith("? ")) {
+      const calcExpr = await renderStandaloneCbsText(expr.slice(2).trim(), runtime, args);
+      return evalStandaloneCbsCalc(calcExpr);
+    }
+    
+    const parts = splitTopLevelCbsByDoubleColon(expr).map((s) => String(s ?? ""));
+    const head = safeTrim(parts[0] || "");
+    const headLower = head.toLowerCase();
+
+    if (headLower === "arg") {
+      const index = Math.max(0, (parseInt(safeTrim(parts[1] || "1"), 10) || 1) - 1);
+      return args[index] ?? "null";
+    }
+
+    if (headLower === "source") {
+      const target = safeTrim(parts[1] || "").toLowerCase();
+      if (target === "user") return runtime?.db?.avatar || "";
+      if (target === "char" || target === "bot") return runtime?.char?.avatar || "";
+      return "";
+    }
+    if (headLower === "metadata") return "RisuAI Agent Standalone Parser";
+    if (headLower === "screenwidth") return "1920";
+    if (headLower === "screenheight") return "1080";
+    if (headLower === "model" || headLower === "axmodel") return "assistant";
+
+    // --- Variables ---
+    if (headLower === "getvar") {
+      const key = safeTrim(await renderStandaloneCbsText(parts.slice(1).join("::"), runtime, args));
+      if (!key) return "null";
+      return runtime.vars[key] ?? runtime.globalVars[key] ?? "null";
+    }
+    if (headLower === "getglobalvar") {
+      const key = safeTrim(await renderStandaloneCbsText(parts.slice(1).join("::"), runtime, args));
+      return runtime.globalVars[key] ?? "null";
+    }
+    if (headLower === "setvar") {
+      const key = safeTrim(await renderStandaloneCbsText(parts[1] || "", runtime, args));
+      const val = await renderStandaloneCbsText(parts.slice(2).join("::"), runtime, args);
+      if (key) runtime.vars[key] = val;
+      return "";
+    }
+    if (headLower === "setdefaultvar") {
+      const key = safeTrim(await renderStandaloneCbsText(parts[1] || "", runtime, args));
+      const val = await renderStandaloneCbsText(parts.slice(2).join("::"), runtime, args);
+      if (key && (runtime.vars[key] === undefined || runtime.vars[key] === "null")) {
+        runtime.vars[key] = val;
+      }
+      return "";
+    }
+    if (headLower === "addvar") {
+      const key = safeTrim(await renderStandaloneCbsText(parts[1] || "", runtime, args));
+      const val = Number(await renderStandaloneCbsText(parts[2] || "0", runtime, args)) || 0;
+      if (key) {
+        const current = Number(runtime.vars[key]) || 0;
+        runtime.vars[key] = String(current + val);
+      }
+      return "";
+    }
+    if (headLower === "settempvar") {
+      const key = safeTrim(await renderStandaloneCbsText(parts[1] || "", runtime, args));
+      const val = await renderStandaloneCbsText(parts.slice(2).join("::"), runtime, args);
+      if (key) runtime.tempVars[key] = val;
+      return "";
+    }
+    if (headLower === "tempvar") {
+      const key = safeTrim(await renderStandaloneCbsText(parts.slice(1).join("::"), runtime, args));
+      return runtime.tempVars[key] ?? "null";
+    }
+
+    // --- Utils ---
+    if (headLower === "calc" || head === "?") {
+      return evalStandaloneCbsCalc(await renderStandaloneCbsText(parts.slice(1).join("::"), runtime, args));
+    }
+    if (headLower === "time") return new Date().toLocaleTimeString("en-GB", { hour12: false });
+    if (headLower === "date") {
+      if (parts.length >= 3) {
+        // {{date::format::timestamp}} — custom format with optional Unix timestamp
+        const fmt = String(parts[1] || "");
+        const tsRaw = await renderStandaloneCbsText(parts.slice(2).join("::"), runtime, args);
+        const d = tsRaw && !isNaN(Number(tsRaw)) ? new Date(Number(tsRaw) * 1000) : new Date();
+        // Support strftime-style tokens: %Y %m %d %H %M %S
+        return fmt
+          .replace(/%Y/g, d.getFullYear())
+          .replace(/%m/g, String(d.getMonth() + 1).padStart(2, "0"))
+          .replace(/%d/g, String(d.getDate()).padStart(2, "0"))
+          .replace(/%H/g, String(d.getHours()).padStart(2, "0"))
+          .replace(/%M/g, String(d.getMinutes()).padStart(2, "0"))
+          .replace(/%S/g, String(d.getSeconds()).padStart(2, "0"));
+      }
+      const d = new Date();
+      return `${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()}`;
+    }
+    if (headLower === "unixtime") return String(Math.floor(Date.now() / 1000));
+    if (headLower === "isotime") return new Date().toISOString().split("T")[1].split(".")[0];
+    if (headLower === "isodate") return new Date().toISOString().split("T")[0];
+    if (headLower === "idleduration") return "0";
+
+    // --- Math ---
+    if (["round", "floor", "ceil", "abs"].includes(headLower)) {
+      const val = Number(await renderStandaloneCbsText(parts[1] || "0", runtime, args)) || 0;
+      return String(Math[headLower](val));
+    }
+    if (["min", "max"].includes(headLower)) {
+      const vals = [];
+      for(let i=1; i<parts.length; i++) vals.push(Number(await renderStandaloneCbsText(parts[i], runtime, args)) || 0);
+      return String(Math[headLower](...vals));
+    }
+    if (["sum", "average"].includes(headLower)) {
+      let sum = 0;
+      let count = 0;
+      for (let i = 1; i < parts.length; i++) {
+        sum += Number(await renderStandaloneCbsText(parts[i], runtime, args)) || 0;
+        count++;
+      }
+      if (headLower === "sum") return String(sum);
+      return count === 0 ? "0" : String(sum / count);
+    }
+    if (headLower === "pow") {
+      const b = Number(await renderStandaloneCbsText(parts[1] || "0", runtime, args)) || 0;
+      const e = Number(await renderStandaloneCbsText(parts[2] || "0", runtime, args)) || 0;
+      return String(Math.pow(b, e));
+    }
+    if (headLower === "remaind") {
+      const a = Number(await renderStandaloneCbsText(parts[1] || "0", runtime, args)) || 0;
+      const b = Number(await renderStandaloneCbsText(parts[2] || "1", runtime, args)) || 1;
+      return String(a % b);
+    }
+
+    // --- String ---
+    if (headLower === "replace") {
+      const s = await renderStandaloneCbsText(parts[1] || "", runtime, args);
+      const t = await renderStandaloneCbsText(parts[2] || "", runtime, args);
+      const r = await renderStandaloneCbsText(parts[3] || "", runtime, args);
+      return s.split(t).join(r);
+    }
+    if (headLower === "lower") return (await renderStandaloneCbsText(parts[1] || "", runtime, args)).toLowerCase();
+    if (headLower === "upper") return (await renderStandaloneCbsText(parts[1] || "", runtime, args)).toUpperCase();
+    if (headLower === "trim") return (await renderStandaloneCbsText(parts[1] || "", runtime, args)).trim();
+    if (headLower === "length") return String((await renderStandaloneCbsText(parts[1] || "", runtime, args)).length);
+    if (headLower === "capitalize") {
+      const s = await renderStandaloneCbsText(parts[1] || "", runtime, args);
+      return s.charAt(0).toUpperCase() + s.slice(1);
+    }
+    if (headLower === "reverse") return (await renderStandaloneCbsText(parts[1] || "", runtime, args)).split("").reverse().join("");
+    if (headLower === "br" || headLower === "newline") return "\n";
+    if (headLower === "split") {
+      const s = await renderStandaloneCbsText(parts[1] || "", runtime, args);
+      const delim = await renderStandaloneCbsText(parts[2] || "", runtime, args);
+      return JSON.stringify(s.split(delim));
+    }
+
+    // --- Logic ---
+    // Normalize CBS #when operator aliases to canonical names.
+    // CBS syntax uses: is, isnot, >, <, >=, <= as operator tokens.
+    // After #when reordering (A::op::B → op::A::B), the head becomes the op.
+    const _opAlias = {
+      "is": "equal", "==": "equal",
+      "isnot": "notequal", "!=": "notequal",
+      ">": "greater",
+      ">=": "greaterequal",
+      "<": "less",
+      "<=": "lessequal",
+    };
+    const _resolvedOp = _opAlias[headLower] ?? headLower;
+    if (["equal", "notequal", "greater", "greaterequal", "less", "lessequal"].includes(_resolvedOp)) {
+      const v1 = await renderStandaloneCbsText(parts[1] || "", runtime, args);
+      const v2 = await renderStandaloneCbsText(parts[2] || "", runtime, args);
+      const n1 = Number(v1), n2 = Number(v2);
+      const isNum = !isNaN(n1) && !isNaN(n2);
+      switch(_resolvedOp) {
+        case "equal": return v1 === v2 ? "1" : "0";
+        case "notequal": return v1 !== v2 ? "1" : "0";
+        case "greater": return (isNum ? n1 > n2 : v1 > v2) ? "1" : "0";
+        case "greaterequal": return (isNum ? n1 >= n2 : v1 >= v2) ? "1" : "0";
+        case "less": return (isNum ? n1 < n2 : v1 < v2) ? "1" : "0";
+        case "lessequal": return (isNum ? n1 <= n2 : v1 <= v2) ? "1" : "0";
+      }
+    }
+    if (headLower === "and") {
+      const v1 = isStandaloneCbsTruthy(await renderStandaloneCbsText(parts[1] || "", runtime, args));
+      const v2 = isStandaloneCbsTruthy(await renderStandaloneCbsText(parts[2] || "", runtime, args));
+      return (v1 && v2) ? "1" : "0";
+    }
+    if (headLower === "or") {
+      const v1 = isStandaloneCbsTruthy(await renderStandaloneCbsText(parts[1] || "", runtime, args));
+      const v2 = isStandaloneCbsTruthy(await renderStandaloneCbsText(parts[2] || "", runtime, args));
+      return (v1 || v2) ? "1" : "0";
+    }
+    if (headLower === "not") {
+      const v = isStandaloneCbsTruthy(await renderStandaloneCbsText(parts[1] || "", runtime, args));
+      return (!v) ? "1" : "0";
+    }
+    if (headLower === "contains") {
+      const s = await renderStandaloneCbsText(parts[1] || "", runtime, args);
+      const sub = await renderStandaloneCbsText(parts[2] || "", runtime, args);
+      return s.includes(sub) ? "1" : "0";
+    }
+    if (headLower === "startswith") {
+      const s = await renderStandaloneCbsText(parts[1] || "", runtime, args);
+      const sub = await renderStandaloneCbsText(parts[2] || "", runtime, args);
+      return s.startsWith(sub) ? "1" : "0";
+    }
+    if (headLower === "endswith") {
+      const s = await renderStandaloneCbsText(parts[1] || "", runtime, args);
+      const sub = await renderStandaloneCbsText(parts[2] || "", runtime, args);
+      return s.endsWith(sub) ? "1" : "0";
+    }
+    if (headLower === "all" || headLower === "any") {
+      let truthyCount = 0;
+      const argCount = Math.max(1, parts.length - 1);
+      for (let i = 1; i < parts.length; i++) {
+        if (isStandaloneCbsTruthy(await renderStandaloneCbsText(parts[i] || "", runtime, args))) truthyCount++;
+      }
+      if (headLower === "all") return truthyCount === argCount && argCount > 0 ? "1" : "0";
+      return truthyCount > 0 ? "1" : "0";
+    }
+
+    // --- Array/Dict ---
+    if (headLower === "makearray") {
+      const arr = [];
+      for(let i=1; i<parts.length; i++) arr.push(await renderStandaloneCbsText(parts[i], runtime, args));
+      return JSON.stringify(arr);
+    }
+    if (headLower === "arrayelement" || headLower === "element") {
+      try {
+        const json = await renderStandaloneCbsText(parts[1] || "[]", runtime, args);
+        const idx = parseInt(await renderStandaloneCbsText(parts[2] || "0", runtime, args), 10);
+        const arr = JSON.parse(json);
+        return String(arr[idx] ?? "null");
+      } catch { return "null"; }
+    }
+    if (headLower === "arraylength") {
+      try {
+        const json = await renderStandaloneCbsText(parts[1] || "[]", runtime, args);
+        return String(JSON.parse(json).length);
+      } catch { return "0"; }
+    }
+    if (headLower === "join") {
+      try {
+        const json = await renderStandaloneCbsText(parts[1] || "[]", runtime, args);
+        const sep = await renderStandaloneCbsText(parts[2] || "", runtime, args);
+        return JSON.parse(json).join(sep);
+      } catch { return ""; }
+    }
+    if (headLower === "makedict") {
+      const dict = {};
+      for (let i = 1; i < parts.length; i++) {
+        const pair = await renderStandaloneCbsText(parts[i], runtime, args);
+        const eq = pair.indexOf("=");
+        if (eq !== -1) {
+          dict[pair.slice(0, eq)] = pair.slice(eq + 1);
+        }
+      }
+      return JSON.stringify(dict);
+    }
+    if (headLower === "dictelement") {
+      try {
+        const json = await renderStandaloneCbsText(parts[1] || "{}", runtime, args);
+        const key = await renderStandaloneCbsText(parts[2] || "", runtime, args);
+        const dict = JSON.parse(json);
+        return String(dict[key] ?? "null");
+      } catch { return "null"; }
+    }
+    if (headLower === "range") {
+      let start = 1, end = 0, step = 1;
+      if (parts.length === 2) {
+        end = Number(await renderStandaloneCbsText(parts[1] || "0", runtime, args)) || 0;
+      } else if (parts.length >= 4) {
+        start = Number(await renderStandaloneCbsText(parts[1] || "0", runtime, args)) || 0;
+        end = Number(await renderStandaloneCbsText(parts[2] || "0", runtime, args)) || 0;
+        step = Number(await renderStandaloneCbsText(parts[3] || "1", runtime, args)) || 1;
+      }
+      const arr = [];
+      if (step > 0) {
+        for (let i = start; i <= end; i += step) arr.push(i);
+      } else if (step < 0) {
+        for (let i = start; i >= end; i += step) arr.push(i);
+      }
+      return JSON.stringify(arr);
+    }
+    if (headLower === "arraypush") {
+      try {
+        const json = await renderStandaloneCbsText(parts[1] || "[]", runtime, args);
+        const val = await renderStandaloneCbsText(parts[2] || "", runtime, args);
+        const arr = JSON.parse(json);
+        arr.push(val);
+        return JSON.stringify(arr);
+      } catch { return "[]"; }
+    }
+    if (headLower === "arraypop") {
+      try {
+        const json = await renderStandaloneCbsText(parts[1] || "[]", runtime, args);
+        const arr = JSON.parse(json);
+        arr.pop();
+        return JSON.stringify(arr);
+      } catch { return "[]"; }
+    }
+    if (headLower === "arrayshift") {
+      try {
+        const json = await renderStandaloneCbsText(parts[1] || "[]", runtime, args);
+        const arr = JSON.parse(json);
+        arr.shift();
+        return JSON.stringify(arr);
+      } catch { return "[]"; }
+    }
+    if (headLower === "filter") {
+       try {
+        const json = await renderStandaloneCbsText(parts[1] || "[]", runtime, args);
+        const mode = await renderStandaloneCbsText(parts[2] || "all", runtime, args);
+        const arr = JSON.parse(json);
+        if (mode === "unique") return JSON.stringify([...new Set(arr)]);
+        if (mode === "nonempty") return JSON.stringify(arr.filter(x => x !== "" && x !== null && x !== undefined));
+        return JSON.stringify(arr);
+      } catch { return "[]"; }
+    }
+
+    // --- RNG ---
+    if (headLower === "randint") {
+      const min = Number(await renderStandaloneCbsText(parts[1] || "0", runtime, args)) || 0;
+      const max = Number(await renderStandaloneCbsText(parts[2] || "100", runtime, args)) || 100;
+      return String(Math.floor(Math.random() * (max - min + 1)) + min);
+    }
+    if (headLower === "random") {
+      const choices = parts.slice(1);
+      // Per CBS guide: {{random}} with no args → float between 0 and 1
+      if (choices.length === 0) return String(Math.random());
+      const randIdx = Math.floor(Math.random() * choices.length);
+      return await renderStandaloneCbsText(choices[randIdx], runtime, args);
+    }
+
+    if (headLower === "none") return "";
+    if (headLower === "char_desc") return safeTrim(runtime?.char?.desc || runtime?.char?.description || "");
+    if (headLower === "ujb" || headLower === "system_note") return safeTrim(runtime?.db?.globalNote || "");
+
+    if (headLower === "dice" || headLower === "roll") {
+       const xdy = await renderStandaloneCbsText(parts[1] || "1d6", runtime, args);
+       const match = xdy.toLowerCase().match(/^(\d+)d(\d+)$/);
+       if (match) {
+         const X = parseInt(match[1], 10) || 1;
+         const Y = parseInt(match[2], 10) || 6;
+         const results = [];
+         let sum = 0;
+         for (let i = 0; i < X; i++) {
+            const r = Math.floor(Math.random() * Y) + 1;
+            results.push(r);
+            sum += r;
+         }
+         return headLower === "dice" ? String(sum) : JSON.stringify(results);
+       }
+       return headLower === "dice" ? "0" : "[]";
+    }
+    if (headLower === "pick" || headLower === "rollp") {
+       if (parts.length > 1) return await renderStandaloneCbsText(parts[1], runtime, args);
+       return "";
+    }
+    if (headLower === "hash") {
+       const str = await renderStandaloneCbsText(parts[1] || "", runtime, args);
+       let hash = 0;
+       for (let i = 0; i < str.length; i++) {
+         const char = str.charCodeAt(i);
+         hash = ((hash << 5) - hash) + char;
+         hash = hash & hash;
+       }
+       return String(Math.abs(hash)).slice(0, 7).padStart(7, "0");
+    }
+    if (headLower === "xor" || headLower === "xordecrypt" || headLower === "crypt") {
+       return await renderStandaloneCbsText(parts[1] || "", runtime, args);
+    }
+    if (headLower === "unicodeencode") {
+       const str = await renderStandaloneCbsText(parts[1] || "", runtime, args);
+       return str.length > 0 ? String(str.charCodeAt(0)) : "";
+    }
+    if (headLower === "unicodedecode") {
+       const code = Number(await renderStandaloneCbsText(parts[1] || "0", runtime, args));
+       return String.fromCharCode(code);
+    }
+    if (headLower === "tohex") {
+       const num = Number(await renderStandaloneCbsText(parts[1] || "0", runtime, args)) || 0;
+       return num.toString(16);
+    }
+    if (headLower === "fromhex") {
+       const hex = await renderStandaloneCbsText(parts[1] || "0", runtime, args);
+       return String(parseInt(hex, 16));
+    }
+    if (["asset", "image", "bg", "emotion", "audio", "video", "button", "tex", "ruby", "codeblock", "hiddenkey"].includes(headLower)) return "";
+    if (headLower === "assetlist" || headLower === "emotionlist") return "[]";
+    if (headLower === "moduleenabled") return "0";
+    if (headLower === "prefillsupported") return "1";
+
+    if (headLower === "call") {
+      const fnName = safeTrim(await renderStandaloneCbsText(parts[1] || "", runtime, args));
+      const fnBody = runtime.functions[fnName];
+      if (!fnBody) return "";
+      const callArgs = [];
+      for (let i = 2; i < parts.length; i += 1) {
+        callArgs.push(await renderStandaloneCbsText(parts[i], runtime, args));
+      }
+      return await renderStandaloneCbsText(fnBody, runtime, callArgs);
+    }
+
+    if (headLower === "varrule_max" || headLower === "varrule_min") {
+      const key = safeTrim(await renderStandaloneCbsText(parts[1] || "", runtime, args));
+      const limit = Number(await renderStandaloneCbsText(parts[2] || "", runtime, args));
+      if (key && !isNaN(limit) && runtime.vars[key] !== undefined) {
+        const current = Number(runtime.vars[key]);
+        if (!isNaN(current)) {
+          runtime.vars[key] = headLower === "varrule_max" ? Math.min(current, limit).toString() : Math.max(current, limit).toString();
+        }
+      }
+      return "";
+    }
+
+    if (Object.prototype.hasOwnProperty.call(runtime.vars, expr)) {
+      return runtime.vars[expr];
+    }
+    if (Object.prototype.hasOwnProperty.call(runtime.globalVars, expr)) {
+      return runtime.globalVars[expr];
+    }
+
+    return expr;
+  }
+
+  async function renderStandaloneCbsText(text, runtime, args = []) {
+    const src = String(text ?? "");
+    if (!src || !src.includes("{{")) return src;
+    let out = "";
+    let cursor = 0;
+    while (cursor < src.length) {
+      const tag = findNextCbsTag(src, cursor);
+      if (!tag) {
+        out += src.slice(cursor);
+        break;
+      }
+      out += src.slice(cursor, tag.start);
+      const inner = safeTrim(tag.inner);
+
+      if (inner.startsWith("//") || inner.startsWith("comment::")) {
+        cursor = tag.end;
+        continue;
+      }
+
+      if (inner.startsWith("#puredisplay")) {
+        const block = extractCbsBlock(src, tag, "puredisplay");
+        out += block.body;
+        cursor = block.end;
+        continue;
+      }
+
+      if (inner.startsWith("#func ")) {
+        const fnName = safeTrim(inner.slice(6));
+        const block = extractCbsBlock(src, tag, "func");
+        if (fnName) runtime.functions[fnName] = block.body;
+        cursor = block.end;
+        continue;
+      }
+
+      if (inner.startsWith("#if ") || inner.startsWith("#when ") || inner.startsWith("#when::")) {
+        const isWhen = inner.startsWith("#when");
+        const spaceIdx = inner.indexOf(" ");
+        let conditionRaw = spaceIdx !== -1 ? inner.slice(spaceIdx + 1) : "";
+        const block = extractCbsBlock(src, tag, isWhen ? "when" : "if");
+        
+        if (isWhen) {
+          // Strip optional variant qualifiers: #when::keep or #when::legacy
+          // These appear as "#when::keep A::op::B" or "#when::legacy A::op::B".
+          // After the first "::keep" / "::legacy" token, the rest is the actual condition.
+          if (conditionRaw.startsWith("keep ") || conditionRaw.startsWith("legacy ")) {
+            conditionRaw = conditionRaw.slice(conditionRaw.indexOf(" ") + 1);
+          }
+          const wParts = splitTopLevelCbsByDoubleColon(conditionRaw).map(s => safeTrim(s));
+          if (wParts.length === 3) {
+            conditionRaw = `${wParts[1]}::${wParts[0]}::${wParts[2]}`;
+          }
+        }
+
+        const condition = await evalStandaloneCbsExpr(conditionRaw, runtime, args);
+        out += await renderStandaloneCbsText(
+          isStandaloneCbsTruthy(condition) ? block.body : block.elseBody,
+          runtime,
+          args,
+        );
+        cursor = block.end;
+        continue;
+      }
+
+      if (inner.startsWith("#unless ")) {
+        const conditionRaw = inner.slice(8);
+        const block = extractCbsBlock(src, tag, "unless");
+        const condition = await evalStandaloneCbsExpr(conditionRaw, runtime, args);
+        out += await renderStandaloneCbsText(
+          isStandaloneCbsTruthy(condition) ? block.elseBody : block.body,
+          runtime,
+          args,
+        );
+        cursor = block.end;
+        continue;
+      }
+
+      if (inner.startsWith("#each ") || inner.startsWith("#each::")) {
+        const spaceIdx = inner.indexOf(" ");
+        const eachContent = spaceIdx !== -1 ? inner.slice(spaceIdx + 1) : "";
+        const block = extractCbsBlock(src, tag, "each");
+        const eachParts = eachContent.split(/\s+as\s+/);
+        const arrayRaw = await renderStandaloneCbsText(eachParts[0], runtime, args);
+        const varName = safeTrim(eachParts[1] || "slot");
+        try {
+          const array = JSON.parse(arrayRaw);
+          if (Array.isArray(array)) {
+            for (const item of array) {
+              const itemStr = typeof item === "string" ? item : JSON.stringify(item);
+              const localVars = { ...runtime.vars, [varName]: itemStr, slot: itemStr };
+              const localRuntime = { ...runtime, vars: localVars };
+              out += await renderStandaloneCbsText(block.body, localRuntime, args);
+            }
+          }
+        } catch {}
+        cursor = block.end;
+        continue;
+      }
+
+      if (
+        inner === "else" ||
+        inner === "/if" ||
+        inner === "/when" ||
+        inner === "/unless" ||
+        inner === "/each" ||
+        inner === "/func"
+      ) {
+        cursor = tag.end;
+        continue;
+      }
+
+      out += await evalStandaloneCbsExpr(inner, runtime, args);
+      cursor = tag.end;
+    }
+    return out;
+  }
+
+  async function normalizeAgentCbsText(text) {
+    const src = String(text ?? "");
+    if (!src || !src.includes("{{")) return src;
+    try {
+      const runtime = await getStandaloneCbsRuntime();
+      const rendered = await renderStandaloneCbsText(src, runtime, []);
+      if (typeof rendered === "string") return rendered;
+      if (rendered != null) return String(rendered);
+    } catch (e) {
+      try {
+        await Risuai.log(
+          `${LOG} standalone CBS render fallback: ${e?.message || String(e)}`,
+        );
+      } catch {}
+    }
+    return cbsToIndexPlaceholders(src);
+  }
+
+  async function normalizeLorebookEntryForAgent(entry) {
+    if (!entry || typeof entry !== "object") return entry;
+    const contentSource =
+      typeof entry?.content === "string"
+        ? entry.content
+        : typeof entry?.prompt === "string"
+          ? entry.prompt
+          : "";
+    return {
+      ...entry,
+      content: await normalizeAgentCbsText(contentSource),
+      key: await normalizeAgentCbsText(entry?.key ?? entry?.keyword ?? ""),
+      secondkey: await normalizeAgentCbsText(
+        entry?.secondkey ?? entry?.secondary_keyword ?? "",
+      ),
+    };
+  }
+
+  async function normalizePromptMessagesForAgent(messages) {
+    const list = Array.isArray(messages) ? messages : [];
+    return await Promise.all(list.map(async (m) => {
+      if (!m || typeof m !== "object") return m;
+      if (typeof m.content !== "string" || !m.content.includes("{{")) return m;
+      return {
+        ...m,
+        content: await normalizeAgentCbsText(m.content),
+      };
+    }));
+  }
+
   function parseLorebookNames(raw) {
     return String(raw || "")
       .split(/[\n,]+/g)
@@ -5783,7 +6720,7 @@ CORRECT EXAMPLE:
       (names || []).map((x) => safeTrim(x)).filter(Boolean),
     );
     if (wanted.size === 0) return "";
-    const { char, chat } = await getCurrentCharAndChatSafe();
+    const { char, chat } = await getCurrentChatContextSafe();
     const localLore = Array.isArray(chat?.localLore) ? chat.localLore : [];
     const charLore = await getCombinedLorebookEntries(char, chat);
 
@@ -5973,6 +6910,8 @@ CORRECT EXAMPLE:
 
   async function fetchEmbeddingVectorsRemote(texts, cfg, strict = false) {
     const runner = async () => {
+      // Reset the last error tracker for this fresh attempt
+      _lastEmbedErrorMsg = "";
       const input = Array.isArray(texts)
         ? texts.map((t) => String(t || ""))
         : [];
@@ -6100,10 +7039,13 @@ CORRECT EXAMPLE:
           }
           allVectors.push(...batchVectors);
         } catch (e) {
+          const embedErrMsg = e?.message || String(e);
           console.error(`${LOG} Embedding ${batchLabel} failed:`, e);
           await Risuai.log(
-            `${LOG} [Embed] ❌ ${batchLabel} failed: ${e?.message || String(e)}`,
+            `${LOG} [Embed] ❌ ${batchLabel} failed: ${embedErrMsg}`,
           );
+          // Store the real error so callers can surface a meaningful message
+          _lastEmbedErrorMsg = `[Embedding ${batchLabel}] ${embedErrMsg}`;
           if (strict) throw e;
           for (let j = 0; j < batchInput.length; j++) allVectors.push([]);
           break;
@@ -6159,8 +7101,12 @@ CORRECT EXAMPLE:
         }
       }
     }
-    if (out.some((v) => !Array.isArray(v) || !v.length))
-      throw new Error("Some embedding vectors failed to retrieve.");
+    if (out.some((v) => !Array.isArray(v) || !v.length)) {
+      const rootCause = _lastEmbedErrorMsg
+        ? ` Cause: ${_lastEmbedErrorMsg}`
+        : " Check your embedding model configuration and API key.";
+      throw new Error(`Embedding request failed — some vectors could not be retrieved.${rootCause}`);
+    }
     return out;
   }
 
@@ -6198,7 +7144,7 @@ CORRECT EXAMPLE:
       .join(" ");
     const queryText = `${nameText}\n${convText}`.trim() || " ";
 
-    const { char, chat } = await getCurrentCharAndChatSafe();
+    const { char, chat } = await getCurrentChatContextSafe();
     const gNoteData = await getGlobalNoteDataCached(char);
 
     const localLore = Array.isArray(chat?.localLore) ? chat.localLore : [];
@@ -6358,9 +7304,17 @@ CORRECT EXAMPLE:
 
       return finalListText.join("\n\n");
     } catch (e) {
+      const embedErrMsg = e?.message || String(e);
       try {
         await Risuai.log(
-          `${LOG} embedding vector search fallback: ${e?.message || String(e)}`,
+          `${LOG} ⚠️ Vector lorebook search failed (falling back to keyword): ${embedErrMsg}`,
+        );
+      } catch {}
+      // Record so the user has a trace even without opening logs
+      try {
+        await Risuai.safeLocalStorage.setItem(
+          LAST_SYNC_ERROR_KEY,
+          `Vector lorebook search failed — keyword fallback active. Cause: ${embedErrMsg}`,
         );
       } catch {}
       return await getLorebookContextByNames(names);
@@ -6407,7 +7361,14 @@ CORRECT EXAMPLE:
     }
     if (entries.length === 0) return "";
 
-    const [queryVec] = await getEmbeddingsForTexts([queryText], true);
+    let queryVec;
+    try {
+      [queryVec] = await getEmbeddingsForTexts([queryText], true);
+    } catch (e) {
+      throw new Error(
+        `Persona vector search failed — could not embed query text. ${e?.message || String(e)}`,
+      );
+    }
     const store = await loadEmbeddingCacheStore();
     const vectors = new Array(entries.length).fill(null);
     const missing = [];
@@ -6430,10 +7391,17 @@ CORRECT EXAMPLE:
       const batchSize = getEmbeddingBatchSize(cfg.requestModel);
       for (let i = 0; i < missing.length; i += batchSize) {
         const batch = missing.slice(i, i + batchSize);
-        const vecs = await fetchEmbeddingVectorsRemote(
-          batch.map((x) => x.text),
-          cfg,
-        );
+        let vecs;
+        try {
+          vecs = await fetchEmbeddingVectorsRemote(
+            batch.map((x) => x.text),
+            cfg,
+          );
+        } catch (e) {
+          throw new Error(
+            `Persona vector indexing failed — could not embed persona entries. ${e?.message || String(e)}`,
+          );
+        }
         let newlyAdded = false;
         for (let j = 0; j < batch.length; j++) {
           const vec = vecs[j];
@@ -7064,7 +8032,7 @@ CORRECT EXAMPLE:
       return rawTrimmed;
     }
     if (Object.prototype.hasOwnProperty.call(normalizedParsed, lorebookName)) {
-      const val = normalizedParsed[lorebookName];
+      const val = unwrapCommonValueContainer(normalizedParsed[lorebookName]);
       if (val === null || val === undefined || val === "") return "";
       if (typeof val === "string") return val.trim();
       try {
@@ -7077,7 +8045,7 @@ CORRECT EXAMPLE:
       const keys = Object.keys(normalizedParsed);
       if (totalEntries === 1) {
         if (keys.length === 1) {
-          const val = normalizedParsed[keys[0]];
+          const val = unwrapCommonValueContainer(normalizedParsed[keys[0]]);
           if (val === null || val === undefined || val === "") return "";
           if (typeof val === "string") return val.trim();
           try {
@@ -7102,7 +8070,7 @@ CORRECT EXAMPLE:
         return nk === nl || nk.includes(nl) || nl.includes(nk);
       });
       if (fuzzyKey) {
-        const val = normalizedParsed[fuzzyKey];
+        const val = unwrapCommonValueContainer(normalizedParsed[fuzzyKey]);
         if (val === null || val === undefined || val === "") return "";
         if (typeof val === "string") return val.trim();
         try {
@@ -7205,6 +8173,8 @@ CORRECT EXAMPLE:
             : parsed;
         }
       }
+
+      rawVal = unwrapCommonValueContainer(rawVal);
 
       if (Array.isArray(rawVal)) {
         const first = rawVal[0];
@@ -7433,15 +8403,8 @@ CORRECT EXAMPLE:
     if (!Array.isArray(writes) || writes.length === 0) return false;
     return mutexLoreWrite.run(async () => {
       try {
-        const charIdx =
-          typeof Risuai.getCurrentCharacterIndex === "function"
-            ? await Risuai.getCurrentCharacterIndex()
-            : -1;
-        const chatIndex = await resolveCurrentChatIndex();
-        if (charIdx < 0 || chatIndex < 0) return false;
-
-        const chat = await Risuai.getChatFromIndex(charIdx, chatIndex);
-        if (!chat) return false;
+        const { charIdx, chatIndex, chat } = await getCurrentChatContextSafe();
+        if (charIdx < 0 || chatIndex < 0 || !chat) return false;
         chat.localLore = Array.isArray(chat.localLore) ? chat.localLore : [];
 
         for (const { loreName, writeMode, alwaysActive, content } of writes) {
@@ -7550,13 +8513,8 @@ CORRECT EXAMPLE:
 
     return mutexLoreWrite.run(async () => {
       try {
-        const charIdx =
-          typeof Risuai.getCurrentCharacterIndex === "function"
-            ? await Risuai.getCurrentCharacterIndex()
-            : -1;
-        const chatIndex = await resolveCurrentChatIndex();
+        const { charIdx, chatIndex, chat } = await getCurrentChatContextSafe();
         if (charIdx < 0 || chatIndex < 0) return;
-        const chat = await Risuai.getChatFromIndex(charIdx, chatIndex);
         if (!chat || !Array.isArray(chat.localLore)) return;
 
         let modified = false;
@@ -7841,6 +8799,30 @@ CORRECT EXAMPLE:
     }
   }
 
+  function extractOpenAICompatContent(data) {
+    const choice = data?.choices?.[0];
+    const messageContent = choice?.message?.content;
+    if (typeof messageContent === "string") {
+      return messageContent.trim();
+    }
+    if (Array.isArray(messageContent)) {
+      return messageContent
+        .map((part) => {
+          if (typeof part === "string") return part;
+          if (typeof part?.text === "string") return part.text;
+          return "";
+        })
+        .filter(Boolean)
+        .join("\n")
+        .trim();
+    }
+    const legacyText = choice?.text;
+    if (typeof legacyText === "string") {
+      return legacyText.trim();
+    }
+    return "";
+  }
+
   async function callOpenAICompat({
     url,
     apiKey,
@@ -7902,23 +8884,7 @@ CORRECT EXAMPLE:
       timeoutMs,
       "Extractor body read timeout",
     );
-    const contentRaw =
-      data?.choices?.[0]?.message?.content ?? data?.choices?.[0]?.text;
-    const content =
-      typeof contentRaw === "string"
-        ? contentRaw
-        : Array.isArray(contentRaw)
-          ? contentRaw
-              .map((p) =>
-                typeof p === "string"
-                  ? p
-                  : typeof p?.text === "string"
-                    ? p.text
-                    : "",
-              )
-              .filter(Boolean)
-              .join("\n")
-          : "";
+    const content = extractOpenAICompatContent(data);
     if (!content || typeof content !== "string")
       throw new Error("Extractor returned empty content.");
     return {
@@ -8358,6 +9324,12 @@ CORRECT EXAMPLE:
       messages: chatMessages,
       ...claudeThinkingBlock,
     };
+    // The Claude API rejects requests containing both `thinking` and
+    // `temperature`. Remove temperature when thinking is enabled, matching
+    // the behaviour in callVertexClaudeCompat.
+    if (thinkingEnabled && thinkingLevel) {
+      delete basePayload.temperature;
+    }
     const toolPayload = {
       ...basePayload,
       stream: false,
@@ -8582,20 +9554,22 @@ CORRECT EXAMPLE:
     }
   }
 
-  async function injectKnowledgeIntoMessages(messages, queryText) {
-    const cleanInput = messages.filter(
-      (m) =>
-        !(
-          m?.role === "system" &&
-          typeof m?.content === "string" &&
-          m.content.startsWith(`<${KNOWLEDGE_BLOCK_TAG}>`)
-        ),
+async function injectKnowledgeIntoMessages(messages, queryText) {
+    const { char, chat } = await getCurrentChatContextSafe();
+    // ▼ 在這裡加上 await normalizePromptMessagesForAgent 包覆起來 ▼
+    const cleanInput = await normalizePromptMessagesForAgent(
+      messages.filter(
+        (m) =>
+          !(
+            m?.role === "system" &&
+            typeof m?.content === "string" &&
+            m.content.startsWith(`<${KNOWLEDGE_BLOCK_TAG}>`)
+          ),
+      )
     );
     if (!isKbFeatureEnabled()) return cleanInput;
     const isChatRole = (role) =>
       role === "user" || role === "assistant" || role === "char";
-
-    const { char, chat } = await getCurrentCharAndChatSafe();
     const staticKeys = getStaticCacheKeysForScope(char);
     const staticRaw = await Risuai.pluginStorage.getItem(
       staticKeys.staticKnowledgeChunks,
@@ -8797,13 +9771,14 @@ CORRECT EXAMPLE:
             ...pickGroupChunks(scored.filter((x) => x.chunk.isDynamic)),
           ];
         } catch (e) {
+          const embedDetail = _lastEmbedErrorMsg ? ` (${_lastEmbedErrorMsg})` : "";
           await Risuai.log(
-            `${LOG} Vector search failed: ${e.message}, falling back to keyword matching.`,
+            `${LOG} Vector search failed: ${e.message}${embedDetail}, falling back to keyword matching.`,
           );
           try {
             await Risuai.safeLocalStorage.setItem(
               LAST_SYNC_ERROR_KEY,
-              `${LOG} Vector search failed and switched to keyword mode: ${e?.message || String(e)}`,
+              `${LOG} Vector search failed and switched to keyword mode: ${e?.message || String(e)}${embedDetail}`,
             );
           } catch {}
         }
@@ -8944,12 +9919,15 @@ CORRECT EXAMPLE:
     return clean;
   }
 
-  async function getStaticDataPayload(char, chat, resolvedGlobalNote) {
+async function getStaticDataPayload(char, chat, resolvedGlobalNote) {
     const lorebookEntries = await getCombinedLorebookEntries(char, chat);
+
+    const renderedDesc = await normalizeAgentCbsText(char?.desc || char?.description || "");
+    const renderedGlobalNote = await normalizeAgentCbsText(resolvedGlobalNote || "");
     return {
-      step0_preprocess_version: "cbs_placeholder_v2",
-      desc: char?.desc || char?.description,
-      globalNote: resolvedGlobalNote,
+      step0_preprocess_version: "agent_cbs_render_v4", 
+      desc: renderedDesc,
+      globalNote: renderedGlobalNote,
       lorebook: lorebookEntries
         .filter((l) => l)
         .map((l) => ({
@@ -9128,15 +10106,23 @@ CORRECT EXAMPLE:
         });
 
         const results = [];
+        let personaTaskErrors = [];
         for (let i = 0; i < parallelTasks.length; i += PARALLEL_LIMIT) {
           const batch = parallelTasks.slice(i, i + PARALLEL_LIMIT);
           const batchResults = await Promise.allSettled(batch.map(executeTask));
           results.push(...batchResults);
+          personaTaskErrors = collectSettledErrors(batchResults);
+          if (personaTaskErrors.length > 0) break;
         }
-        for (const task of sequentialTasks) {
-          results.push(
-            await Promise.allSettled([executeTask(task)]).then((r) => r[0]),
-          );
+        if (personaTaskErrors.length === 0) {
+          for (const task of sequentialTasks) {
+            const settled = await Promise.allSettled([executeTask(task)]).then(
+              (r) => r[0],
+            );
+            results.push(settled);
+            personaTaskErrors = collectSettledErrors([settled]);
+            if (personaTaskErrors.length > 0) break;
+          }
         }
 
         for (const res of results) {
@@ -9241,6 +10227,12 @@ CORRECT EXAMPLE:
             cache.completedTasks.push(taskId);
           }
           await savePersonaCache(cardKey, cache);
+        }
+
+        if (personaTaskErrors.length > 0) {
+          throw new Error(
+            `Persona extraction stopped early after task failure: ${personaTaskErrors.join(" | ")}`,
+          );
         }
 
         {
@@ -9389,7 +10381,9 @@ CORRECT EXAMPLE:
             store.cards[cardKey].entries = {};
             store.cards[cardKey].modelName = cfg.requestModel;
             store.cards[cardKey].updatedAt = Date.now();
-            await saveEmbeddingCacheStore(store);
+            await saveEmbeddingCacheStore(store, {
+              replaceCardKeys: [cardKey],
+            });
           }
         }
 
@@ -9574,8 +10568,14 @@ CORRECT EXAMPLE:
       });
     };
 
-    addChunks("Character Description", char?.desc || char?.description, true);
-    addChunks("Global Note", resolvedGlobalNote, true);
+    const renderedDescForChunks = await normalizeAgentCbsText(
+      char?.desc || char?.description || ""
+    );
+    const renderedGlobalForChunks = await normalizeAgentCbsText(
+      resolvedGlobalNote || ""
+    );
+    addChunks("Character Description", renderedDescForChunks, true);
+    addChunks("Global Note", renderedGlobalForChunks, true);
 
     const lorebook = await getCombinedLorebookEntries(char, chat);
     lorebook.forEach((l, idx) => {
@@ -9853,7 +10853,10 @@ CORRECT EXAMPLE:
             orphanFound = true;
           }
         }
-        if (orphanFound) await saveEmbeddingCacheStore(store);
+        if (orphanFound)
+          await saveEmbeddingCacheStore(store, {
+            replaceCardKeys: [cardKey],
+          });
       }
 
       const missingChunks = [];
@@ -9930,15 +10933,18 @@ CORRECT EXAMPLE:
             );
           } catch {}
           const vecErrMsg = e?.message || String(e);
+          const embedDetail = _lastEmbedErrorMsg && !vecErrMsg.includes(_lastEmbedErrorMsg)
+            ? ` — ${_lastEmbedErrorMsg}`
+            : "";
           try {
             await Risuai.log(
-              `${LOG} ❌ Chunk vector indexing failed: ${vecErrMsg}`,
+              `${LOG} ❌ Chunk vector indexing failed: ${vecErrMsg}${embedDetail}`,
             );
           } catch {}
           throw new Error(
             typeof _T.err_vec_kb_failed === "function"
-              ? _T.err_vec_kb_failed(vecErrMsg)
-              : `[RisuAI Agent] Vector knowledge base build failed. Progress has been saved.\nError: ${vecErrMsg}\nPlease wait, then click Regenerate/Send to resume.`,
+              ? _T.err_vec_kb_failed(`${vecErrMsg}${embedDetail}`)
+              : `[RisuAI Agent] Vector knowledge base build failed. Progress has been saved.\nError: ${vecErrMsg}${embedDetail}\nPlease wait, then click Regenerate/Send to resume.`,
           );
         }
       }
@@ -9982,9 +10988,54 @@ CORRECT EXAMPLE:
     }
   }
 
+  async function continueChatFromCharacter(charIdx, sourceChatIndex) {
+    const currentCharIdx =
+      typeof Risuai.getCurrentCharacterIndex === "function"
+        ? await Risuai.getCurrentCharacterIndex()
+        : -1;
+    const activeChar =
+      currentCharIdx === charIdx ? await Risuai.getCharacter() : null;
+    const indexedChar = await Risuai.getCharacterFromIndex(charIdx);
+    const char = activeChar && Array.isArray(activeChar?.chats) ? activeChar : indexedChar;
+    const chats = Array.isArray(char?.chats) ? char.chats : [];
+    if (!char || chats.length === 0) {
+      throw new Error(
+        _T.st_continue_chat_no_chat_for_card ||
+          "This character has no available chat to continue.",
+      );
+    }
+
+    const sourceIdx = Math.max(
+      0,
+      Math.min(chats.length - 1, Math.floor(Number(sourceChatIndex) || 0)),
+    );
+    const sourceChat = chats[sourceIdx];
+    if (!sourceChat) {
+      throw new Error(
+        _T.st_continue_chat_no_chat ||
+          "No active chat was found to continue.",
+      );
+    }
+
+    const updatedChar = deepCloneValue(char);
+    updatedChar.chats = Array.isArray(updatedChar.chats)
+      ? updatedChar.chats.map((entry) => deepCloneValue(entry))
+      : [];
+
+    const { chat: continuedChat, meta } = buildContinuedChat(sourceChat, 5);
+    updatedChar.chats.unshift(continuedChat);
+    updatedChar.chatPage = 0;
+
+    await Risuai.setCharacterToIndex(charIdx, updatedChar);
+    if (currentCharIdx === charIdx) {
+      await Risuai.setCharacter(updatedChar);
+    }
+    return meta;
+  }
+
   async function performChatCleanup(userMsgCount) {
     return mutexLoreWrite.run(async () => {
-      const { charIdx, chatIndex, chat } = await getCurrentCharAndChatSafe();
+      const { charIdx, chatIndex, chat } = await getCurrentChatContextSafe();
       if (
         !chat ||
         chatIndex < 0 ||
@@ -10951,6 +12002,95 @@ CORRECT EXAMPLE:
       .pse-entry-block { border:none; border-radius:8px; background:var(--pse-input-bg); padding:8px; }
       .pse-entry-block[data-cache-parity="even"] { border-left:4px solid var(--pse-accent-blue); background:var(--pse-section-bg); }
       .pse-entry-block[data-cache-parity="odd"] { border-left:4px solid var(--pse-accent-green); background:var(--pse-section-bg); }
+      .pse-card-topline {
+        display:flex;
+        align-items:flex-start;
+        justify-content:space-between;
+        gap:10px;
+        margin-bottom:8px;
+      }
+      .pse-card-topline-main {
+        min-width:0;
+        flex:1 1 auto;
+        display:flex;
+        align-items:center;
+        gap:8px;
+        flex-wrap:wrap;
+      }
+      .pse-card-name {
+        min-width:0;
+        font-weight:800;
+        font-size:13px;
+        line-height:1.2;
+        color:var(--pse-card-text);
+        overflow:hidden;
+        text-overflow:ellipsis;
+        white-space:nowrap;
+      }
+      .pse-card-action {
+        flex:0 0 auto;
+        height:28px;
+        padding:0 12px;
+        border-radius:6px;
+        border:1px solid var(--pse-accent-blue);
+        background:rgba(33, 150, 243, 0.08);
+        color:var(--pse-accent-blue);
+        font-size:11px;
+        font-weight:700;
+        cursor:pointer;
+        transition:all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        display:flex;
+        align-items:center;
+        justify-content:center;
+        white-space:nowrap;
+      }
+      .pse-card-action:hover {
+        background:var(--pse-accent-blue);
+        color:#fff;
+        transform:translateY(-1px);
+        box-shadow:0 4px 12px rgba(33, 150, 243, 0.25);
+      }
+      .pse-card-action:active { transform:translateY(0); }
+      .pse-picker-overlay {
+        position:fixed; inset:0; z-index:10001;
+        background:rgba(0,0,0,0.45); backdrop-filter:blur(4px);
+        display:flex; align-items:center; justify-content:center; padding:16px;
+      }
+      .pse-picker-modal {
+        width:min(560px, 100%); max-height:min(85vh, 760px);
+        background:var(--pse-card-bg); border:1px solid var(--pse-input-border);
+        border-radius:18px; box-shadow:0 24px 64px rgba(0,0,0,0.45);
+        display:flex; flex-direction:column; overflow:hidden;
+      }
+      .pse-picker-header {
+        padding:20px 24px; border-bottom:1px solid var(--pse-section-bg);
+        display:flex; align-items:center; justify-content:space-between; gap:16px;
+      }
+      .pse-picker-title { font-size:17px; font-weight:800; color:var(--pse-text); }
+      .pse-picker-subtitle { font-size:13px; color:var(--pse-muted); margin-top:2px; }
+      .pse-picker-content {
+        padding:16px 20px; overflow-y:auto; display:grid; gap:12px;
+      }
+      .pse-picker-option {
+        width:100%; text-align:left; padding:14px 18px; border-radius:14px;
+        border:1px solid var(--pse-input-border); background:var(--pse-input-bg);
+        color:var(--pse-text); cursor:pointer; transition:all 0.2s ease;
+        display:flex; flex-direction:column; gap:6px;
+      }
+      .pse-picker-option:hover {
+        border-color:var(--pse-accent-blue); background:rgba(33,150,243,0.05);
+        transform:translateX(4px);
+      }
+      .pse-picker-option.active {
+        border-color:var(--pse-accent-blue); background:rgba(33,150,243,0.12);
+        box-shadow:0 0 0 1px var(--pse-accent-blue);
+      }
+      .pse-picker-chat-name { font-weight:700; font-size:14px; display:flex; align-items:center; justify-content:space-between; gap:8px; }
+      .pse-picker-chat-meta { font-size:11px; color:var(--pse-muted); display:flex; align-items:center; gap:12px; }
+      .pse-picker-tag {
+        font-size:10px; padding:2px 8px; border-radius:999px; font-weight:700;
+        background:rgba(33,150,243,0.15); color:var(--pse-accent-blue); border:1px solid rgba(33,150,243,0.3);
+      }
       .pse-entry-grid { display:grid; grid-template-columns: 1fr minmax(110px, auto) minmax(90px, auto) auto; gap:8px; align-items:end; }
       .pse-entry-grid-row2 { margin-top:8px; display:grid; grid-template-columns: 1fr; gap:8px; }
       .pse-entry-format-input {
@@ -11055,6 +12195,15 @@ CORRECT EXAMPLE:
         .pse-entry-remove { width:100%; }
         .pse-entry-remove.compact { width:28px; }
         .pse-btn-row { flex-direction:column; }
+        .pse-card-action {
+          flex:0 0 116px;
+          width:116px;
+          min-width:116px;
+          max-width:116px;
+          height:28px;
+          padding:0 10px;
+          font-size:10px;
+        }
       }
     `;
     document.head.appendChild(s);
@@ -11087,11 +12236,109 @@ CORRECT EXAMPLE:
     el.textContent = message;
   }
 
+  function closeContinueChatPicker() {
+    document.getElementById("pse-continue-chat-picker")?.remove();
+  }
+
+  async function openContinueChatPicker(charIdx) {
+    closeContinueChatPicker();
+    const char = await Risuai.getCharacterFromIndex(charIdx);
+    const chats = Array.isArray(char?.chats) ? char.chats : [];
+    if (!char || chats.length === 0) {
+      throw new Error(
+        _T.st_continue_chat_no_chat_for_card ||
+          "This character has no available chat to continue.",
+      );
+    }
+
+    const currentPage = Math.max(
+      0,
+      Math.min(chats.length - 1, Math.floor(Number(char?.chatPage) || 0)),
+    );
+    const charName = safeTrim(char?.name || "Character");
+    const modal = document.createElement("div");
+    modal.id = "pse-continue-chat-picker";
+    modal.className = "pse-picker-overlay";
+
+    const listHtml = chats
+      .map((chat, idx) => {
+        const chatName = safeTrim(chat?.name || `Chat ${idx + 1}`);
+        const userTurns = countUserMessages(chat?.message);
+        const turnOffset = getTurnOffsetFromLocalLore(chat?.localLore);
+        const totalTurns = userTurns + turnOffset;
+        const isCurrent = idx === currentPage;
+
+        return `
+          <button
+            class="pse-picker-option ${isCurrent ? "active" : ""}"
+            type="button"
+            data-chat-index="${idx}"
+          >
+            <div class="pse-picker-chat-name">
+              <span style="min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${escapeHtml(chatName)}</span>
+              ${
+                isCurrent
+                  ? `<span class="pse-picker-tag">${escapeHtml(_T.dlg_continue_chat_current || "current")}</span>`
+                  : ""
+              }
+            </div>
+            <div class="pse-picker-chat-meta">
+              <span><b>${escapeHtml(String(totalTurns))}</b> ${escapeHtml(_T.dlg_continue_chat_turns || "turns")}</span>
+              <span style="opacity:0.6;">(${escapeHtml(String(userTurns))} + ${escapeHtml(String(turnOffset))})</span>
+            </div>
+          </button>
+        `;
+      })
+      .join("");
+
+    modal.innerHTML = `
+      <div class="pse-picker-modal">
+        <div class="pse-picker-header">
+          <div>
+            <div class="pse-picker-title">${escapeHtml(_T.dlg_continue_chat_title || "Choose A Chat To Continue")}</div>
+            <div class="pse-picker-subtitle">${escapeHtml(charName)}</div>
+          </div>
+          <button type="button" class="pse-btn close pse-continue-chat-close" style="flex:none;padding:8px 16px;">${escapeHtml(_T.editor_cancel || "Cancel")}</button>
+        </div>
+        <div class="pse-picker-content">${listHtml}</div>
+      </div>
+    `;
+
+    modal.addEventListener("click", (e) => {
+      if (e.target === modal) closeContinueChatPicker();
+    });
+    modal
+      .querySelector(".pse-continue-chat-close")
+      ?.addEventListener("click", closeContinueChatPicker);
+    modal.querySelectorAll(".pse-picker-option").forEach((btn) => {
+      btn.addEventListener("click", async () => {
+        const sourceChatIndex = Number(btn.getAttribute("data-chat-index"));
+        try {
+          const meta = await continueChatFromCharacter(charIdx, sourceChatIndex);
+          closeContinueChatPicker();
+          const details = ` (${meta.keptUserTurns}/5 turns kept, offset ${meta.nextTurnOffset})`;
+          showStatus(
+            `${_T.st_continue_chat_done || "Created a continued chat and switched to it."}${details}`,
+            "ok",
+          );
+        } catch (err) {
+          showStatus(
+            `${_T.st_continue_chat_failed || "Continue chat failed: "}${err?.message || String(err)}`,
+            "err",
+          );
+        }
+      });
+    });
+
+    document.body.appendChild(modal);
+  }
+
   async function abortMainModelWithAuxError(message, scopedRequestKeys) {
     const msg = String(message || _T.aux_abort_default);
     const suffix =
       _T.aux_abort_suffix ||
       "Main model request was intercepted to save API quota.";
+    const fullMsg = `${msg}\n(${suffix})`;
     let keysToClean = scopedRequestKeys;
     if (!keysToClean) {
       try {
@@ -11102,7 +12349,7 @@ CORRECT EXAMPLE:
       try {
         await Risuai.safeLocalStorage.setItem(
           keysToClean.lastSyncError,
-          `${msg}\n(${suffix})`,
+          fullMsg,
         );
       } catch {}
       try {
@@ -11124,10 +12371,19 @@ CORRECT EXAMPLE:
     try {
       await Risuai.safeLocalStorage.setItem(
         LAST_SYNC_ERROR_KEY,
-        `${msg}\n(${suffix})`,
+        fullMsg,
       );
     } catch {}
     await Risuai.log(`${LOG} ❌ ${msg} — ${suffix}`);
+    // Surface the error visibly to the user so the request never fails silently.
+    // Risuai.alertError is available in API v3.0; fall back gracefully if absent.
+    try {
+      if (typeof Risuai.alertError === "function") {
+        await Risuai.alertError(`[RisuAI Agent] ${fullMsg}`);
+      } else if (typeof Risuai.alert === "function") {
+        await Risuai.alert(`[RisuAI Agent] ${fullMsg}`);
+      }
+    } catch {}
     throw new Error(`[RisuAI Agent Error] ${msg}\n(${suffix})`);
   }
 
@@ -11152,7 +12408,7 @@ CORRECT EXAMPLE:
     overlayRoot.innerHTML = `
       <div class="pse-body">
         <div class="pse-card">
-          <h1 class="pse-title">👤 RisuAI Agent v3.1.2</h1>
+          <h1 class="pse-title">👤 RisuAI Agent v4.0</h1>
           <div id="pse-status" class="pse-status"></div>
           ${renderModelDatalists()}
 
@@ -11195,8 +12451,6 @@ CORRECT EXAMPLE:
               <button class="pse-help-subtab pse-preset-btn active" data-help-sub="main" type="button" style="font-size:11px;padding:5px 8px;">${_T.help_tab_main}</button>
               <button class="pse-help-subtab pse-preset-btn" data-help-sub="p1" type="button" style="font-size:11px;padding:5px 8px;">${_T.help_tab_p1}</button>
               <button class="pse-help-subtab pse-preset-btn" data-help-sub="p2" type="button" style="font-size:11px;padding:5px 8px;">${_T.help_tab_p2}</button>
-              <button class="pse-help-subtab pse-preset-btn" data-help-sub="p3" type="button" style="font-size:11px;padding:5px 8px;">${_T.help_tab_p3}</button>
-              <button class="pse-help-subtab pse-preset-btn" data-help-sub="p4" type="button" style="font-size:11px;padding:5px 8px;">${_T.help_tab_p4}</button>
             </div>
 
             <div id="pse-help-content-main" class="pse-help-content" style="color:var(--pse-text);">
@@ -11204,8 +12458,6 @@ CORRECT EXAMPLE:
             </div>
             <div id="pse-help-content-p1" class="pse-help-content" style="display:none; color:var(--pse-text);">${_T.help_p1_html}</div>
             <div id="pse-help-content-p2" class="pse-help-content" style="display:none; color:var(--pse-text);">${_T.help_p2_html}</div>
-            <div id="pse-help-content-p3" class="pse-help-content" style="display:none; color:var(--pse-text);">${_T.help_p3_html}</div>
-            <div id="pse-help-content-p4" class="pse-help-content" style="display:none; color:var(--pse-text);">${_T.help_p4_html}</div>
           </div>
 
           <div class="pse-page" data-page="8">
@@ -11225,21 +12477,14 @@ CORRECT EXAMPLE:
               </details>
             </div>
 
-            <!-- Classify & Mod Lorebook (Merged) -->
+            <!-- Classify (Mod Lorebook now always enabled) -->
             <div class="pse-section indigo">
-              <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:10px;padding-bottom:10px;border-bottom:1px dashed rgba(128,128,128,0.2);">
+              <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
                 <label class="pse-label" style="margin:0;white-space:nowrap; color:var(--pse-text);">${_T.lbl_classify_model}</label>
-                <select id="init_bootstrap_target_model" class="pse-input" style="flex:0 0 auto;width:auto;min-width:0;">
+                <select id="init_bootstrap_target_model" class="pse-input" style="flex:1;width:auto;min-width:0;">
                   <option value="A" ${safeTrim(configCache.init_bootstrap_target_model) === "B" ? "" : "selected"}>${_T.opt_main_model}</option>
                   <option value="B" ${safeTrim(configCache.init_bootstrap_target_model) === "B" ? "selected" : ""}>${_T.opt_aux_model}</option>
                 </select>
-              </div>
-              <label class="pse-label" for="read_mod_lorebook" style="display:flex;align-items:center;gap:8px;margin:0;cursor:pointer;white-space:nowrap; color:var(--pse-text);">
-                <input type="checkbox" id="read_mod_lorebook" ${Number(configCache.read_mod_lorebook) === 1 ? "checked" : ""} style="margin:0;flex-shrink:0;" />
-                <span>${_T.lbl_enable_mod_lorebook || _T.lbl_read_mod_lorebook}</span>
-              </label>
-              <div style="font-size: 11px; color: var(--pse-accent-red); margin-top: 4px; line-height: 1.4; opacity: 0.8;">
-                ${_T.warn_cbs_mod}
               </div>
             </div>
 
@@ -11564,6 +12809,7 @@ CORRECT EXAMPLE:
           const embedCardKey = makeCardCacheKey(
             c?.chaId || c?.id || c?._id || "-1",
             charName || "Character",
+            c,
           );
           classifyBlocks.push({
             type: "classify",
@@ -11580,7 +12826,7 @@ CORRECT EXAMPLE:
           const c = characters[idx];
           const charName = safeTrim(c?.name || "");
           const charId = c?.chaId || c?.id || c?._id || "-1";
-          const cardKey = makeCardCacheKey(charId, charName || "Character");
+          const cardKey = makeCardCacheKey(charId, charName || "Character", c);
           const scopeId =
             String(charId || "").replace(/[^0-9a-zA-Z_-]/g, "") ||
             (charName ? `name_${simpleHash(charName)}` : null);
@@ -11753,6 +12999,9 @@ CORRECT EXAMPLE:
       const scopeId = safeTrim(
         block.getAttribute("data-persona-scope-id") || "",
       );
+      const persistedCardKey = safeTrim(
+        block.getAttribute("data-persona-card-key") || "",
+      );
       const charId =
         safeTrim(block.getAttribute("data-persona-char-id") || "") ||
         scopeId ||
@@ -11781,7 +13030,7 @@ CORRECT EXAMPLE:
       }
 
       try {
-        const cardKey = makeCardCacheKey(charId, charName);
+        const cardKey = persistedCardKey || makeCardCacheKey(charId, charName);
         const cacheRaw = await Risuai.pluginStorage.getItem(
           PCACHE_CARD_PREFIX + cardKey,
         );
@@ -11865,7 +13114,6 @@ CORRECT EXAMPLE:
           ].join("");
         const makeVectorOpts = (selected) =>
           [
-            `<option value="off"  ${selected === "off" ? "selected" : ""}>${_T.opt_off}</option>`,
             `<option value="card_reorg" ${selected === "card_reorg" ? "selected" : ""}>${_T.opt_vec_card_reorg || "Card Reorg"}</option>`,
             `<option value="1"    ${selected === "1" ? "selected" : ""}>${_T.opt_vec_preset1 || _T.opt_preset1}</option>`,
             `<option value="2"    ${selected === "2" ? "selected" : ""}>${_T.opt_vec_preset2 || _T.opt_preset2}</option>`,
@@ -11899,9 +13147,9 @@ CORRECT EXAMPLE:
                 : "1";
             const vecSearch =
               cs.vector_search &&
-              ["off", "card_reorg", "1", "2"].includes(String(cs.vector_search))
+              ["card_reorg", "1", "2"].includes(String(cs.vector_search))
                 ? String(cs.vector_search)
-                : "off";
+                : "card_reorg";
 
             const disabledRowStyle = isDisabled
               ? "background:rgba(255,23,68,0.07);border:1px solid rgba(255,23,68,0.2);"
@@ -11912,30 +13160,15 @@ CORRECT EXAMPLE:
 
             const getPresetTagConfig = (m, v) => {
               const isExt = ["1", "2"].includes(String(m));
-              const isVec = String(v) !== "off";
-              if (isExt && !isVec)
+              if (isExt)
                 return {
                   text: _T.help_tab_p1 || "Preset 1",
                   bg: "rgba(41,121,255,0.1)",
                   color: "var(--pse-accent-blue)",
                   border: "rgba(41,121,255,0.3)",
                 };
-              if (isExt && isVec)
-                return {
-                  text: _T.help_tab_p2 || "Preset 2",
-                  bg: "rgba(0,229,255,0.1)",
-                  color: "var(--pse-accent-cyan)",
-                  border: "rgba(0,229,255,0.3)",
-                };
-              if (!isExt && !isVec)
-                return {
-                  text: _T.help_tab_p3 || "Preset 3",
-                  bg: "rgba(255,171,0,0.1)",
-                  color: "var(--pse-accent-amber)",
-                  border: "rgba(255,171,0,0.3)",
-                };
               return {
-                text: _T.help_tab_p4 || "Preset 4",
+                text: _T.help_tab_p2 || "Preset 2",
                 bg: "rgba(255,23,68,0.1)",
                 color: "var(--pse-accent-rose)",
                 border: "rgba(255,23,68,0.3)",
@@ -11945,10 +13178,16 @@ CORRECT EXAMPLE:
             const tagConfig = getPresetTagConfig(memExtract, vecSearch);
 
             return `
-            <div class="pse-entry-block" data-card-id="${escapeHtml(cid)}" style="border-left:4px solid ${borderColor};background:linear-gradient(180deg,${gradientColor} 0%,var(--pse-input-bg) 100%);">
-              <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
-                <div style="font-weight:700;">${escapeHtml(cname)}</div>
-                <span class="pse-card-preset-tag" style="padding:2px 8px;border-radius:10px;font-size:10px;font-weight:700;background:${tagConfig.bg};color:${tagConfig.color};border:1px solid ${tagConfig.border};display:${isDisabled ? "none" : "inline-block"};cursor:pointer;">${tagConfig.text}</span>
+            <div class="pse-entry-block" data-card-id="${escapeHtml(cid)}" data-char-index="${idx}" style="border-left:4px solid ${borderColor};background:linear-gradient(180deg,${gradientColor} 0%,var(--pse-input-bg) 100%);">
+              <div class="pse-card-topline" style="align-items:center;">
+                <div class="pse-card-topline-main">
+                  <div class="pse-card-name" style="font-size:14px;">${escapeHtml(cname)}</div>
+                  <span class="pse-card-preset-tag" style="padding:2px 8px;border-radius:10px;font-size:10px;font-weight:700;background:${tagConfig.bg};color:${tagConfig.color};border:1px solid ${tagConfig.border};display:${isDisabled ? "none" : "inline-block"};cursor:pointer;">${tagConfig.text}</span>
+                </div>
+                <button class="pse-card-action pse-continue-chat-btn" type="button">
+                  <svg style="width:12px;height:12px;fill:none;stroke:currentColor;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round;margin-right:4px;" viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+                  ${escapeHtml(_T.btn_continue_chat || "Continue Chat")}
+                </button>
               </div>
               <div class="pse-card-disabled-row" style="display:flex;align-items:center;gap:8px;margin-bottom:8px;padding:6px 8px;border-radius:6px;${disabledRowStyle}">
                 <input type="checkbox" class="pse-card-disabled" id="disabled_${escapeHtml(cid)}" ${isDisabled ? "checked" : ""} style="margin:0;flex-shrink:0;cursor:pointer;" />
@@ -12007,14 +13246,27 @@ CORRECT EXAMPLE:
     document
       .getElementById("pse-card-enable-list")
       ?.addEventListener("click", (e) => {
+        const continueBtn = e.target.closest(".pse-continue-chat-btn");
+        if (continueBtn) {
+          const block = continueBtn.closest(".pse-entry-block");
+          const charIdx = Number(block?.getAttribute("data-char-index"));
+          Promise.resolve()
+            .then(() => openContinueChatPicker(charIdx))
+            .catch((err) => {
+              showStatus(
+                `${_T.st_continue_chat_failed || "Continue chat failed: "}${err?.message || String(err)}`,
+                "err",
+              );
+            });
+          return;
+        }
         const tag = e.target.closest(".pse-card-preset-tag");
         if (!tag) return;
-        const text = tag.innerText;
-        let subId = "main";
-        if (text.includes("1")) subId = "p1";
-        else if (text.includes("2")) subId = "p2";
-        else if (text.includes("3")) subId = "p3";
-        else if (text.includes("4")) subId = "p4";
+        const block = tag.closest(".pse-entry-block");
+        const memSel = block?.querySelector(".pse-card-memory");
+        const m = memSel ? String(memSel.value) : "";
+        const isExt = ["1", "2"].includes(m);
+        const subId = isExt ? "p1" : "p2";
         setPage("7");
         const subBtn = document.querySelector(
           `.pse-help-subtab[data-help-sub="${subId}"]`,
@@ -12033,34 +13285,18 @@ CORRECT EXAMPLE:
         const updateTag = () => {
           if (!tag || !memSel || !vecSel) return;
           const m = String(memSel.value);
-          const v = String(vecSel.value);
           const isExt = ["1", "2"].includes(m);
-          const isVec = v !== "off";
           let config;
-          if (isExt && !isVec)
+          if (isExt)
             config = {
               text: _T.help_tab_p1 || "Preset 1",
               bg: "rgba(41,121,255,0.1)",
               color: "var(--pse-accent-blue)",
               border: "rgba(41,121,255,0.3)",
             };
-          else if (isExt && isVec)
-            config = {
-              text: _T.help_tab_p2 || "Preset 2",
-              bg: "rgba(0,229,255,0.1)",
-              color: "var(--pse-accent-cyan)",
-              border: "rgba(0,229,255,0.3)",
-            };
-          else if (!isExt && !isVec)
-            config = {
-              text: _T.help_tab_p3 || "Preset 3",
-              bg: "rgba(255,171,0,0.1)",
-              color: "var(--pse-accent-amber)",
-              border: "rgba(255,171,0,0.3)",
-            };
           else
             config = {
-              text: _T.help_tab_p4 || "Preset 4",
+              text: _T.help_tab_p2 || "Preset 2",
               bg: "rgba(255,23,68,0.1)",
               color: "var(--pse-accent-rose)",
               border: "rgba(255,23,68,0.3)",
@@ -12211,6 +13447,11 @@ CORRECT EXAMPLE:
                     k === `rp_persona_inventory_(${charName})` ||
                     k === `rp_character_core_(${charName})`,
                 );
+                const personaTextHashesToDelete = new Set(
+                  keysToDelete
+                    .map((k) => safeTrim(cache.entries?.[k]?.textHash || ""))
+                    .filter(Boolean),
+                );
                 for (const k of keysToDelete) delete cache.entries[k];
                 cache.completedTasks = cache.completedTasks || [];
                 await savePersonaCache(cardKey, cache);
@@ -12219,18 +13460,17 @@ CORRECT EXAMPLE:
                 const cardVec = store.cards?.[cardKey];
                 if (cardVec?.entries) {
                   const vecKeysToDelete = Object.keys(cardVec.entries).filter(
-                    (k) => {
-                      const entry = cardVec.entries[k];
-                      return (
-                        String(k).startsWith("persona|") &&
-                        (String(entry?.name || "").includes(`_(${charName})`) ||
-                          String(entry?.text || "").includes(`"${charName}"`))
-                      );
-                    },
+                    (k) =>
+                      String(k).startsWith("persona|") &&
+                      personaTextHashesToDelete.has(
+                        safeTrim(cardVec.entries?.[k]?.textHash || ""),
+                      ),
                   );
                   for (const k of vecKeysToDelete) delete cardVec.entries[k];
                   if (vecKeysToDelete.length > 0)
-                    await saveEmbeddingCacheStore(store);
+                    await saveEmbeddingCacheStore(store, {
+                      replaceCardKeys: [cardKey],
+                    });
                 }
 
                 delete status[charName];
@@ -12280,6 +13520,7 @@ CORRECT EXAMPLE:
           );
           if (!cardKey) return;
           const store = await loadEmbeddingCacheStore();
+          let removedCard = false;
           if (store.cards && store.cards[cardKey]) {
             const card = store.cards[cardKey];
             const isClassify = !!block?.getAttribute?.(
@@ -12312,6 +13553,7 @@ CORRECT EXAMPLE:
             }
             if (!card?.entries || Object.keys(card.entries).length === 0) {
               delete store.cards[cardKey];
+              removedCard = true;
               try {
                 await Risuai.pluginStorage.removeItem(
                   VCACHE_CARD_PREFIX + cardKey,
@@ -12319,7 +13561,10 @@ CORRECT EXAMPLE:
               } catch {}
             }
             embeddingCacheStore = null;
-            await saveEmbeddingCacheStore(store);
+            await saveEmbeddingCacheStore(store, {
+              removedCardKeys: removedCard ? [cardKey] : [],
+              replaceCardKeys: removedCard ? [] : [cardKey],
+            });
           }
           await renderEmbeddingCacheList();
           showStatus(_T.st_card_deleted, "ok");
@@ -12360,6 +13605,35 @@ CORRECT EXAMPLE:
             block?.getAttribute?.("data-persona-card-key") || "",
           );
           if (!cardKey) return;
+          try {
+            let removedCard = false;
+            const store = await loadEmbeddingCacheStore();
+            if (store.cards?.[cardKey]?.entries) {
+              const entries = store.cards[cardKey].entries;
+              for (const [k, v] of Object.entries(entries)) {
+                if (
+                  String(k).startsWith("persona|") ||
+                  v?.sourceType === "persona"
+                ) {
+                  delete entries[k];
+                }
+              }
+              if (Object.keys(entries).length === 0) {
+                delete store.cards[cardKey];
+                removedCard = true;
+                try {
+                  await Risuai.pluginStorage.removeItem(
+                    VCACHE_CARD_PREFIX + cardKey,
+                  );
+                } catch {}
+              }
+              embeddingCacheStore = null;
+              await saveEmbeddingCacheStore(store, {
+                removedCardKeys: removedCard ? [cardKey] : [],
+                replaceCardKeys: removedCard ? [] : [cardKey],
+              });
+            }
+          } catch {}
           try {
             await Risuai.pluginStorage.removeItem(PCACHE_CARD_PREFIX + cardKey);
           } catch {}
@@ -12849,9 +14123,7 @@ CORRECT EXAMPLE:
           document.getElementById("advanced_prefill_prompt")?.value ?? "",
         advanced_prereply_prompt:
           document.getElementById("advanced_prereply_prompt")?.value ?? "",
-        read_mod_lorebook: document.getElementById("read_mod_lorebook")?.checked
-          ? 1
-          : 0,
+        read_mod_lorebook: 1,
         vector_search_enabled: 1,
         vector_search_query_dialogue_rounds: Math.max(
           1,
@@ -14090,9 +15362,38 @@ CORRECT EXAMPLE:
           `${LOG} replacer stack:`,
           outerErr?.stack || "(no stack)",
         );
+        // Ensure the full error is surfaced in the RisuAI request log
+        // (the only user-visible channel available from a replacer context)
+        try {
+          await Risuai.log(`${LOG} ❌ Request blocked. ${msg}`);
+        } catch {}
+        try {
+          await Risuai.safeLocalStorage.setItem(
+            LAST_SYNC_ERROR_KEY,
+            `[${new Date().toISOString()}] ${msg}`,
+          );
+        } catch {}
+        // Surface the error visibly if it wasn't already shown by abortMainModelWithAuxError.
+        // Avoid double-alerting: abortMainModelWithAuxError embeds "[RisuAI Agent Error]" prefix.
+        if (!msg.startsWith("[RisuAI Agent Error]")) {
+          try {
+            if (typeof Risuai.alertError === "function") {
+              await Risuai.alertError(`[RisuAI Agent] ❌ ${msg}`);
+            } else if (typeof Risuai.alert === "function") {
+              await Risuai.alert(`[RisuAI Agent] ❌ ${msg}`);
+            }
+          } catch {}
+        }
         throw outerErr;
       }
     };
+  }
+
+  function collectSettledErrors(results) {
+    return (results || [])
+      .filter((r) => r?.status === "rejected")
+      .map((r) => String(r.reason?.message || r.reason || "unknown"))
+      .filter(Boolean);
   }
 
   function _replacerBody(messages, type) {
@@ -14113,13 +15414,13 @@ CORRECT EXAMPLE:
 
       if (type === "display") {
         const { char: displayChar, chat: displayChat } =
-          await getCurrentCharAndChatSafe();
+          await getCurrentChatContextSafe();
         const displayMsgs = Array.isArray(displayChat?.message)
           ? displayChat.message
           : [];
-        const displayUserMsgCount = displayMsgs.filter(
-          (m) => m?.role === "user",
-        ).length;
+        const displayUserMsgCount =
+          countUserMessages(displayMsgs) +
+          getTurnOffsetFromLocalLore(displayChat?.localLore);
         let displayCardCalls;
         try {
           let displayCardSettings = {};
@@ -14154,7 +15455,15 @@ CORRECT EXAMPLE:
         await applyRetentionCleanup(
           displayUserMsgCount,
           displayCardCalls || [],
-        );
+        ).catch((retentionErr) => {
+          console.error(
+            `${LOG} applyRetentionCleanup (display hook) failed:`,
+            retentionErr,
+          );
+          Risuai.log(
+            `${LOG} ⚠️ Retention cleanup failed during display hook: ${retentionErr?.message || String(retentionErr)}`,
+          ).catch(() => {});
+        });
         return messages;
       }
 
@@ -14174,23 +15483,25 @@ CORRECT EXAMPLE:
         return messages;
       }
 
-      const { char, chat, chatIndex } = await getCurrentCharAndChatSafe();
+      const { char, chat, chatIndex } = await getCurrentChatContextSafe();
       const staticKeys = getStaticCacheKeysForScope(char);
-      const requestKeys = getRequestCacheKeysForScope(char);
+      const requestKeys = getRequestCacheKeysForScope(char, chat, chatIndex);
 
       await Risuai.safeLocalStorage.setItem(
         requestKeys.lastExtractorMode,
         "replacer_started",
       );
       const existingMsgs = Array.isArray(chat?.message) ? chat.message : [];
-      const userMsgCount = existingMsgs.filter(
-        (m) => m?.role === "user",
-      ).length;
+      const rawUserMsgCount = countUserMessages(existingMsgs);
+      const userMsgCount =
+        rawUserMsgCount + getTurnOffsetFromLocalLore(chat?.localLore);
       const isFirstMessage = userMsgCount <= 1;
       const lastUserContent =
         existingMsgs.filter((m) => m?.role === "user").pop()?.data || "";
+      const chatScopedKey = getChatScopedKey(chat, chatIndex);
       const firstMessageHandledKey = getFirstMessageHandledKey(
         requestKeys.scopeId,
+        chat,
         chatIndex,
       );
       const firstMessageMarker = simpleHash(String(lastUserContent || ""));
@@ -14621,9 +15932,9 @@ CORRECT EXAMPLE:
         const regenSkipToken = simpleHash(
           JSON.stringify({
             scopeId: requestKeys.scopeId,
+            chatScopedKey,
             userMsgCount,
             lastUserContent,
-            chatIndex,
             cardMemoryPreset,
           }),
         );
@@ -14713,27 +16024,32 @@ CORRECT EXAMPLE:
           };
 
           const parallelResults = [];
+          let auxErrors = [];
           for (let i = 0; i < parallelCalls.length; i += PARALLEL_LIMIT) {
             const batch = parallelCalls.slice(i, i + PARALLEL_LIMIT);
             const batchResults = await Promise.allSettled(
               batch.map(executeCall),
             );
             parallelResults.push(...batchResults);
+            auxErrors = collectSettledErrors(batchResults);
+            if (auxErrors.length > 0) break;
           }
 
           const sequentialResults = [];
-          for (const call of sequentialCalls) {
-            sequentialResults.push(
-              await Promise.allSettled([executeCall(call)]).then((r) => r[0]),
-            );
+          if (auxErrors.length === 0) {
+            for (const call of sequentialCalls) {
+              const settled = await Promise.allSettled([executeCall(call)]).then(
+                (r) => r[0],
+              );
+              sequentialResults.push(settled);
+              auxErrors = collectSettledErrors([settled]);
+              if (auxErrors.length > 0) break;
+            }
           }
 
           const results = [...parallelResults, ...sequentialResults];
-          const rejected = results.filter((r) => r.status === "rejected");
-          if (rejected.length > 0) {
-            const errs = rejected
-              .map((r) => String(r.reason?.message || r.reason || "unknown"))
-              .join("\n");
+          if (auxErrors.length > 0) {
+            const errs = auxErrors.join("\n");
             await abortMainModelWithAuxError(_T.aux_failed + errs, requestKeys);
           }
 
@@ -14815,7 +16131,7 @@ CORRECT EXAMPLE:
   async function getConversationFromCurrentChat(limit, existingChat) {
     let chatData = existingChat;
     if (!chatData) {
-      const { chat } = await getCurrentCharAndChatSafe();
+      const { chat } = await getCurrentChatContextSafe();
       chatData = chat;
     }
     const src = Array.isArray(chatData?.message) ? chatData.message : [];
@@ -14825,7 +16141,7 @@ CORRECT EXAMPLE:
       const role =
         m?.role === "char" ? "assistant" : m?.role === "user" ? "user" : null;
       if (!role) continue;
-      const content = typeof m?.data === "string" ? m.data.trim() : "";
+      const content = normalizeChatPayloadText(m?.data || m?.content);
       if (!content) continue;
       if (role === "assistant" && !firstUserSeen) continue;
       if (role === "user") firstUserSeen = true;
