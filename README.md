@@ -65,7 +65,7 @@ Author's Note ->
 Story Progression [Memory Extraction & Director Instructions] ->
 Response Control [Detailed Acting Directives] -> 
 Command Setting [Image insert prompts, Status Panel UI] ->
-Prefill with Jailbreak [⚠️ Delete this for Claude, DeepSeek, & Mistral]
+Prefill with Jailbreak [⚠️ Delete this for Claude, DeepSeek, Mistral]
 ```
 
 ---
