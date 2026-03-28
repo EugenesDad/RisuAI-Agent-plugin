@@ -1,9 +1,9 @@
 //@name 👤 RisuAI Agent
-//@display-name 👤 RisuAI Agent v4.0
+//@display-name 👤 RisuAI Agent v4.0.1
 //@author penguineugene@protonmail.com
 //@link https://github.com/EugenesDad/RisuAI-Agent-plugin
 //@api 3.0
-//@version 4.0
+//@version 4.0.1
 
 (async () => {
   function _mapLangCode(raw) {
@@ -42,13 +42,10 @@
       overwrite: "Overwrite",
       tab_help: "Plugin Guide",
       tab_model: "Core Models",
-      tab_vector: "Temporarily Closed",
       tab_entry: "Information Extraction",
-      tab_cache: "Temporarily Closed",
       tab_enable: "Enable Settings",
       tab_vector_open: "Vector Search",
       tab_cache_open: "Cache Hub",
-      tab_closed: "Closed",
       tab_common: "Common Prompts",
       tab_preset1_old: "Setting 1 (Extraction)",
       tab_preset2_old: "Setting 2 (Extraction)",
@@ -75,8 +72,6 @@
       tag_temp_closed: "Closed",
       warn_kb_feature_enable:
         "⚠️ Enabling Bot Reorganization and Vector Search changes the preset structure. CBS syntax cannot be parsed in this mode. Please review the setup guide and adjust your presets before enabling.",
-      lbl_enable_new_preset: "Enable new extraction presets",
-      lbl_kb_feature_enable: "Enable Bot Reorganization and Vector Search",
       opt_vec_card_reorg: "Bot Reorg only",
       opt_vec_preset1: "Setting 1 (Bot Reorg + Vector Search)",
       opt_vec_preset2: "Setting 2 (Bot Reorg + Vector Search)",
@@ -88,8 +83,6 @@
       lbl_prereply: "Assistant Pre-Reply Prompt",
       aria_expand: "Expand Edit",
       sec_vec: "Vector Search",
-      opt_vec_on: "Enabled (select Lorebook entries by semantic relevance)",
-      opt_vec_off: "Disabled (use traditional keyword matching)",
       lbl_query_rounds:
         "Number of recent dialogue turns to use as search query",
       lbl_topk: "Top K (number of entries to return)",
@@ -100,6 +93,7 @@
       opt_aux_model: "Auxiliary Model",
       lbl_classify_anchor: "Classification Anchor Prompt",
       lbl_classify_model: "Classification Model",
+      lbl_enable_mod_lorebook: "Include Mod Lorebooks in vector search",
       sec_card_settings: "Bot Enable Settings",
       lbl_card_name: "Bot",
       lbl_memory_extract: "Enable Info Extraction",
@@ -257,8 +251,6 @@
       yes: "Yes",
       no: "No",
       lbl_output_format: "Output Format (JSON Schema)",
-      warn_cbs_unsupported:
-        "Attention: RisuAI Agent v3 currently does not support CBS syntax parsing. If your Mod or Bot Lorebook contains extensive CBS syntax, it is recommended not to enable this plugin for that bot.",
       ret_after_lbl: "After",
       ret_mid_lbl: "turns, auto-trim and keep only the latest",
       ret_end_lbl: "turns of data",
@@ -404,7 +396,6 @@
       • Lorebook entry names must match the first tag in the JSON to be correctly written to the system.
     </div>
   </div>`,
-      mode_guide_click: "(Click to expand/collapse)",
       lbl_loading: "Loading...",
       sec_suggest: "🖥️ Recommended Models",
       lbl_suggest_s1: "Setting 1: Single Character or Light Adventure Bot",
@@ -474,13 +465,10 @@ Read upstream layers in this order. When layers conflict, higher layers win.
       overwrite: "덮어쓰기",
       tab_help: "도움말",
       tab_model: "코어 모델",
-      tab_vector: "일시적으로 닫힘",
       tab_entry: "정보 추출",
-      tab_cache: "일시적으로 닫힘",
       tab_enable: "활성화 설정",
       tab_vector_open: "벡터 검색",
       tab_cache_open: "캐시 저장소",
-      tab_closed: "닫힘",
       tab_common: "공통 프롬프트",
       tab_preset1_old: "설정 1 (추출)",
       tab_preset2_old: "설정 2 (추출)",
@@ -507,8 +495,6 @@ Read upstream layers in this order. When layers conflict, higher layers win.
       tag_temp_closed: "닫힘",
       warn_kb_feature_enable:
         "⚠️ 「봇 재구성」 모드에서는 CBS 구문 분석이 지원되지 않습니다. 사용이 필요한 경우 수동으로 조정해주세요. 설정 가이드를 확인한 뒤 활성화하시기 바랍니다.",
-      lbl_enable_new_preset: "새 추출 프리셋 활성화",
-      lbl_kb_feature_enable: "봇 재구성 및 벡터 검색 활성화",
       opt_vec_card_reorg: "봇 재구성만 사용",
       opt_vec_preset1: "설정 1 (봇 재구성 + 벡터 검색)",
       opt_vec_preset2: "설정 2 (봇 재구성 + 벡터 검색)",
@@ -520,8 +506,6 @@ Read upstream layers in this order. When layers conflict, higher layers win.
       lbl_prereply: "사전 응답 프롬프트",
       aria_expand: "확대 편집",
       sec_vec: "벡터 검색",
-      opt_vec_on: "활성화 (의미적 관련성 기반 로어북 선택)",
-      opt_vec_off: "비활성화 (기존 키워드 매칭 사용)",
       lbl_query_rounds: "검색에 사용할 최근 대화 턴 수",
       lbl_topk: "Top K (반환 항목 수)",
       lbl_minscore: "최소 유사도 임계값 (0~1)",
@@ -531,6 +515,7 @@ Read upstream layers in this order. When layers conflict, higher layers win.
       opt_aux_model: "보조 모델",
       lbl_classify_anchor: "분류 앵커 프롬프트",
       lbl_classify_model: "분류 모델",
+      lbl_enable_mod_lorebook: "모드 로어북을 벡터 검색 범위에 포함",
       sec_card_settings: "봇 활성화 설정",
       lbl_card_name: "봇",
       lbl_memory_extract: "정보 추출 활성화",
@@ -687,8 +672,6 @@ Read upstream layers in this order. When layers conflict, higher layers win.
       yes: "예",
       no: "아니요",
       lbl_output_format: "출력 형식 (JSON Schema)",
-      warn_cbs_unsupported:
-        "주의: 현재 RisuAI Agent v3는 CBS 구문 분석을 지원하지 않습니다. 로어북에 CBS 구문이 많은 경우 이 플러그인 비활성화를 권장합니다.",
       ret_after_lbl: "경과 후",
       ret_mid_lbl: "턴 후 자동 정리 실행, 최신 데이터만 유지",
       ret_end_lbl: "턴 데이터",
@@ -943,7 +926,7 @@ Practical conflict rule:
 - Use \`rp_scene_and_role_state\` for tone, stakes, and current pressure.
 - Keep the response narrow: one main beat, one dominant facet, one clear stance.
 - If \`strict_directive\` restricts, obey it.
-- Never surface suppressed facets unless forced by the scene.{{/if}}</textarea>
+- Never surface suppressed facets unless forced by the scene.</textarea>
                         <button class="pse-btn pse-copy-sql-btn" type="button" style="width:100%;padding:6px;font-size:12px;background:var(--pse-accent-greyblue);">📋 시스템 프롬프트 복사</button>
                       </div>
                     </div>`,
@@ -954,13 +937,10 @@ Practical conflict rule:
       overwrite: "覆蓋",
       tab_help: "預設說明",
       tab_model: "核心模型",
-      tab_vector: "向量搜尋",
       tab_entry: "資訊萃取",
-      tab_cache: "快取倉庫",
       tab_enable: "啟用設置",
       tab_vector_open: "向量搜尋",
       tab_cache_open: "快取倉庫",
-      tab_closed: "關閉",
       tab_common: "共同提示詞",
       tab_preset1_old: "設定 1 (萃取)",
       tab_preset2_old: "設定 2 (萃取)",
@@ -987,8 +967,6 @@ Practical conflict rule:
       tag_temp_closed: "關閉",
       warn_kb_feature_enable:
         "⚠️ 啟用「卡片重組」與「向量搜尋」將改變預設提示詞結構，且目前不支援 CBS 語法解析。請先閱讀說明文件並手動調整提示詞後再行開啟。",
-      lbl_enable_new_preset: "啟用新版萃取預設",
-      lbl_kb_feature_enable: "啟用卡片重組與向量搜尋功能",
       opt_vec_card_reorg: "僅啟用卡片重組",
       opt_vec_preset1: "設定 1 (卡片重組 + 向量搜尋)",
       opt_vec_preset2: "設定 2 (卡片重組 + 向量搜尋)",
@@ -999,8 +977,6 @@ Practical conflict rule:
       lbl_prereply: "預回覆提示詞",
       aria_expand: "放大編輯",
       sec_vec: "向量搜尋",
-      opt_vec_on: "啟用 (依語意關聯度挑選 Lorebook 條目)",
-      opt_vec_off: "停用 (使用傳統關鍵字匹配)",
       lbl_query_rounds: "以最近幾輪對話作為搜尋關鍵",
       lbl_topk: "Top K (回傳條目數)",
       lbl_minscore: "最低相似度分數門檻 (0~1)",
@@ -1010,6 +986,7 @@ Practical conflict rule:
       opt_aux_model: "輔助模型",
       lbl_classify_anchor: "分類定位提示詞",
       lbl_classify_model: "分類模型",
+      lbl_enable_mod_lorebook: "將模組中的 Lorebook 納入向量搜尋範圍",
       sec_card_settings: "卡片功能開關",
       lbl_card_name: "卡片",
       lbl_memory_extract: "啟用資訊萃取",
@@ -1159,8 +1136,6 @@ Practical conflict rule:
       help_tab_main: "說明首頁",
       help_tab_p1: "預設設定1",
       help_tab_p2: "預設設定2",
-      help_tab_p3: "預設設定3",
-      help_tab_p4: "預設設定4",
       mode_guide_title: "📖 模式說明與模型呼叫指南",
       mode_guide_click: "(點擊展開/收起)",
       mode_guide_content: `<div style="border-top: 1px solid rgba(255, 152, 0, 0.1); padding-top: 12px;">
@@ -1410,7 +1385,7 @@ Practical conflict rule:
 - Use \`rp_scene_and_role_state\` for tone, stakes, and current pressure.
 - Keep the response narrow: one main beat, one dominant facet, one clear stance.
 - If \`strict_directive\` restricts, obey it.
-- Never surface suppressed facets unless forced by the scene.{{/if}}</textarea>
+- Never surface suppressed facets unless forced by the scene.</textarea>
                         <button class="pse-btn pse-copy-sql-btn" type="button" style="width:100%;padding:6px;font-size:12px;background:var(--pse-accent-greyblue);">📋 複製系統提示詞</button>
                       </div>
                     </div>`,
@@ -1421,7 +1396,7 @@ Practical conflict rule:
   let _langInitialized = false;
 
   const PLUGIN_NAME = "👤 RisuAI Agent";
-  const PLUGIN_VER = "4.0";
+  const PLUGIN_VER = "4.0.1";
   const LOG = "[RisuAIAgent]";
   const SYSTEM_INJECT_TAG = "PLUGIN_PARALLEL_STATUS";
   const SYSTEM_REWRITE_TAG = "PLUGIN_PARALLEL_REWRITE";
@@ -2873,7 +2848,7 @@ RULES:
 4. Use only provided memory. If unsure, use null or [].`,
     advanced_prefill_prompt: `Now, let's start extracting. Once you are ready, say 'Ready.'`,
     advanced_prereply_prompt: "Ready.",
-    read_mod_lorebook: 1,
+    read_mod_lorebook: 0,
     vector_search_enabled: 0,
     vector_search_query_dialogue_rounds: 2,
     vector_search_top_k: 6,
@@ -5719,7 +5694,7 @@ CORRECT EXAMPLE:
   }
 
   function cbsToIndexPlaceholders(content) {
-    let src = String(content || "");
+    const src = String(content || "");
     if (!src || !src.includes("{{")) return src;
 
     const norm = (s) =>
@@ -5727,32 +5702,89 @@ CORRECT EXAMPLE:
         .replace(/\s+/g, " ")
         .trim();
 
-    src = src
-      .replace(
-        /\{\{\{\s*([^}]*?)\s*\}\}\}/g,
-        (_, expr) => `[CBS_RAW_EXPR:${norm(expr)}]`,
-      )
-      .replace(/\{\{#if\s*([^}]*)\}\}/g, (_, cond) => `[CBS_IF:${norm(cond)}]`)
-      .replace(
-        /\{\{#unless\s*([^}]*)\}\}/g,
-        (_, cond) => `[CBS_UNLESS:${norm(cond)}]`,
-      )
-      .replace(
-        /\{\{#each\s*([^}]*)\}\}/g,
-        (_, target) => `[CBS_EACH:${norm(target)}]`,
-      )
-      .replace(
-        /\{\{#with\s*([^}]*)\}\}/g,
-        (_, target) => `[CBS_WITH:${norm(target)}]`,
-      )
-      .replace(/\{\{else\}\}/g, "[CBS_ELSE]")
-      .replace(/\{\{\/if\}\}/g, "[CBS_END_IF]")
-      .replace(/\{\{\/unless\}\}/g, "[CBS_END_UNLESS]")
-      .replace(/\{\{\/each\}\}/g, "[CBS_END_EACH]")
-      .replace(/\{\{\/with\}\}/g, "[CBS_END_WITH]")
-      .replace(/\{\{([^}]*)\}\}/g, (_, expr) => `[CBS_EXPR:${norm(expr)}]`);
+    // Depth-tracking tag reader: handles nested {{ }} correctly.
+    // Returns { inner, end } where end is the index after the closing }} (or '}}}' for triple).
+    function readTag(text, start) {
+      // Check for triple-brace {{{ ... }}}
+      const isTriple = text.slice(start, start + 3) === "{{{";
+      const openLen = isTriple ? 3 : 2;
+      if (text.slice(start, start + openLen) !== (isTriple ? "{{{" : "{{")) return null;
+      let depth = 1;
+      let i = start + openLen;
+      while (i < text.length) {
+        if (text.slice(i, i + 3) === "}}}" && isTriple && depth === 1) {
+          return { inner: text.slice(start + openLen, i), end: i + 3, triple: true };
+        }
+        if (text.slice(i, i + 2) === "{{") { depth++; i += 2; continue; }
+        if (text.slice(i, i + 2) === "}}") {
+          depth--;
+          if (depth === 0) {
+            return { inner: text.slice(start + 2, i), end: i + 2, triple: false };
+          }
+          i += 2;
+          continue;
+        }
+        i++;
+      }
+      return null;
+    }
 
-    return src;
+    let out = "";
+    let cursor = 0;
+    while (cursor < src.length) {
+      // Find next {{
+      const next = src.indexOf("{{", cursor);
+      if (next === -1) { out += src.slice(cursor); break; }
+      out += src.slice(cursor, next);
+
+      const tag = readTag(src, next);
+      if (!tag) { out += src[next]; cursor = next + 1; continue; }
+
+      const inner = tag.inner;
+      const innerNorm = norm(inner);
+      cursor = tag.end;
+
+      if (tag.triple) {
+        out += `[CBS_RAW_EXPR:${norm(inner)}]`;
+        continue;
+      }
+
+      // Block opening tags
+      if (/^#if\s/i.test(inner) || inner === "#if") {
+        out += `[CBS_IF:${norm(inner.replace(/^#if\s*/i, ""))}]`;
+      } else if (/^#if_pure\s/i.test(inner)) {
+        out += `[CBS_IF:${norm(inner.replace(/^#if_pure\s*/i, ""))}]`;
+      } else if (/^#when(\s|::)/i.test(inner)) {
+        out += `[CBS_IF:${norm(inner.replace(/^#when(::\w+)?\s*/i, ""))}]`;
+      } else if (/^#unless\s/i.test(inner)) {
+        out += `[CBS_UNLESS:${norm(inner.replace(/^#unless\s*/i, ""))}]`;
+      } else if (/^#each(\s|::)/i.test(inner)) {
+        out += `[CBS_EACH:${norm(inner.replace(/^#each(::\w+)?\s*/i, ""))}]`;
+      } else if (/^#with\s/i.test(inner)) {
+        out += `[CBS_WITH:${norm(inner.replace(/^#with\s*/i, ""))}]`;
+      } else if (/^#puredisplay$/i.test(innerNorm)) {
+        out += `[CBS_PUREDISPLAY]`;
+      // Block closing tags
+      } else if (/^\/(if|when)$/i.test(innerNorm)) {
+        out += `[CBS_END_IF]`;
+      } else if (/^\/unless$/i.test(innerNorm)) {
+        out += `[CBS_END_UNLESS]`;
+      } else if (/^\/(each)$/i.test(innerNorm)) {
+        out += `[CBS_END_EACH]`;
+      } else if (/^\/with$/i.test(innerNorm)) {
+        out += `[CBS_END_WITH]`;
+      } else if (/^\/puredisplay$/i.test(innerNorm)) {
+        out += `[CBS_END_PUREDISPLAY]`;
+      // else/comment
+      } else if (/^(else|:else|:then)$/i.test(innerNorm)) {
+        out += `[CBS_ELSE]`;
+      } else if (/^(\/\/|comment::)/i.test(inner)) {
+        // Comments: drop entirely
+      } else {
+        out += `[CBS_EXPR:${norm(inner)}]`;
+      }
+    }
+    return out;
   }
 
 
@@ -5887,12 +5919,18 @@ CORRECT EXAMPLE:
       db = await Risuai.getDatabase();
     } catch {}
     const vars = Object.create(null);
+    
+    // Parse character default variables
     for (const [k, v] of parseDefaultVariables(char?.defaultVariables)) {
       vars[k] = String(v ?? "");
     }
+    
+    // Parse template default variables
     for (const [k, v] of parseDefaultVariables(db?.templateDefaultVariables)) {
       if (!(k in vars)) vars[k] = String(v ?? "");
     }
+    
+    // Parse script state variables
     const scriptState =
       chat?.scriptstate && typeof chat.scriptstate === "object"
         ? chat.scriptstate
@@ -5901,21 +5939,32 @@ CORRECT EXAMPLE:
       const key = String(rawKey || "").replace(/^\$/, "");
       vars[key] = value == null ? "null" : String(value);
     }
+    
+    // Global variables
     const globalVars =
       db?.globalChatVariables && typeof db.globalChatVariables === "object"
         ? db.globalChatVariables
         : {};
+    
     const userName = safeTrim(db?.username || "User");
     
+    // BUGFIX: Use chat.localLore.globalNote as fallback (from v3.1.2)
     const finalDb = {
       ...db,
-      // chat.localLore is an Array, not an object — reading .globalNote from it
-      // always returns undefined. Use db.globalNote as the sole source of truth.
-      globalNote: db?.globalNote || "",
+      globalNote: chat?.localLore?.globalNote || db?.globalNote || "",
     };
 
     const messages = Array.isArray(chat?.message) ? chat.message : [];
     const lastMsg = messages.length > 0 ? messages[messages.length - 1] : null;
+
+    // Debug logging for variable initialization
+    try {
+      const varCount = Object.keys(vars).length;
+      const globalVarCount = Object.keys(globalVars).length;
+      if (varCount > 0 || globalVarCount > 0) {
+        await Risuai.log(`${LOG} CBS Runtime initialized: ${varCount} vars, ${globalVarCount} global vars`);
+      }
+    } catch {}
 
     return {
       char,
@@ -5934,7 +5983,7 @@ CORRECT EXAMPLE:
   }
 
   function evalStandaloneCbsCalc(expression) {
-    const src = String(expression || "")
+    let src = String(expression || "")
       .replace(/\s+/g, " ")
       .trim();
     if (!src) return "";
@@ -5942,6 +5991,9 @@ CORRECT EXAMPLE:
     if (src.includes("{{") || src.includes("}}") || src.includes("[CBS_")) {
       return looksConditional ? "0" : src;
     }
+    // BUGFIX: Removed $word variable replacement - it may interfere with CBS syntax
+    // Replace CBS single-= equality (not part of ==, !=, <=, >=) with JS ==
+    src = src.replace(/([^=!<>])=([^=])/g, "$1==$2");
     if (!/^[\d\s()+\-*/%<>=!&|.,'"_[\]A-Za-z]+$/.test(src)) {
       return looksConditional ? "0" : src;
     }
@@ -6052,7 +6104,14 @@ CORRECT EXAMPLE:
     if (headLower === "getvar") {
       const key = safeTrim(await renderStandaloneCbsText(parts.slice(1).join("::"), runtime, args));
       if (!key) return "null";
-      return runtime.vars[key] ?? runtime.globalVars[key] ?? "null";
+      const value = runtime.vars[key] ?? runtime.globalVars[key] ?? "null";
+      // Debug logging for variable access
+      try {
+        if (value === "null") {
+          await Risuai.log(`${LOG} CBS getvar: "${key}" not found (returning "null")`);
+        }
+      } catch {}
+      return value;
     }
     if (headLower === "getglobalvar") {
       const key = safeTrim(await renderStandaloneCbsText(parts.slice(1).join("::"), runtime, args));
@@ -6479,8 +6538,10 @@ CORRECT EXAMPLE:
         continue;
       }
 
-      if (inner.startsWith("#if ") || inner.startsWith("#when ") || inner.startsWith("#when::")) {
+      if (inner.startsWith("#if ") || inner.startsWith("#if_pure ") || inner.startsWith("#when ") || inner.startsWith("#when::")) {
         const isWhen = inner.startsWith("#when");
+        // #if_pure is a deprecated alias for #if (preserves whitespace, same logic here)
+        const ifKeyword = inner.startsWith("#if_pure") ? "#if_pure" : inner.startsWith("#when") ? "#when" : "#if";
         const spaceIdx = inner.indexOf(" ");
         let conditionRaw = spaceIdx !== -1 ? inner.slice(spaceIdx + 1) : "";
         const block = extractCbsBlock(src, tag, isWhen ? "when" : "if");
@@ -6564,19 +6625,45 @@ CORRECT EXAMPLE:
   async function normalizeAgentCbsText(text) {
     const src = String(text ?? "");
     if (!src || !src.includes("{{")) return src;
+    
+    // Add debug logging
+    const hasComplexCBS = src.includes("#if") || src.includes("#when") || src.includes("#unless");
+    if (hasComplexCBS) {
+      try {
+        await Risuai.log(`${LOG} Attempting to render CBS text (length: ${src.length})`);
+      } catch {}
+    }
+    
     try {
       const runtime = await getStandaloneCbsRuntime();
       const rendered = await renderStandaloneCbsText(src, runtime, []);
+      
+      if (hasComplexCBS) {
+        try {
+          await Risuai.log(`${LOG} CBS render successful (output length: ${String(rendered).length})`);
+        } catch {}
+      }
+      
       if (typeof rendered === "string") return rendered;
       if (rendered != null) return String(rendered);
     } catch (e) {
       try {
         await Risuai.log(
-          `${LOG} standalone CBS render fallback: ${e?.message || String(e)}`,
+          `${LOG} standalone CBS render failed: ${e?.message || String(e)}`,
+        );
+        await Risuai.log(
+          `${LOG} CBS source text: ${src.slice(0, 200)}${src.length > 200 ? '...' : ''}`,
+        );
+        await Risuai.log(
+          `${LOG} Error stack: ${e?.stack || 'No stack trace'}`,
         );
       } catch {}
+      // BUGFIX: Return original text instead of CBS markers when rendering fails
+      // CBS markers like [CBS_IF:...] are not meant to be sent to LLM
+      return src;
     }
-    return cbsToIndexPlaceholders(src);
+    // This line should never be reached, but kept for safety
+    return src;
   }
 
   async function normalizeLorebookEntryForAgent(entry) {
@@ -7839,10 +7926,6 @@ CORRECT EXAMPLE:
     } catch {
       return defaultCalls;
     }
-  }
-
-  function isPlainObject(value) {
-    return !!value && typeof value === "object" && !Array.isArray(value);
   }
 
   function validateImportedCallArray(rawCalls) {
@@ -10537,7 +10620,9 @@ async function getStaticDataPayload(char, chat, resolvedGlobalNote) {
       categoryOverride = "",
     ) => {
       if (!content) return;
-      const preprocessed = cbsToIndexPlaceholders(content);
+      // BUGFIX: Content should already be rendered by normalizeAgentCbsText
+      // No need to call cbsToIndexPlaceholders here
+      const preprocessed = content;
       const splits = splitIntoParagraphChunks(preprocessed);
       const primaryKeys = getPrimaryTriggerKeys(triggerMeta);
       const secondaryKeys = getSecondaryTriggerKeys(triggerMeta);
@@ -10578,16 +10663,18 @@ async function getStaticDataPayload(char, chat, resolvedGlobalNote) {
     addChunks("Global Note", renderedGlobalForChunks, true);
 
     const lorebook = await getCombinedLorebookEntries(char, chat);
-    lorebook.forEach((l, idx) => {
-      if (!l) return;
-      const source = l.comment || `Lorebook ${idx}`;
+    for (const l of lorebook) {
+      if (!l) continue;
+      const source = l.comment || `Lorebook ${lorebook.indexOf(l)}`;
       const isActive =
         l.alwaysActive === true ||
         String(l.alwaysActive) === "true" ||
         l.constant === true ||
         String(l.constant) === "true";
-      addChunks(source, l.content, isActive, l);
-    });
+      // BUGFIX: Render CBS syntax in lorebook content before adding chunks
+      const renderedContent = await normalizeAgentCbsText(l.content || "");
+      addChunks(source, renderedContent, isActive, l);
+    }
 
     if (chunks.length === 0) {
       await Risuai.pluginStorage.setItem(
@@ -12408,7 +12495,7 @@ async function getStaticDataPayload(char, chat, resolvedGlobalNote) {
     overlayRoot.innerHTML = `
       <div class="pse-body">
         <div class="pse-card">
-          <h1 class="pse-title">👤 RisuAI Agent v4.0</h1>
+          <h1 class="pse-title">👤 RisuAI Agent v4.0.1</h1>
           <div id="pse-status" class="pse-status"></div>
           ${renderModelDatalists()}
 
@@ -12477,15 +12564,19 @@ async function getStaticDataPayload(char, chat, resolvedGlobalNote) {
               </details>
             </div>
 
-            <!-- Classify (Mod Lorebook now always enabled) -->
+            <!-- Classify & Mod Lorebook -->
             <div class="pse-section indigo">
-              <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+              <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:10px;padding-bottom:10px;border-bottom:1px dashed rgba(128,128,128,0.2);">
                 <label class="pse-label" style="margin:0;white-space:nowrap; color:var(--pse-text);">${_T.lbl_classify_model}</label>
                 <select id="init_bootstrap_target_model" class="pse-input" style="flex:1;width:auto;min-width:0;">
                   <option value="A" ${safeTrim(configCache.init_bootstrap_target_model) === "B" ? "" : "selected"}>${_T.opt_main_model}</option>
                   <option value="B" ${safeTrim(configCache.init_bootstrap_target_model) === "B" ? "selected" : ""}>${_T.opt_aux_model}</option>
                 </select>
               </div>
+              <label class="pse-label" for="read_mod_lorebook" style="display:flex;align-items:center;gap:8px;margin:0;cursor:pointer;white-space:nowrap; color:var(--pse-text);">
+                <input type="checkbox" id="read_mod_lorebook" ${Number(configCache.read_mod_lorebook) === 1 ? "checked" : ""} style="margin:0;flex-shrink:0;" />
+                <span>${_T.lbl_enable_mod_lorebook}</span>
+              </label>
             </div>
 
             <!-- Card List (Blue) -->
@@ -14123,7 +14214,7 @@ async function getStaticDataPayload(char, chat, resolvedGlobalNote) {
           document.getElementById("advanced_prefill_prompt")?.value ?? "",
         advanced_prereply_prompt:
           document.getElementById("advanced_prereply_prompt")?.value ?? "",
-        read_mod_lorebook: 1,
+        read_mod_lorebook: document.getElementById("read_mod_lorebook")?.checked ? 1 : 0,
         vector_search_enabled: 1,
         vector_search_query_dialogue_rounds: Math.max(
           1,
