@@ -1,9 +1,9 @@
 //@name 👤 RisuAI Agent
-//@display-name 👤 RisuAI Agent v4.0.1
+//@display-name 👤 RisuAI Agent v4.0.2
 //@author penguineugene@protonmail.com
 //@link https://github.com/EugenesDad/RisuAI-Agent-plugin
 //@api 3.0
-//@version 4.0.1
+//@version 4.0.2
 
 (async () => {
   function _mapLangCode(raw) {
@@ -1396,7 +1396,7 @@ Practical conflict rule:
   let _langInitialized = false;
 
   const PLUGIN_NAME = "👤 RisuAI Agent";
-  const PLUGIN_VER = "4.0.1";
+  const PLUGIN_VER = "4.0.2";
   const LOG = "[RisuAIAgent]";
   const SYSTEM_INJECT_TAG = "PLUGIN_PARALLEL_STATUS";
   const SYSTEM_REWRITE_TAG = "PLUGIN_PARALLEL_REWRITE";
@@ -5287,6 +5287,20 @@ CORRECT EXAMPLE:
     return { a, b };
   }
 
+  // Fields that should never be overwritten with an empty string if the
+  // current config already has a non-empty value (guards against hidden-DOM reads).
+  const NEVER_EMPTY_OVERWRITE_KEYS = new Set([
+    "advanced_model_anchor_prompt",
+    "advanced_prefill_prompt",
+    "advanced_prereply_prompt",
+    "model_calls",
+    "model_calls_2",
+    "model_calls_3",
+    "model_calls_4",
+    "persona_calls",
+    "init_bootstrap_model_anchor_prompt",
+  ]);
+
   async function saveConfigFromUI(formData) {
     for (const [key, storageKey] of Object.entries(SETTING_KEYS)) {
       if (formData[key] !== undefined) {
@@ -5298,6 +5312,14 @@ CORRECT EXAMPLE:
               : typeof value === "object"
                 ? JSON.stringify(value)
                 : String(value);
+          // Protect critical prompt fields: never overwrite with empty if we already have content
+          if (NEVER_EMPTY_OVERWRITE_KEYS.has(key) && !strVal.trim()) {
+            const existingVal = safeTrim(configCache[key] || "");
+            const existingStoredVal = safeTrim(await Risuai.safeLocalStorage.getItem(storageKey) || "");
+            if (existingVal || existingStoredVal) {
+              continue; // Skip overwriting a non-empty value with empty
+            }
+          }
           await Risuai.safeLocalStorage.setItem(storageKey, strVal);
           await safeSetArgument(key, strVal);
           /* Dual-write key-related fields to pluginStorage for cross-device sync */
@@ -12495,7 +12517,7 @@ async function getStaticDataPayload(char, chat, resolvedGlobalNote) {
     overlayRoot.innerHTML = `
       <div class="pse-body">
         <div class="pse-card">
-          <h1 class="pse-title">👤 RisuAI Agent v4.0.1</h1>
+          <h1 class="pse-title">👤 RisuAI Agent v4.0.2</h1>
           <div id="pse-status" class="pse-status"></div>
           ${renderModelDatalists()}
 
@@ -14209,13 +14231,13 @@ async function getStaticDataPayload(char, chat, resolvedGlobalNote) {
         persona_calls: JSON.stringify(uiPersonaCalls),
         active_preset: uiActivePreset,
         advanced_model_anchor_prompt:
-          document.getElementById("advanced_model_anchor_prompt")?.value ?? "",
+          (() => { const el = document.getElementById("advanced_model_anchor_prompt"); return (el && el.value !== undefined) ? el.value : (configCache.advanced_model_anchor_prompt ?? ""); })(),
         advanced_prefill_prompt:
-          document.getElementById("advanced_prefill_prompt")?.value ?? "",
+          (() => { const el = document.getElementById("advanced_prefill_prompt"); return (el && el.value !== undefined) ? el.value : (configCache.advanced_prefill_prompt ?? ""); })(),
         advanced_prereply_prompt:
-          document.getElementById("advanced_prereply_prompt")?.value ?? "",
+          (() => { const el = document.getElementById("advanced_prereply_prompt"); return (el && el.value !== undefined) ? el.value : (configCache.advanced_prereply_prompt ?? ""); })(),
         read_mod_lorebook: document.getElementById("read_mod_lorebook")?.checked ? 1 : 0,
-        vector_search_enabled: 1,
+        vector_search_enabled: configCache.vector_search_enabled ?? DEFAULTS.vector_search_enabled,
         vector_search_query_dialogue_rounds: Math.max(
           1,
           toInt(
@@ -14452,9 +14474,18 @@ async function getStaticDataPayload(char, chat, resolvedGlobalNote) {
     };
 
     const syncUiModelCalls = () => {
+      // Only sync from DOM when the model call list container is actually visible
+      // (i.e. not in "common prompts" or "persona" mode). Otherwise readCallsFromContainer
+      // would return a default empty call, overwriting the correct in-memory state.
+      if (uiInfoMode === "common" || uiInfoMode === "persona") return;
+      const cards = modelCallListEl ? modelCallListEl.querySelectorAll(".pse-call-card") : [];
+      if (cards.length === 0) return; // DOM not rendered yet, keep in-memory state
       uiModelCalls = readCallsFromContainer(modelCallListEl, uiModelCalls);
     };
     const syncUiPersonaCalls = () => {
+      if (uiInfoMode !== "persona") return;
+      const cards = personaCallListEl ? personaCallListEl.querySelectorAll(".pse-call-card") : [];
+      if (cards.length === 0) return;
       uiPersonaCalls = readCallsFromContainer(
         personaCallListEl,
         uiPersonaCalls,
