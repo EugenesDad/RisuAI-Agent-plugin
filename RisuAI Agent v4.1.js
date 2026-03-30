@@ -1,9 +1,9 @@
 //@name 👤 RisuAI Agent
-//@display-name 👤 RisuAI Agent v4.0.2
+//@display-name 👤 RisuAI Agent v4.1.0
 //@author penguineugene@protonmail.com
 //@link https://github.com/EugenesDad/RisuAI-Agent-plugin
 //@api 3.0
-//@version 4.0.2
+//@version 4.1.0
 
 (async () => {
   function _mapLangCode(raw) {
@@ -32,7 +32,7 @@
         (await Risuai.safeLocalStorage.getItem("pse_ui_language")) || "",
       ).trim();
       if (saved === "en" || saved === "ko" || saved === "tc") return saved;
-    } catch {}
+    } catch { }
     return "en";
   }
 
@@ -1396,7 +1396,7 @@ Practical conflict rule:
   let _langInitialized = false;
 
   const PLUGIN_NAME = "👤 RisuAI Agent";
-  const PLUGIN_VER = "4.0.2";
+  const PLUGIN_VER = "4.1.0";
   const LOG = "[RisuAIAgent]";
   const SYSTEM_INJECT_TAG = "PLUGIN_PARALLEL_STATUS";
   const SYSTEM_REWRITE_TAG = "PLUGIN_PARALLEL_REWRITE";
@@ -3205,6 +3205,498 @@ CORRECT EXAMPLE:
   let _currentIsCardReorgEnabled = false;
   let _currentIsNewPreset = false;
 
+  // ── Progress Panel ─────────────────────────────────────────────────────────
+  // A lightweight overlay that shows inside the plugin iframe (shown via
+  // Risuai.showContainer) during replacer execution.
+  //
+  // PUBLIC API (all async where they touch Risuai):
+  //   await ProgressPanel.show(opts)     – build & display the panel
+  //   await ProgressPanel.hide()         – tear down & hide iframe
+  //   await ProgressPanel.markDone()     – success animation then hide
+  //   ProgressPanel.step(id, status)     – update a step row
+  //   ProgressPanel.increment(type)      – increment a counter
+  //   ProgressPanel.setTitle(text)       – update header title
+  //   ProgressPanel.hideConfirm()        – remove confirm buttons
+  //   await ProgressPanel.waitForConfirm() – returns "run" | "cancel"
+  //   ProgressPanel.visible              – boolean getter
+  // ─────────────────────────────────────────────────────────────────────────
+  const ProgressPanel = (() => {
+    let _panelEl = null;
+    let _overlayEl = null;
+    let _stepsEl = null;
+    let _counterEl = null;
+    let _titleEl = null;
+    let _spinnerEl = null;
+    let _state = { main: 0, aux: 0, embed: 0, doneMain: 0, doneAux: 0, doneEmbed: 0, mainTokens: 0, auxTokens: 0 };
+    let _visible = false;
+    let _confirmResolve = null;
+
+    // ── i18n helpers ──────────────────────────────────────────────────────────
+    // _T is the plugin's live translation object (set by ensureLangInitialized).
+    // We read it at render-time so language switches are honoured.
+    function _t(key, fallback) {
+      try { const v = _T && _T[key]; if (v !== undefined && v !== null) return String(v); } catch { }
+      return fallback;
+    }
+    const _PP_I18N = {
+      en: {
+        title_working: "👤 Agent Processing…",
+        title_done: "✓ Agent done — Actor Model starting…",
+        step_classify: "Classifying knowledge base (Aux)",
+        step_embed: "Building vector index (Embed)",
+        step_persona: "Extracting persona cache (Main/Aux)",
+        step_extract: "Information extraction (Aux)",
+        step_compose: "Composing prompt → Actor Model",
+        counter_main: "Main Model",
+        counter_aux: "Aux Model",
+        counter_embed: "Embed Model",
+        counter_done: "done",
+        counter_remain: "remaining",
+        token_est_label: "Est. input",
+        token_est_unit: "tokens",
+        step0_note: "This is the <b>first-time initialization (Step 0)</b>. The Agent will call the models shown above to build its knowledge base.",
+        btn_run: "Run Step 0",
+        btn_cancel: "Cancel",
+        confirm_title: "⚠️ Confirm Step 0",
+      },
+      ko: {
+        title_working: "👤 에이전트 처리 중…",
+        title_done: "✓ 완료 — 액터 모델 시작 중…",
+        step_classify: "지식 베이스 분류 중 (보조)",
+        step_embed: "벡터 인덱스 구축 중 (임베딩)",
+        step_persona: "페르소나 캐시 추출 중 (메인/보조)",
+        step_extract: "정보 추출 중 (보조)",
+        step_compose: "프롬프트 구성 중 → 액터 모델",
+        counter_main: "메인 모델",
+        counter_aux: "보조 모델",
+        counter_embed: "임베딩 모델",
+        counter_done: "완료",
+        counter_remain: "남음",
+        token_est_label: "예상 입력",
+        token_est_unit: "토큰",
+        step0_note: "이것은 <b>첫 번째 초기화 (Step 0)</b>입니다. 에이전트가 위에 표시된 모델들을 호출하여 지식 베이스를 구축합니다.",
+        btn_run: "Step 0 실행",
+        btn_cancel: "취소",
+        confirm_title: "⚠️ Step 0 확인",
+      },
+      tc: {
+        title_working: "👤 Agent 處理中…",
+        title_done: "✓ 完成 — Actor 模型啟動中…",
+        step_classify: "知識庫分類中 (輔助)",
+        step_embed: "建立向量索引 (嵌入)",
+        step_persona: "提取角色快取 (主要/輔助)",
+        step_extract: "資訊提取中 (輔助)",
+        step_compose: "組合提示詞 → Actor 模型",
+        counter_main: "主要模型",
+        counter_aux: "輔助模型",
+        counter_embed: "嵌入模型",
+        counter_done: "已完成",
+        counter_remain: "剩餘",
+        token_est_label: "預估輸入",
+        token_est_unit: "tokens",
+        step0_note: "這是<b>首次初始化 (Step 0)</b>。Agent 將呼叫上方顯示的模型來建立知識庫。",
+        btn_run: "執行 Step 0",
+        btn_cancel: "取消",
+        confirm_title: "⚠️ 確認 Step 0",
+      },
+    };
+
+    function _L(key) {
+      // Try to resolve current language from _T (live plugin translation object)
+      let lang = "en";
+      try {
+        // _T is the plugin's active translation table; detect which language it is
+        // by checking a distinctive string
+        if (_T === _I18N.ko) lang = "ko";
+        else if (_T === _I18N.tc) lang = "tc";
+      } catch { }
+      const tbl = _PP_I18N[lang] || _PP_I18N.en;
+      return tbl[key] || _PP_I18N.en[key] || key;
+    }
+
+    // ── Styles ────────────────────────────────────────────────────────────────
+    function _injectPanelStyles() {
+      if (document.getElementById("pse-pp-styles")) return;
+      // Make the iframe body transparent so only our overlay shows
+      document.body.style.cssText = "margin:0;padding:0;background:transparent;";
+      const s = document.createElement("style");
+      s.id = "pse-pp-styles";
+      s.textContent = `
+        :root {
+          --pp-overlay: rgba(0,0,0,0.55);
+          --pp-bg: #ffffff;
+          --pp-text: #171717;
+          --pp-muted: #666666;
+          --pp-border: #e5e5e5;
+          --pp-section-bg: rgba(128,128,128,0.06);
+          --pp-shadow: rgba(0,0,0,0.18);
+          --pp-accent-main: #3F51B5;
+          --pp-accent-aux: #2196F3;
+          --pp-accent-embed: #4CAF50;
+          --pp-accent-ok: #4CAF50;
+          --pp-accent-warn: #FF9800;
+        }
+        @media (prefers-color-scheme: dark) {
+          :root {
+            --pp-overlay: rgba(0,0,0,0.70);
+            --pp-bg: #1a1a1a;
+            --pp-text: #f0f0f0;
+            --pp-muted: #a0a0a0;
+            --pp-border: #333333;
+            --pp-section-bg: rgba(255,255,255,0.04);
+            --pp-shadow: rgba(0,0,0,0.55);
+          }
+        }
+        #pse-pp-overlay {
+          position: fixed; inset: 0; z-index: 99998;
+          background: var(--pp-overlay);
+          backdrop-filter: blur(3px);
+          display: flex; align-items: center; justify-content: center;
+          padding: 16px; box-sizing: border-box;
+          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Noto Sans TC', sans-serif;
+        }
+        #pse-pp-panel {
+          width: min(420px, 100%);
+          max-height: calc(100dvh - 32px);
+          overflow-y: auto;
+          background: var(--pp-bg);
+          color: var(--pp-text);
+          border-radius: 16px;
+          padding: 20px;
+          box-shadow: 0 16px 48px var(--pp-shadow);
+          box-sizing: border-box;
+          animation: pp-fadein 0.22s ease;
+        }
+        @keyframes pp-fadein { from { opacity:0; transform:scale(0.95) translateY(8px); } to { opacity:1; transform:scale(1) translateY(0); } }
+        #pse-pp-head { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; }
+        #pse-pp-spinner {
+          width: 20px; height: 20px; flex-shrink: 0;
+          border: 3px solid var(--pp-border);
+          border-top-color: var(--pp-accent-main);
+          border-radius: 50%;
+          animation: pp-spin 0.8s linear infinite;
+        }
+        @keyframes pp-spin { to { transform: rotate(360deg); } }
+        #pse-pp-spinner.done {
+          border-color: var(--pp-accent-ok); border-top-color: var(--pp-accent-ok);
+          animation: none;
+        }
+        #pse-pp-title { font-size: 15px; font-weight: 700; color: var(--pp-text); flex: 1; }
+        .pp-counters {
+          display: flex; flex-direction: column; gap: 10px; margin-bottom: 16px;
+        }
+        .pp-counter-card {
+          background: var(--pp-section-bg); border-radius: 12px; padding: 12px 14px;
+          display: flex; flex-direction: column; gap: 8px;
+          border: 1px solid var(--pp-border);
+          transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .pp-counter-card.main  { border-left: 4px solid var(--pp-accent-main); }
+        .pp-counter-card.aux   { border-left: 4px solid var(--pp-accent-aux); }
+        .pp-counter-card.embed { border-left: 4px solid var(--pp-accent-embed); }
+        
+        .pp-card-top { display: flex; align-items: center; justify-content: space-between; }
+        .pp-card-label-wrap { display: flex; align-items: center; gap: 6px; }
+        .pp-card-icon { font-size: 14px; }
+        .pp-counter-label { font-size: 11px; font-weight: 700; color: var(--pp-text); text-transform: uppercase; letter-spacing: 0.05em; opacity: 0.8; }
+        
+        .pp-token-badge {
+          font-size: 9px; font-weight: 800; padding: 2px 8px; border-radius: 20px;
+          background: rgba(128,128,128,0.12); color: var(--pp-muted);
+          border: 1px solid var(--pp-border); text-transform: uppercase;
+        }
+        
+        .pp-card-bottom { display: flex; align-items: center; gap: 12px; }
+        .pp-mini-bar-wrap { flex: 1; height: 6px; background: var(--pp-border); border-radius: 10px; overflow: hidden; }
+        .pp-mini-bar { height: 100%; border-radius: 10px; transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1); }
+        .main .pp-mini-bar { background: var(--pp-accent-main); }
+        .aux .pp-mini-bar { background: var(--pp-accent-aux); }
+        .embed .pp-mini-bar { background: var(--pp-accent-embed); }
+        
+        .pp-counter-info { display: flex; align-items: baseline; gap: 4px; flex-shrink: 0; min-width: 45px; justify-content: flex-end; }
+        .pp-counter-val   { font-size: 14px; font-weight: 800; color: var(--pp-text); }
+        .pp-counter-total { font-size: 10px; color: var(--pp-muted); font-weight: 400; }
+        .pp-counter-sub   { display: none; } /* Hidden in new list view if redundant */
+        
+        .pp-steps { display: flex; flex-direction: column; gap: 6px; margin-bottom: 14px; }
+        .pp-step {
+          display: flex; align-items: center; gap: 8px;
+          padding: 8px 10px; border-radius: 8px;
+          background: var(--pp-section-bg); font-size: 12px; color: var(--pp-muted);
+          transition: background 0.2s, color 0.2s;
+        }
+        .pp-step.active { color: var(--pp-text); background: rgba(63,81,181,0.10); }
+        .pp-step.done   { color: var(--pp-accent-ok); }
+        .pp-step.error  { color: #F44336; }
+        .pp-step-icon { width: 16px; height: 16px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 13px; }
+        .pp-step-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--pp-border); }
+        .pp-step.active .pp-step-dot { background: var(--pp-accent-main); animation: pp-pulse 1.2s ease infinite; }
+        @keyframes pp-pulse { 0%,100%{opacity:1;} 50%{opacity:0.4;} }
+        .pp-step-text { flex: 1; }
+        .pp-divider { border: none; border-top: 1px solid var(--pp-border); margin: 12px 0; }
+        .pp-confirm-section { display: none; }
+        .pp-confirm-section.visible { display: block; }
+        .pp-confirm-note {
+          font-size: 12px; color: var(--pp-muted); margin-bottom: 12px; line-height: 1.5;
+          background: rgba(255,152,0,0.08); border-left: 3px solid var(--pp-accent-warn);
+          border-radius: 6px; padding: 8px 10px;
+        }
+        .pp-btn-row { display: flex; gap: 8px; }
+        .pp-btn {
+          flex: 1; padding: 10px 12px; border: none; border-radius: 10px;
+          font-size: 13px; font-weight: 700; cursor: pointer;
+          transition: opacity 0.15s, transform 0.1s;
+        }
+        .pp-btn:active { transform: scale(0.97); }
+        .pp-btn.run    { background: var(--pp-accent-main); color: #fff; }
+        .pp-btn.run:hover { opacity: 0.88; }
+        .pp-btn.cancel { background: var(--pp-section-bg); color: var(--pp-muted); border: 1px solid var(--pp-border); }
+        .pp-btn.cancel:hover { opacity: 0.75; }
+        .pp-progress-bar-wrap {
+          height: 4px; border-radius: 99px; background: var(--pp-border); margin-bottom: 14px; overflow: hidden;
+        }
+        .pp-progress-bar {
+          height: 100%; border-radius: 99px; background: var(--pp-accent-main);
+          transition: width 0.4s ease; width: 0%;
+        }
+      `;
+      document.head.appendChild(s);
+    }
+
+    // ── Render helpers ────────────────────────────────────────────────────────
+    function _buildCounterHTML(labelKey, cls, done, total, tokens) {
+      const label = _L(labelKey);
+      const pct = total > 0 ? Math.min(100, Math.round((done / total) * 100)) : 0;
+      const icon = cls === "main" ? "👤" : cls === "aux" ? "🤖" : "🔗";
+      
+      const fmtTokens = tokens > 0
+        ? (tokens >= 1000000 ? (tokens / 1000000).toFixed(1) + "M"
+           : tokens >= 1000 ? (tokens / 1000).toFixed(1) + "k"
+           : String(tokens))
+        : null;
+        
+      const tokenBadge = (fmtTokens && (cls === "main" || cls === "aux"))
+        ? `<div class="pp-token-badge">📊 ~${fmtTokens} ${_L("token_est_unit")}</div>`
+        : "";
+
+      return `
+        <div class="pp-counter-card ${cls}" id="pp-card-${cls}">
+          <div class="pp-card-top">
+            <div class="pp-card-label-wrap">
+              <span class="pp-card-icon">${icon}</span>
+              <span class="pp-counter-label">${label}</span>
+            </div>
+            ${tokenBadge}
+          </div>
+          <div class="pp-card-bottom">
+            <div class="pp-mini-bar-wrap">
+              <div class="pp-mini-bar" style="width: ${pct}%"></div>
+            </div>
+            <div class="pp-counter-info">
+              <span class="pp-counter-val">${done}</span>
+              <span class="pp-counter-total">/ ${total}</span>
+            </div>
+          </div>
+        </div>`;
+    }
+
+    function _buildStepHTML(id, labelKey, status) {
+      const text = _L(labelKey);
+      const iconHTML = (status === "done") ? "✓"
+        : (status === "error") ? "✕"
+          : `<div class="pp-step-dot"></div>`;
+      return `<div class="pp-step ${status}" id="pp-step-${id}">
+        <div class="pp-step-icon">${iconHTML}</div>
+        <div class="pp-step-text">${text}</div>
+      </div>`;
+    }
+
+    function _render() {
+      if (!_panelEl) return;
+      const { main, aux, embed, doneMain, doneAux, doneEmbed, mainTokens, auxTokens } = _state;
+      const totalAll = main + aux + embed;
+      const doneAll = doneMain + doneAux + doneEmbed;
+      const pct = totalAll > 0 ? Math.min(100, Math.round(doneAll / totalAll * 100)) : 0;
+
+      const bar = _panelEl.querySelector(".pp-progress-bar");
+      if (bar) bar.style.width = pct + "%";
+
+      if (_counterEl) {
+        _counterEl.innerHTML =
+          _buildCounterHTML("counter_main", "main", doneMain, main, mainTokens) +
+          _buildCounterHTML("counter_aux", "aux", doneAux, aux, auxTokens) +
+          _buildCounterHTML("counter_embed", "embed", doneEmbed, embed, 0);
+      }
+    }
+
+    // ── Public methods ────────────────────────────────────────────────────────
+    function step(stepId, status) {
+      if (!_stepsEl) return;
+      const el = _stepsEl.querySelector(`#pp-step-${stepId}`);
+      if (!el) return;
+      el.className = `pp-step ${status}`;
+      const iconEl = el.querySelector(".pp-step-icon");
+      if (!iconEl) return;
+      if (status === "done") iconEl.innerHTML = "✓";
+      else if (status === "error") iconEl.innerHTML = "✕";
+      else iconEl.innerHTML = `<div class="pp-step-dot"></div>`;
+    }
+
+    function setTitle(text) {
+      if (_titleEl) _titleEl.textContent = text;
+    }
+
+    function increment(type) {
+      if (type === "main") _state.doneMain = Math.min(_state.main, _state.doneMain + 1);
+      if (type === "aux") _state.doneAux = Math.min(_state.aux, _state.doneAux + 1);
+      if (type === "embed") _state.doneEmbed = Math.min(_state.embed, _state.doneEmbed + 1);
+      _render();
+    }
+
+    function setTokens(type, count) {
+      if (type === "main") _state.mainTokens = count;
+      if (type === "aux") _state.auxTokens = count;
+      _render();
+    }
+
+    function hideConfirm() {
+      if (_panelEl) {
+        const c = _panelEl.querySelector("#pse-pp-confirm");
+        if (c) c.classList.remove("visible");
+      }
+    }
+
+    async function waitForConfirm(timeoutMs = 900000) {
+      return new Promise((resolve) => {
+        // Safety timeout: auto-cancel if user never interacts (e.g. iframe closes)
+        const timer = setTimeout(() => {
+          if (_confirmResolve) {
+            _confirmResolve = null;
+            resolve("cancel");
+          }
+        }, timeoutMs);
+        _confirmResolve = (val) => {
+          clearTimeout(timer);
+          _confirmResolve = null;
+          resolve(val);
+        };
+      });
+    }
+
+    async function show(opts = {}) {
+      _injectPanelStyles();
+      _state = {
+        main: opts.main || 0, aux: opts.aux || 0, embed: opts.embed || 0,
+        doneMain: 0, doneAux: 0, doneEmbed: 0,
+        mainTokens: opts.mainTokens || 0, auxTokens: opts.auxTokens || 0,
+      };
+
+      // Remove any stale panel
+      const stale = document.getElementById("pse-pp-overlay");
+      if (stale) stale.remove();
+
+      const overlay = document.createElement("div");
+      overlay.id = "pse-pp-overlay";
+      // Click on dark area dismisses the panel (like the settings panel)
+      overlay.addEventListener("click", (e) => {
+        if (e.target !== overlay) return;
+        if (_confirmResolve) {
+          _confirmResolve("cancel");
+        } else {
+          hide();
+        }
+      });
+
+      const panel = document.createElement("div");
+      panel.id = "pse-pp-panel";
+
+      const isStep0 = opts.isStep0 || false;
+      const showClassifyStep = opts.showClassifyStep || false;
+      const showEmbedStep = opts.showEmbedStep || false;
+      const showPersonaStep = opts.showPersonaStep || false;
+
+      const stepsHTML = [
+        showClassifyStep ? _buildStepHTML("classify", "step_classify", "pending") : null,
+        showEmbedStep ? _buildStepHTML("embed", "step_embed", "pending") : null,
+        showPersonaStep ? _buildStepHTML("persona", "step_persona", "pending") : null,
+        !isStep0 ? _buildStepHTML("extract", "step_extract", "pending") : null,
+        !isStep0 ? _buildStepHTML("compose", "step_compose", "pending") : null,
+      ].filter(Boolean).join("");
+
+      const confirmSection = isStep0 ? `
+        <hr class="pp-divider"/>
+        <div class="pp-confirm-note">${_L("confirm_title")}<br/><br/>${_L("step0_note")}</div>
+        <div class="pp-btn-row">
+          <button class="pp-btn cancel" id="pp-btn-cancel">${_L("btn_cancel")}</button>
+          <button class="pp-btn run"    id="pp-btn-run">${_L("btn_run")}</button>
+        </div>` : "";
+
+      panel.innerHTML = `
+        <div id="pse-pp-head">
+          <div id="pse-pp-spinner"></div>
+          <div id="pse-pp-title">${_L("title_working")}</div>
+        </div>
+        <div class="pp-progress-bar-wrap"><div class="pp-progress-bar"></div></div>
+        <div class="pp-counters" id="pse-pp-counters"></div>
+        <div class="pp-steps" id="pse-pp-steps">${stepsHTML}</div>
+        <div class="pp-confirm-section${isStep0 ? " visible" : ""}" id="pse-pp-confirm">
+          ${confirmSection}
+        </div>
+      `;
+
+      overlay.appendChild(panel);
+      document.body.appendChild(overlay);
+      _overlayEl = overlay;
+      _panelEl = panel;
+      _stepsEl = panel.querySelector("#pse-pp-steps");
+      _counterEl = panel.querySelector("#pse-pp-counters");
+      _titleEl = panel.querySelector("#pse-pp-title");
+      _spinnerEl = panel.querySelector("#pse-pp-spinner");
+      _visible = true;
+      _render();
+
+      if (isStep0) {
+        const runBtn = panel.querySelector("#pp-btn-run");
+        const cancelBtn = panel.querySelector("#pp-btn-cancel");
+        if (runBtn) runBtn.addEventListener("click", () => { if (_confirmResolve) _confirmResolve("run"); });
+        if (cancelBtn) cancelBtn.addEventListener("click", () => { if (_confirmResolve) _confirmResolve("cancel"); });
+      }
+
+      // CRITICAL: plugin runs in a hidden iframe — showContainer makes it visible
+      try { await Risuai.showContainer("fullscreen"); } catch (_e) { }
+    }
+
+    async function hide() {
+      if (_overlayEl) {
+        _overlayEl.remove();
+        _overlayEl = null;
+        _panelEl = null;
+        _stepsEl = null;
+        _counterEl = null;
+        _titleEl = null;
+        _spinnerEl = null;
+      }
+      _visible = false;
+      _confirmResolve = null;
+      // Restore body style and hide the iframe
+      try { document.body.style.cssText = ""; } catch (_e) { }
+      try { await Risuai.hideContainer(); } catch (_e) { }
+    }
+
+    async function markDone() {
+      if (_spinnerEl) _spinnerEl.classList.add("done");
+      setTitle(_L("title_done"));
+      await new Promise(r => setTimeout(r, 900));
+      await hide();
+    }
+
+    return {
+      show, hide, markDone, step, increment, setTitle, hideConfirm, waitForConfirm, setTokens,
+      get visible() { return _visible; }
+    };
+  })();
+  // ── End Progress Panel ──────────────────────────────────────────────────────
+
   function isKbFeatureEnabled() {
     return _currentIsCardReorgEnabled;
   }
@@ -3319,7 +3811,7 @@ CORRECT EXAMPLE:
       ) {
         return globalThis.crypto.randomUUID();
       }
-    } catch {}
+    } catch { }
     return `pse_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 10)}`;
   }
 
@@ -3525,7 +4017,7 @@ CORRECT EXAMPLE:
           if (typeof risuOptions.body === "string") {
             try {
               risuOptions.body = JSON.parse(risuOptions.body);
-            } catch {}
+            } catch { }
           }
           const res = await withTimeout(
             Risuai.risuFetch(url, risuOptions),
@@ -3565,7 +4057,7 @@ CORRECT EXAMPLE:
         const txt = String(await res.text());
         if (txt.startsWith("[object ")) return "";
         return txt;
-      } catch {}
+      } catch { }
     }
     if (typeof res.data === "string") {
       if (res.data.startsWith("[object ")) return "";
@@ -3574,7 +4066,7 @@ CORRECT EXAMPLE:
     if (res.data && typeof res.data === "object") {
       try {
         return JSON.stringify(res.data);
-      } catch {}
+      } catch { }
     }
     if (res.error) return String(res.error);
     return "";
@@ -3585,13 +4077,13 @@ CORRECT EXAMPLE:
     if (typeof res.json === "function") {
       try {
         return await res.json();
-      } catch {}
+      } catch { }
     }
     if (typeof res.text === "function") {
       try {
         const txt = await res.text();
         return JSON.parse(txt);
-      } catch {}
+      } catch { }
     }
     if (Object.prototype.hasOwnProperty.call(res, "data")) {
       if (typeof res.data === "string") {
@@ -3748,12 +4240,12 @@ CORRECT EXAMPLE:
       bindedPersona: String(chat?.bindedPersona || ""),
       firstMessages: Array.isArray(chat?.message)
         ? chat.message
-            .filter((m) => m?.role === "user" || m?.role === "char")
-            .slice(0, 3)
-            .map((m) => ({
-              role: safeTrim(m?.role || ""),
-              content: safeTrim(m?.data || m?.content || "").slice(0, 160),
-            }))
+          .filter((m) => m?.role === "user" || m?.role === "char")
+          .slice(0, 3)
+          .map((m) => ({
+            role: safeTrim(m?.role || ""),
+            content: safeTrim(m?.data || m?.content || "").slice(0, 160),
+          }))
         : [],
     };
     const stableFingerprint = simpleHash(JSON.stringify(stableSeed));
@@ -3908,7 +4400,7 @@ CORRECT EXAMPLE:
                 const card = JSON.parse(cardRaw);
                 if (card && card.entries) cards[cardKey] = card;
               }
-            } catch {}
+            } catch { }
           }
           embeddingCacheStore = {
             version: EMBEDDING_VECTOR_CACHE_VERSION,
@@ -3958,11 +4450,11 @@ CORRECT EXAMPLE:
                   const oldCard = JSON.parse(oldCardRaw);
                   if (oldCard && oldCard.entries) mergedCards[oldKey] = oldCard;
                 }
-              } catch {}
+              } catch { }
             }
           }
         }
-      } catch {}
+      } catch { }
 
       for (const [cardKey, card] of Object.entries(store.cards || {})) {
         if (!card) continue;
@@ -3996,7 +4488,7 @@ CORRECT EXAMPLE:
         delete mergedCards[removedKey];
         try {
           await Risuai.pluginStorage.removeItem(VCACHE_CARD_PREFIX + removedKey);
-        } catch {}
+        } catch { }
       }
 
       const cardKeys = Object.keys(mergedCards);
@@ -4024,7 +4516,7 @@ CORRECT EXAMPLE:
         await Risuai.log(
           `${LOG} Warning: vector cache save failed (${err.message})`,
         );
-      } catch {}
+      } catch { }
     }
   }
 
@@ -4042,7 +4534,7 @@ CORRECT EXAMPLE:
           return parsed;
         }
       }
-    } catch {}
+    } catch { }
     return { updatedAt: 0, entries: {} };
   }
 
@@ -4107,7 +4599,7 @@ CORRECT EXAMPLE:
     payload.updatedAt = Date.now();
     try {
       await Risuai.pluginStorage.setItem(key, JSON.stringify(payload));
-    } catch {}
+    } catch { }
   }
 
   async function clearAllEmbeddingCache() {
@@ -4118,7 +4610,7 @@ CORRECT EXAMPLE:
     try {
       const { char } = await getCurrentChatContextSafe();
       currentScopeId = getScopeId(char);
-    } catch {}
+    } catch { }
     if (currentScopeId) sessionStep0HandledHashByScope.delete(currentScopeId);
     else sessionStep0HandledHashByScope.clear();
 
@@ -4132,68 +4624,68 @@ CORRECT EXAMPLE:
               await Risuai.pluginStorage.removeItem(
                 VCACHE_CARD_PREFIX + cardKey,
               );
-            } catch {}
+            } catch { }
           }
         }
       }
-    } catch {}
+    } catch { }
     try {
       await Risuai.pluginStorage.removeItem(VCACHE_INDEX_KEY);
-    } catch {}
+    } catch { }
 
     try {
       const { staticKeys, requestKeys, firstMessageHandledKey } =
         await getScopedKeysForCurrentChat();
       try {
         await Risuai.pluginStorage.removeItem(staticKeys.staticKnowledgeChunks);
-      } catch {}
+      } catch { }
       try {
         await Risuai.pluginStorage.removeItem(staticKeys.staticDataHash);
-      } catch {}
+      } catch { }
       try {
         await Risuai.pluginStorage.removeItem(staticKeys.step0Complete);
-      } catch {}
+      } catch { }
       try {
         await Risuai.pluginStorage.removeItem(staticKeys.step0Pending);
-      } catch {}
+      } catch { }
       try {
         await Risuai.safeLocalStorage.removeItem(requestKeys.lastReqHash);
-      } catch {}
+      } catch { }
       try {
         await Risuai.safeLocalStorage.removeItem(requestKeys.lastExtractedData);
-      } catch {}
+      } catch { }
       try {
         await Risuai.safeLocalStorage.removeItem(requestKeys.regenSkip);
-      } catch {}
+      } catch { }
       try {
         await Risuai.safeLocalStorage.removeItem(requestKeys.lastSyncError);
-      } catch {}
+      } catch { }
       try {
         await Risuai.safeLocalStorage.removeItem(requestKeys.lastExtractorMode);
-      } catch {}
+      } catch { }
       try {
         await Risuai.safeLocalStorage.removeItem(firstMessageHandledKey);
-      } catch {}
-    } catch {}
+      } catch { }
+    } catch { }
 
     try {
       await Risuai.pluginStorage.removeItem(STATIC_KNOWLEDGE_CHUNKS_KEY);
-    } catch {}
+    } catch { }
     try {
       await Risuai.pluginStorage.removeItem(STATIC_DATA_HASH_KEY);
-    } catch {}
+    } catch { }
     try {
       await Risuai.pluginStorage.removeItem(STEP0_COMPLETE_KEY);
-    } catch {}
+    } catch { }
     try {
       await Risuai.pluginStorage.removeItem(STEP0_PENDING_KEY);
-    } catch {}
+    } catch { }
     try {
       await Risuai.safeLocalStorage.removeItem(LAST_REQ_HASH_KEY);
-    } catch {}
+    } catch { }
     try {
       await Risuai.safeLocalStorage.removeItem(LAST_EXTRACTED_DATA_KEY);
-    } catch {}
+    } catch { }
 
     try {
       const db = await Risuai.getDatabase();
@@ -4204,9 +4696,9 @@ CORRECT EXAMPLE:
         const cardKey = makeCardCacheKey(charId, charName || "Character", c);
         try {
           await Risuai.pluginStorage.removeItem(PCACHE_CARD_PREFIX + cardKey);
-        } catch {}
+        } catch { }
       }
-    } catch {}
+    } catch { }
   }
 
   function makeCardCacheKey(charId, charName, charMeta = null) {
@@ -4520,7 +5012,7 @@ CORRECT EXAMPLE:
       try {
         const r = JSON.parse(stripped);
         if (r !== null && typeof r === "object") return r;
-      } catch {}
+      } catch { }
     }
 
     const tryLastBrace = (s, startChar, endChar) => {
@@ -4624,11 +5116,11 @@ CORRECT EXAMPLE:
     let s = String(src || "").replace(/,(\s*[}\]])/g, "$1");
     try {
       return JSON.parse(s);
-    } catch {}
+    } catch { }
     s = s.replace(/([{,]\s*)([A-Za-z_][A-Za-z0-9_-]*)(\s*:)/g, '$1"$2"$3');
     try {
       return JSON.parse(s);
-    } catch {}
+    } catch { }
     if (!s.includes("'")) return null;
     let out = "";
     let inDouble = false;
@@ -4872,11 +5364,11 @@ CORRECT EXAMPLE:
       if (!item || typeof item !== "object" || Array.isArray(item)) continue;
       const key = safeTrim(
         item.lorebook_name ||
-          item.loreName ||
-          item.name ||
-          item.key ||
-          item.id ||
-          "",
+        item.loreName ||
+        item.name ||
+        item.key ||
+        item.id ||
+        "",
       );
       if (!key) continue;
       let itemValue = item.value;
@@ -4969,7 +5461,7 @@ CORRECT EXAMPLE:
         await Risuai.setArgument(key, strVal);
       else if (typeof Risuai.setArg === "function")
         await Risuai.setArg(key, strVal);
-    } catch {}
+    } catch { }
   }
 
   const SYNC_TO_PLUGIN_STORAGE_KEYS = new Set([
@@ -4994,7 +5486,7 @@ CORRECT EXAMPLE:
           pluginSyncValue = await Risuai.pluginStorage.getItem(
             "sync_" + SETTING_KEYS[key],
           );
-        } catch {}
+        } catch { }
       }
       const normalizeVal = (v) => {
         if (v === undefined || v === null) return undefined;
@@ -5045,11 +5537,11 @@ CORRECT EXAMPLE:
 
     const aProviderMap = parseSimpleStringMap(
       next.extractor_a_provider_model_map ||
-        DEFAULTS.extractor_a_provider_model_map,
+      DEFAULTS.extractor_a_provider_model_map,
     );
     const bProviderMap = parseSimpleStringMap(
       next.extractor_b_provider_model_map ||
-        DEFAULTS.extractor_b_provider_model_map,
+      DEFAULTS.extractor_b_provider_model_map,
     );
     const aProvider = safeTrim(next.extractor_a_provider || "custom_api");
     const bProvider = safeTrim(next.extractor_b_provider || "custom_api");
@@ -5074,7 +5566,7 @@ CORRECT EXAMPLE:
       : "custom_api";
     const embeddingProviderModelMap = parseSimpleStringMap(
       next.embedding_provider_model_map ||
-        DEFAULTS.embedding_provider_model_map,
+      DEFAULTS.embedding_provider_model_map,
     );
     next.embedding_provider_model_map = JSON.stringify(
       embeddingProviderModelMap,
@@ -5124,8 +5616,8 @@ CORRECT EXAMPLE:
     ) {
       next.embedding_request_model = safeTrim(
         EMBEDDING_MODEL_TO_REQUEST[safeTrim(next.embedding_model)] ||
-          embeddingPreset.requestModel ||
-          "",
+        embeddingPreset.requestModel ||
+        "",
       );
     }
 
@@ -5173,7 +5665,7 @@ CORRECT EXAMPLE:
       safeTrim(next.init_bootstrap_target_model) === "B" ? "B" : "A";
     next.init_bootstrap_model_anchor_prompt = String(
       next.init_bootstrap_model_anchor_prompt ||
-        DEFAULTS.init_bootstrap_model_anchor_prompt,
+      DEFAULTS.init_bootstrap_model_anchor_prompt,
     );
 
     next.timeout_ms = FIXED_TIMEOUT_MS;
@@ -5244,15 +5736,15 @@ CORRECT EXAMPLE:
     );
     const aKey = safeTrim(
       aKeyMap[aProvider] ||
-        configCache.extractor_a_key ||
-        configCache.extractor_b_key ||
-        "",
+      configCache.extractor_a_key ||
+      configCache.extractor_b_key ||
+      "",
     );
     const bKey = safeTrim(
       bKeyMap[bProvider] ||
-        configCache.extractor_b_key ||
-        configCache.extractor_a_key ||
-        "",
+      configCache.extractor_b_key ||
+      configCache.extractor_a_key ||
+      "",
     );
     const a = {
       url: normalizeUrlByFormat(
@@ -5326,7 +5818,7 @@ CORRECT EXAMPLE:
           if (SYNC_TO_PLUGIN_STORAGE_KEYS.has(key)) {
             try {
               await Risuai.pluginStorage.setItem("sync_" + storageKey, strVal);
-            } catch {}
+            } catch { }
           }
         } catch (err) {
           throw new Error(
@@ -5505,7 +5997,7 @@ CORRECT EXAMPLE:
         headers: { "Content-Type": "application/x-www-form-urlencoded" },
         body: new TextEncoder().encode(body),
       });
-    } catch {}
+    } catch { }
     if (!isResponseLike(res) || !res.ok) {
       const fallback = await fetchWithFallback(
         "https://oauth2.googleapis.com/token",
@@ -5542,7 +6034,7 @@ CORRECT EXAMPLE:
     let serviceAccount = null;
     try {
       serviceAccount = parseVertexServiceAccount(rawKey);
-    } catch {}
+    } catch { }
     const raw = safeTrim(baseUrl || "");
     const projectFromUrl = raw.match(/\/projects\/([^/]+)/i)?.[1] || "";
     const locationFromUrl = raw.match(/\/locations\/([^/]+)/i)?.[1] || "";
@@ -5786,7 +6278,7 @@ CORRECT EXAMPLE:
         out += `[CBS_WITH:${norm(inner.replace(/^#with\s*/i, ""))}]`;
       } else if (/^#puredisplay$/i.test(innerNorm)) {
         out += `[CBS_PUREDISPLAY]`;
-      // Block closing tags
+        // Block closing tags
       } else if (/^\/(if|when)$/i.test(innerNorm)) {
         out += `[CBS_END_IF]`;
       } else if (/^\/unless$/i.test(innerNorm)) {
@@ -5797,7 +6289,7 @@ CORRECT EXAMPLE:
         out += `[CBS_END_WITH]`;
       } else if (/^\/puredisplay$/i.test(innerNorm)) {
         out += `[CBS_END_PUREDISPLAY]`;
-      // else/comment
+        // else/comment
       } else if (/^(else|:else|:then)$/i.test(innerNorm)) {
         out += `[CBS_ELSE]`;
       } else if (/^(\/\/|comment::)/i.test(inner)) {
@@ -5939,19 +6431,19 @@ CORRECT EXAMPLE:
     let db = null;
     try {
       db = await Risuai.getDatabase();
-    } catch {}
+    } catch { }
     const vars = Object.create(null);
-    
+
     // Parse character default variables
     for (const [k, v] of parseDefaultVariables(char?.defaultVariables)) {
       vars[k] = String(v ?? "");
     }
-    
+
     // Parse template default variables
     for (const [k, v] of parseDefaultVariables(db?.templateDefaultVariables)) {
       if (!(k in vars)) vars[k] = String(v ?? "");
     }
-    
+
     // Parse script state variables
     const scriptState =
       chat?.scriptstate && typeof chat.scriptstate === "object"
@@ -5961,16 +6453,15 @@ CORRECT EXAMPLE:
       const key = String(rawKey || "").replace(/^\$/, "");
       vars[key] = value == null ? "null" : String(value);
     }
-    
+
     // Global variables
     const globalVars =
       db?.globalChatVariables && typeof db.globalChatVariables === "object"
         ? db.globalChatVariables
         : {};
-    
+
     const userName = safeTrim(db?.username || "User");
-    
-    // BUGFIX: Use chat.localLore.globalNote as fallback (from v3.1.2)
+
     const finalDb = {
       ...db,
       globalNote: chat?.localLore?.globalNote || db?.globalNote || "",
@@ -5979,14 +6470,6 @@ CORRECT EXAMPLE:
     const messages = Array.isArray(chat?.message) ? chat.message : [];
     const lastMsg = messages.length > 0 ? messages[messages.length - 1] : null;
 
-    // Debug logging for variable initialization
-    try {
-      const varCount = Object.keys(vars).length;
-      const globalVarCount = Object.keys(globalVars).length;
-      if (varCount > 0 || globalVarCount > 0) {
-        await Risuai.log(`${LOG} CBS Runtime initialized: ${varCount} vars, ${globalVarCount} global vars`);
-      }
-    } catch {}
 
     return {
       char,
@@ -6101,7 +6584,7 @@ CORRECT EXAMPLE:
       const calcExpr = await renderStandaloneCbsText(expr.slice(2).trim(), runtime, args);
       return evalStandaloneCbsCalc(calcExpr);
     }
-    
+
     const parts = splitTopLevelCbsByDoubleColon(expr).map((s) => String(s ?? ""));
     const head = safeTrim(parts[0] || "");
     const headLower = head.toLowerCase();
@@ -6127,12 +6610,6 @@ CORRECT EXAMPLE:
       const key = safeTrim(await renderStandaloneCbsText(parts.slice(1).join("::"), runtime, args));
       if (!key) return "null";
       const value = runtime.vars[key] ?? runtime.globalVars[key] ?? "null";
-      // Debug logging for variable access
-      try {
-        if (value === "null") {
-          await Risuai.log(`${LOG} CBS getvar: "${key}" not found (returning "null")`);
-        }
-      } catch {}
       return value;
     }
     if (headLower === "getglobalvar") {
@@ -6208,7 +6685,7 @@ CORRECT EXAMPLE:
     }
     if (["min", "max"].includes(headLower)) {
       const vals = [];
-      for(let i=1; i<parts.length; i++) vals.push(Number(await renderStandaloneCbsText(parts[i], runtime, args)) || 0);
+      for (let i = 1; i < parts.length; i++) vals.push(Number(await renderStandaloneCbsText(parts[i], runtime, args)) || 0);
       return String(Math[headLower](...vals));
     }
     if (["sum", "average"].includes(headLower)) {
@@ -6261,7 +6738,7 @@ CORRECT EXAMPLE:
     // After #when reordering (A::op::B → op::A::B), the head becomes the op.
     const _opAlias = {
       "is": "equal", "==": "equal",
-      "isnot": "notequal", "!=": "notequal",
+      "isnot": "notequal", "!=": "notequal", "<>": "notequal",
       ">": "greater",
       ">=": "greaterequal",
       "<": "less",
@@ -6273,7 +6750,7 @@ CORRECT EXAMPLE:
       const v2 = await renderStandaloneCbsText(parts[2] || "", runtime, args);
       const n1 = Number(v1), n2 = Number(v2);
       const isNum = !isNaN(n1) && !isNaN(n2);
-      switch(_resolvedOp) {
+      switch (_resolvedOp) {
         case "equal": return v1 === v2 ? "1" : "0";
         case "notequal": return v1 !== v2 ? "1" : "0";
         case "greater": return (isNum ? n1 > n2 : v1 > v2) ? "1" : "0";
@@ -6324,7 +6801,7 @@ CORRECT EXAMPLE:
     // --- Array/Dict ---
     if (headLower === "makearray") {
       const arr = [];
-      for(let i=1; i<parts.length; i++) arr.push(await renderStandaloneCbsText(parts[i], runtime, args));
+      for (let i = 1; i < parts.length; i++) arr.push(await renderStandaloneCbsText(parts[i], runtime, args));
       return JSON.stringify(arr);
     }
     if (headLower === "arrayelement" || headLower === "element") {
@@ -6410,7 +6887,7 @@ CORRECT EXAMPLE:
       } catch { return "[]"; }
     }
     if (headLower === "filter") {
-       try {
+      try {
         const json = await renderStandaloneCbsText(parts[1] || "[]", runtime, args);
         const mode = await renderStandaloneCbsText(parts[2] || "all", runtime, args);
         const arr = JSON.parse(json);
@@ -6439,54 +6916,54 @@ CORRECT EXAMPLE:
     if (headLower === "ujb" || headLower === "system_note") return safeTrim(runtime?.db?.globalNote || "");
 
     if (headLower === "dice" || headLower === "roll") {
-       const xdy = await renderStandaloneCbsText(parts[1] || "1d6", runtime, args);
-       const match = xdy.toLowerCase().match(/^(\d+)d(\d+)$/);
-       if (match) {
-         const X = parseInt(match[1], 10) || 1;
-         const Y = parseInt(match[2], 10) || 6;
-         const results = [];
-         let sum = 0;
-         for (let i = 0; i < X; i++) {
-            const r = Math.floor(Math.random() * Y) + 1;
-            results.push(r);
-            sum += r;
-         }
-         return headLower === "dice" ? String(sum) : JSON.stringify(results);
-       }
-       return headLower === "dice" ? "0" : "[]";
+      const xdy = await renderStandaloneCbsText(parts[1] || "1d6", runtime, args);
+      const match = xdy.toLowerCase().match(/^(\d+)d(\d+)$/);
+      if (match) {
+        const X = parseInt(match[1], 10) || 1;
+        const Y = parseInt(match[2], 10) || 6;
+        const results = [];
+        let sum = 0;
+        for (let i = 0; i < X; i++) {
+          const r = Math.floor(Math.random() * Y) + 1;
+          results.push(r);
+          sum += r;
+        }
+        return headLower === "dice" ? String(sum) : JSON.stringify(results);
+      }
+      return headLower === "dice" ? "0" : "[]";
     }
     if (headLower === "pick" || headLower === "rollp") {
-       if (parts.length > 1) return await renderStandaloneCbsText(parts[1], runtime, args);
-       return "";
+      if (parts.length > 1) return await renderStandaloneCbsText(parts[1], runtime, args);
+      return "";
     }
     if (headLower === "hash") {
-       const str = await renderStandaloneCbsText(parts[1] || "", runtime, args);
-       let hash = 0;
-       for (let i = 0; i < str.length; i++) {
-         const char = str.charCodeAt(i);
-         hash = ((hash << 5) - hash) + char;
-         hash = hash & hash;
-       }
-       return String(Math.abs(hash)).slice(0, 7).padStart(7, "0");
+      const str = await renderStandaloneCbsText(parts[1] || "", runtime, args);
+      let hash = 0;
+      for (let i = 0; i < str.length; i++) {
+        const char = str.charCodeAt(i);
+        hash = ((hash << 5) - hash) + char;
+        hash = hash & hash;
+      }
+      return String(Math.abs(hash)).slice(0, 7).padStart(7, "0");
     }
     if (headLower === "xor" || headLower === "xordecrypt" || headLower === "crypt") {
-       return await renderStandaloneCbsText(parts[1] || "", runtime, args);
+      return await renderStandaloneCbsText(parts[1] || "", runtime, args);
     }
     if (headLower === "unicodeencode") {
-       const str = await renderStandaloneCbsText(parts[1] || "", runtime, args);
-       return str.length > 0 ? String(str.charCodeAt(0)) : "";
+      const str = await renderStandaloneCbsText(parts[1] || "", runtime, args);
+      return str.length > 0 ? String(str.charCodeAt(0)) : "";
     }
     if (headLower === "unicodedecode") {
-       const code = Number(await renderStandaloneCbsText(parts[1] || "0", runtime, args));
-       return String.fromCharCode(code);
+      const code = Number(await renderStandaloneCbsText(parts[1] || "0", runtime, args));
+      return String.fromCharCode(code);
     }
     if (headLower === "tohex") {
-       const num = Number(await renderStandaloneCbsText(parts[1] || "0", runtime, args)) || 0;
-       return num.toString(16);
+      const num = Number(await renderStandaloneCbsText(parts[1] || "0", runtime, args)) || 0;
+      return num.toString(16);
     }
     if (headLower === "fromhex") {
-       const hex = await renderStandaloneCbsText(parts[1] || "0", runtime, args);
-       return String(parseInt(hex, 16));
+      const hex = await renderStandaloneCbsText(parts[1] || "0", runtime, args);
+      return String(parseInt(hex, 16));
     }
     if (["asset", "image", "bg", "emotion", "audio", "video", "button", "tex", "ruby", "codeblock", "hiddenkey"].includes(headLower)) return "";
     if (headLower === "assetlist" || headLower === "emotionlist") return "[]";
@@ -6567,7 +7044,7 @@ CORRECT EXAMPLE:
         const spaceIdx = inner.indexOf(" ");
         let conditionRaw = spaceIdx !== -1 ? inner.slice(spaceIdx + 1) : "";
         const block = extractCbsBlock(src, tag, isWhen ? "when" : "if");
-        
+
         if (isWhen) {
           // Strip optional variant qualifiers: #when::keep or #when::legacy
           // These appear as "#when::keep A::op::B" or "#when::legacy A::op::B".
@@ -6577,7 +7054,12 @@ CORRECT EXAMPLE:
           }
           const wParts = splitTopLevelCbsByDoubleColon(conditionRaw).map(s => safeTrim(s));
           if (wParts.length === 3) {
-            conditionRaw = `${wParts[1]}::${wParts[0]}::${wParts[2]}`;
+            const _whenBinaryOps = new Set(["is", "isnot", "==", "!=", "<>", ">", ">=", "<", "<="]);
+            if (_whenBinaryOps.has(wParts[1].toLowerCase())) {
+              conditionRaw = `${wParts[1]}::${wParts[0]}::${wParts[2]}`;
+            } else if (wParts[0].toLowerCase() === "not") {
+              conditionRaw = `not::${wParts[1]}`;
+            }
           }
         }
 
@@ -6621,7 +7103,7 @@ CORRECT EXAMPLE:
               out += await renderStandaloneCbsText(block.body, localRuntime, args);
             }
           }
-        } catch {}
+        } catch { }
         cursor = block.end;
         continue;
       }
@@ -6647,25 +7129,11 @@ CORRECT EXAMPLE:
   async function normalizeAgentCbsText(text) {
     const src = String(text ?? "");
     if (!src || !src.includes("{{")) return src;
-    
+
     // Add debug logging
-    const hasComplexCBS = src.includes("#if") || src.includes("#when") || src.includes("#unless");
-    if (hasComplexCBS) {
-      try {
-        await Risuai.log(`${LOG} Attempting to render CBS text (length: ${src.length})`);
-      } catch {}
-    }
-    
     try {
       const runtime = await getStandaloneCbsRuntime();
       const rendered = await renderStandaloneCbsText(src, runtime, []);
-      
-      if (hasComplexCBS) {
-        try {
-          await Risuai.log(`${LOG} CBS render successful (output length: ${String(rendered).length})`);
-        } catch {}
-      }
-      
       if (typeof rendered === "string") return rendered;
       if (rendered != null) return String(rendered);
     } catch (e) {
@@ -6673,13 +7141,7 @@ CORRECT EXAMPLE:
         await Risuai.log(
           `${LOG} standalone CBS render failed: ${e?.message || String(e)}`,
         );
-        await Risuai.log(
-          `${LOG} CBS source text: ${src.slice(0, 200)}${src.length > 200 ? '...' : ''}`,
-        );
-        await Risuai.log(
-          `${LOG} Error stack: ${e?.stack || 'No stack trace'}`,
-        );
-      } catch {}
+      } catch { }
       // BUGFIX: Return original text instead of CBS markers when rendering fails
       // CBS markers like [CBS_IF:...] are not meant to be sent to LLM
       return src;
@@ -6934,8 +7396,8 @@ CORRECT EXAMPLE:
   function resolveEmbeddingRuntimeConfig() {
     const provider = safeTrim(
       configCache.embedding_provider ||
-        DEFAULTS.embedding_provider ||
-        "custom_api",
+      DEFAULTS.embedding_provider ||
+      "custom_api",
     );
     const preset =
       EMBEDDING_PROVIDER_PRESETS[provider] ||
@@ -6948,10 +7410,10 @@ CORRECT EXAMPLE:
     const selectedModel = safeTrim(configCache.embedding_model || "");
     const requestModel = safeTrim(
       configCache.embedding_request_model ||
-        EMBEDDING_MODEL_TO_REQUEST[selectedModel] ||
-        selectedModel ||
-        preset.requestModel ||
-        "",
+      EMBEDDING_MODEL_TO_REQUEST[selectedModel] ||
+      selectedModel ||
+      preset.requestModel ||
+      "",
     );
     const rawUrl =
       provider !== "custom_api"
@@ -6981,8 +7443,8 @@ CORRECT EXAMPLE:
       .map((row, idx) => {
         const vec = Array.isArray(row?.embedding)
           ? row.embedding
-              .map((x) => Number(x))
-              .filter((x) => Number.isFinite(x))
+            .map((x) => Number(x))
+            .filter((x) => Number.isFinite(x))
           : [];
         const order = Number.isFinite(Number(row?.index))
           ? Number(row.index)
@@ -7015,6 +7477,17 @@ CORRECT EXAMPLE:
     const score = dot / (Math.sqrt(aa) * Math.sqrt(bb));
     if (!Number.isFinite(score)) return 0;
     return Math.max(-1, Math.min(1, score));
+  }
+
+  function estimateInputTokensFromMessages(messages) {
+    if (!Array.isArray(messages) || messages.length === 0) return 0;
+    let total = 0;
+    for (const m of messages) {
+      const content = String(m?.content || "");
+      total += Math.ceil(content.length / 3.5) + 4; // text tokens + role token overhead
+    }
+    total += 3; // reply priming overhead
+    return total;
   }
 
   async function fetchEmbeddingVectorsRemote(texts, cfg, strict = false) {
@@ -7418,14 +7891,14 @@ CORRECT EXAMPLE:
         await Risuai.log(
           `${LOG} ⚠️ Vector lorebook search failed (falling back to keyword): ${embedErrMsg}`,
         );
-      } catch {}
+      } catch { }
       // Record so the user has a trace even without opening logs
       try {
         await Risuai.safeLocalStorage.setItem(
           LAST_SYNC_ERROR_KEY,
           `Vector lorebook search failed — keyword fallback active. Cause: ${embedErrMsg}`,
         );
-      } catch {}
+      } catch { }
       return await getLorebookContextByNames(names);
     }
   }
@@ -8100,6 +8573,12 @@ CORRECT EXAMPLE:
     ]
       .filter((s) => !!safeTrim(s))
       .join("\n\n");
+
+    // [新增] 向量搜尋成功後，推進面板上的進度指示器
+    if (isKbFeatureEnabled() && configCache.vector_search_enabled === 1) {
+      try { ProgressPanel.increment("embed"); } catch (_ppErr) { }
+    }
+
     return buildExtractorMessages(scopedConversation, modelCall, mergedContext);
   }
 
@@ -8193,7 +8672,7 @@ CORRECT EXAMPLE:
     if (!val && safeTrim(raw)) {
       try {
         val = parsePossiblyWrappedJson(raw);
-      } catch {}
+      } catch { }
     }
     if (Array.isArray(val)) return val;
     if (typeof val === "string") {
@@ -8843,19 +9322,19 @@ CORRECT EXAMPLE:
       ) {
         throw new Error(
           _T.err_json_expected(modelCall.name) +
-            ` First 100 chars of raw: ${String(raw || "").slice(0, 100)}`,
+          ` First 100 chars of raw: ${String(raw || "").slice(0, 100)}`,
         );
       }
       throw new Error(
         _T.err_unusable_output(modelCall.name) +
-          ` Issues: ${issuesSummary || "(none)"}. Expected entries: ${entries.map((e) => e.lorebook_name).join(", ") || "(none)"}`,
+        ` Issues: ${issuesSummary || "(none)"}. Expected entries: ${entries.map((e) => e.lorebook_name).join(", ") || "(none)"}`,
       );
     }
 
     if (outputIssues.length > 0) {
       await Risuai.log(
         `${LOG} Warning (${modelCall.name}): partial write — ${outputIssues.join("; ")}. ` +
-          `Writing ${pendingWrites.length}/${entries.length} entries.`,
+        `Writing ${pendingWrites.length}/${entries.length} entries.`,
       );
     }
 
@@ -9087,12 +9566,12 @@ CORRECT EXAMPLE:
         responseMimeType: "application/json",
         ...(thinkingEnabled && thinkingLevel
           ? {
-              thinkingConfig: {
-                includeThoughts: true,
-                thinkingLevel:
-                  thinkingLevelToGemini(thinkingLevel).toLowerCase(),
-              },
-            }
+            thinkingConfig: {
+              includeThoughts: true,
+              thinkingLevel:
+                thinkingLevelToGemini(thinkingLevel).toLowerCase(),
+            },
+          }
           : {}),
       },
       safetySettings: [
@@ -9177,11 +9656,11 @@ CORRECT EXAMPLE:
         responseMimeType: "application/json",
         ...(thinkingEnabled && thinkingLevel
           ? {
-              thinkingConfig: {
-                includeThoughts: true,
-                thinking_level: thinkingLevelToGemini(thinkingLevel),
-              },
-            }
+            thinkingConfig: {
+              includeThoughts: true,
+              thinking_level: thinkingLevelToGemini(thinkingLevel),
+            },
+          }
           : {}),
       },
       safetySettings: [
@@ -9260,18 +9739,18 @@ CORRECT EXAMPLE:
       messages: chatMessages,
       ...(adaptiveThinking
         ? {
-            thinking: { type: "adaptive" },
-            output_config: {
-              effort: thinkingLevelToOpenAIEffort(thinkingLevel),
-            },
-          }
+          thinking: { type: "adaptive" },
+          output_config: {
+            effort: thinkingLevelToOpenAIEffort(thinkingLevel),
+          },
+        }
         : budgetThinking
           ? {
-              thinking: {
-                type: "enabled",
-                budget_tokens: thinkingLevelToClaudeBudget(thinkingLevel),
-              },
-            }
+            thinking: {
+              type: "enabled",
+              budget_tokens: thinkingLevelToClaudeBudget(thinkingLevel),
+            },
+          }
           : {}),
     };
     if (adaptiveThinking || budgetThinking) {
@@ -9409,11 +9888,11 @@ CORRECT EXAMPLE:
     const claudeThinkingBlock =
       thinkingEnabled && thinkingLevel
         ? {
-            thinking: {
-              type: "enabled",
-              budget_tokens: thinkingLevelToClaudeBudget(thinkingLevel),
-            },
-          }
+          thinking: {
+            type: "enabled",
+            budget_tokens: thinkingLevelToClaudeBudget(thinkingLevel),
+          },
+        }
         : {};
     const basePayload = {
       model,
@@ -9543,6 +10022,17 @@ CORRECT EXAMPLE:
       const result =
         f === "google"
           ? await callGoogleGenerative({
+            url,
+            apiKey,
+            model,
+            messages,
+            timeoutMs,
+            temperature,
+            thinkingEnabled,
+            thinkingLevel,
+          })
+          : f === "vertex"
+            ? await callVertexGenerative({
               url,
               apiKey,
               model,
@@ -9552,8 +10042,8 @@ CORRECT EXAMPLE:
               thinkingEnabled,
               thinkingLevel,
             })
-          : f === "vertex"
-            ? await callVertexGenerative({
+            : f === "claude"
+              ? await callClaudeCompat({
                 url,
                 apiKey,
                 model,
@@ -9563,28 +10053,17 @@ CORRECT EXAMPLE:
                 thinkingEnabled,
                 thinkingLevel,
               })
-            : f === "claude"
-              ? await callClaudeCompat({
-                  url,
-                  apiKey,
-                  model,
-                  messages,
-                  timeoutMs,
-                  temperature,
-                  thinkingEnabled,
-                  thinkingLevel,
-                })
               : await callOpenAICompat({
-                  url,
-                  apiKey,
-                  model,
-                  messages,
-                  timeoutMs,
-                  temperature,
-                  thinkingEnabled,
-                  thinkingLevel,
-                  responseFormat: openaiResponseFormat,
-                });
+                url,
+                apiKey,
+                model,
+                messages,
+                timeoutMs,
+                temperature,
+                thinkingEnabled,
+                thinkingLevel,
+                responseFormat: openaiResponseFormat,
+              });
       if (!safeTrim(result?.raw)) throw new Error(_T.err_extractor_empty(mode));
       return { ...result, parsed: result?.parsed || null };
     };
@@ -9631,7 +10110,7 @@ CORRECT EXAMPLE:
             matchSecond = true;
             break;
           }
-      } catch (e) {}
+      } catch (e) { }
     } else {
       const lowerText = String(text || "").toLowerCase();
       for (const k of keys)
@@ -9659,7 +10138,7 @@ CORRECT EXAMPLE:
     }
   }
 
-async function injectKnowledgeIntoMessages(messages, queryText) {
+  async function injectKnowledgeIntoMessages(messages, queryText) {
     const { char, chat } = await getCurrentChatContextSafe();
     // ▼ 在這裡加上 await normalizePromptMessagesForAgent 包覆起來 ▼
     const cleanInput = await normalizePromptMessagesForAgent(
@@ -9885,7 +10364,7 @@ async function injectKnowledgeIntoMessages(messages, queryText) {
               LAST_SYNC_ERROR_KEY,
               `${LOG} Vector search failed and switched to keyword mode: ${e?.message || String(e)}${embedDetail}`,
             );
-          } catch {}
+          } catch { }
         }
       }
 
@@ -10024,13 +10503,13 @@ async function injectKnowledgeIntoMessages(messages, queryText) {
     return clean;
   }
 
-async function getStaticDataPayload(char, chat, resolvedGlobalNote) {
+  async function getStaticDataPayload(char, chat, resolvedGlobalNote) {
     const lorebookEntries = await getCombinedLorebookEntries(char, chat);
 
     const renderedDesc = await normalizeAgentCbsText(char?.desc || char?.description || "");
     const renderedGlobalNote = await normalizeAgentCbsText(resolvedGlobalNote || "");
     return {
-      step0_preprocess_version: "agent_cbs_render_v4", 
+      step0_preprocess_version: "agent_cbs_render_v4",
       desc: renderedDesc,
       globalNote: renderedGlobalNote,
       lorebook: lorebookEntries
@@ -10082,7 +10561,7 @@ async function getStaticDataPayload(char, chat, resolvedGlobalNote) {
         await Risuai.log(
           `${LOG} Persona extraction skipped: new preset not enabled.`,
         );
-      } catch {}
+      } catch { }
       return;
     }
 
@@ -10101,7 +10580,7 @@ async function getStaticDataPayload(char, chat, resolvedGlobalNote) {
           await Risuai.log(
             `${LOG} Persona extraction skipped: no persona calls configured.`,
           );
-        } catch {}
+        } catch { }
         return;
       }
 
@@ -10124,7 +10603,7 @@ async function getStaticDataPayload(char, chat, resolvedGlobalNote) {
           await Risuai.log(
             `${LOG} Persona extraction skipped: no character or alwaysActive chunks.`,
           );
-        } catch {}
+        } catch { }
         return;
       }
       if (characterChunks.length === 0) {
@@ -10132,7 +10611,7 @@ async function getStaticDataPayload(char, chat, resolvedGlobalNote) {
           await Risuai.log(
             `${LOG} Persona extraction: no classified-character chunks; falling back to alwaysActive chunks (${effectiveChunks.length}).`,
           );
-        } catch {}
+        } catch { }
       }
 
       const resolved = resolveExtractorConfig();
@@ -10169,13 +10648,13 @@ async function getStaticDataPayload(char, chat, resolvedGlobalNote) {
           await Risuai.log(
             `${LOG} Persona extraction: all tasks already completed.`,
           );
-        } catch {}
+        } catch { }
       } else {
         try {
           await Risuai.log(
             `${LOG} Persona extraction: running ${tasks.length} tasks...`,
           );
-        } catch {}
+        } catch { }
 
         const executeTask = async (task) => {
           const { call, batchText } = task;
@@ -10236,7 +10715,7 @@ async function getStaticDataPayload(char, chat, resolvedGlobalNote) {
               await Risuai.log(
                 `${LOG} Persona extraction call failed: ${res.reason?.message || res.reason || "unknown"}`,
               );
-            } catch {}
+            } catch { }
             continue;
           }
           const { call, result, taskId } = res.value;
@@ -10284,7 +10763,7 @@ async function getStaticDataPayload(char, chat, resolvedGlobalNote) {
                 await Risuai.log(
                   `${LOG} Persona extraction: skipping incomplete entry for "${charName}" (${e.entryKey} present but counterpart missing). Will retry.`,
                 );
-              } catch {}
+              } catch { }
               continue;
             }
 
@@ -10313,7 +10792,7 @@ async function getStaticDataPayload(char, chat, resolvedGlobalNote) {
               await Risuai.log(
                 `${LOG} Persona extraction partial output (no complete pair for any character). Will retry task: ${safeTrim(call?.name || call?.id || "unknown")}`,
               );
-            } catch {}
+            } catch { }
           } else {
             if (
               requiredPair &&
@@ -10327,7 +10806,7 @@ async function getStaticDataPayload(char, chat, resolvedGlobalNote) {
                 await Risuai.log(
                   `${LOG} Persona extraction: ${pairedCharNames.size} character(s) fully paired; ${unpaired.length} unpaired entry(ies) discarded: ${unpaired.join(", ")}`,
                 );
-              } catch {}
+              } catch { }
             }
             cache.completedTasks.push(taskId);
           }
@@ -10364,7 +10843,7 @@ async function getStaticDataPayload(char, chat, resolvedGlobalNote) {
               await Risuai.log(
                 `${LOG} Cross-call pairing audit: removed ${orphans.length} orphan character(s) with incomplete pairs: ${orphans.join(", ")}. Tasks reset for retry.`,
               );
-            } catch {}
+            } catch { }
             await savePersonaCache(cardKey, cache);
           }
         }
@@ -10393,7 +10872,7 @@ async function getStaticDataPayload(char, chat, resolvedGlobalNote) {
           await Risuai.log(
             `${LOG} Persona extraction: embedding ${missingEntries.length} missing cache entries...`,
           );
-        } catch {}
+        } catch { }
         for (let i = 0; i < missingEntries.length; i += embedBatchSize) {
           const batch = missingEntries.slice(i, i + embedBatchSize);
           const vecs = await fetchEmbeddingVectorsRemote(
@@ -10430,13 +10909,13 @@ async function getStaticDataPayload(char, chat, resolvedGlobalNote) {
         await Risuai.log(
           `${LOG} Persona extraction done: ${entries.length} cache entries.`,
         );
-      } catch {}
+      } catch { }
     } catch (err) {
       try {
         await Risuai.log(
           `${LOG} Persona extraction failed: ${err?.message || String(err)}`,
         );
-      } catch {}
+      } catch { }
       if (strict) throw err;
     }
   }
@@ -10457,16 +10936,16 @@ async function getStaticDataPayload(char, chat, resolvedGlobalNote) {
           staticKeys.staticKnowledgeChunks,
           "[]",
         );
-      } catch {}
+      } catch { }
       try {
         await Risuai.pluginStorage.setItem(
           staticKeys.staticDataHash,
           staticDataHash,
         );
-      } catch {}
+      } catch { }
       try {
         await Risuai.pluginStorage.setItem(staticKeys.step0Complete, "1");
-      } catch {}
+      } catch { }
       return;
     }
 
@@ -10642,8 +11121,6 @@ async function getStaticDataPayload(char, chat, resolvedGlobalNote) {
       categoryOverride = "",
     ) => {
       if (!content) return;
-      // BUGFIX: Content should already be rendered by normalizeAgentCbsText
-      // No need to call cbsToIndexPlaceholders here
       const preprocessed = content;
       const splits = splitIntoParagraphChunks(preprocessed);
       const primaryKeys = getPrimaryTriggerKeys(triggerMeta);
@@ -10693,7 +11170,6 @@ async function getStaticDataPayload(char, chat, resolvedGlobalNote) {
         String(l.alwaysActive) === "true" ||
         l.constant === true ||
         String(l.constant) === "true";
-      // BUGFIX: Render CBS syntax in lorebook content before adding chunks
       const renderedContent = await normalizeAgentCbsText(l.content || "");
       addChunks(source, renderedContent, isActive, l);
     }
@@ -10806,7 +11282,7 @@ async function getStaticDataPayload(char, chat, resolvedGlobalNote) {
                     await Risuai.log(
                       `${LOG} ⚠️ Persona extraction failed during Step 0 resumeMode (will retry on next send): ${personaErrMsg}`,
                     );
-                  } catch {}
+                  } catch { }
                 }
               }
               await Risuai.pluginStorage.setItem(staticKeys.step0Complete, "1");
@@ -10853,7 +11329,7 @@ async function getStaticDataPayload(char, chat, resolvedGlobalNote) {
             }
           }
         }
-      } catch {}
+      } catch { }
     }
 
     const unclassifiedChunks = chunksToClassify.filter((c) => !c.classified);
@@ -10872,8 +11348,8 @@ async function getStaticDataPayload(char, chat, resolvedGlobalNote) {
         const prereplyPrompt = safeTrim(configCache.advanced_prereply_prompt);
         const assistantPrefill = prefillPrompt
           ? [prefillPrompt, prereplyPrompt]
-              .filter((s) => !!safeTrim(s))
-              .join("\n")
+            .filter((s) => !!safeTrim(s))
+            .join("\n")
           : "";
         const messages = buildModelMessages(
           anchor,
@@ -10937,7 +11413,7 @@ async function getStaticDataPayload(char, chat, resolvedGlobalNote) {
           await Risuai.log(
             `${LOG} ⚠️ Persona extraction failed during Step 0 (will retry on next send): ${personaErrMsg}`,
           );
-        } catch {}
+        } catch { }
       }
     }
 
@@ -11024,7 +11500,7 @@ async function getStaticDataPayload(char, chat, resolvedGlobalNote) {
         } catch (e) {
           try {
             await saveEmbeddingCacheStore(store);
-          } catch (err) {}
+          } catch (err) { }
           try {
             await Risuai.pluginStorage.setItem(
               staticKeys.staticKnowledgeChunks,
@@ -11034,13 +11510,13 @@ async function getStaticDataPayload(char, chat, resolvedGlobalNote) {
               staticKeys.staticDataHash,
               staticDataHash,
             );
-          } catch {}
+          } catch { }
           try {
             await Risuai.pluginStorage.setItem(
               staticKeys.step0Pending,
               "classify_done",
             );
-          } catch {}
+          } catch { }
           const vecErrMsg = e?.message || String(e);
           const embedDetail = _lastEmbedErrorMsg && !vecErrMsg.includes(_lastEmbedErrorMsg)
             ? ` — ${_lastEmbedErrorMsg}`
@@ -11049,7 +11525,7 @@ async function getStaticDataPayload(char, chat, resolvedGlobalNote) {
             await Risuai.log(
               `${LOG} ❌ Chunk vector indexing failed: ${vecErrMsg}${embedDetail}`,
             );
-          } catch {}
+          } catch { }
           throw new Error(
             typeof _T.err_vec_kb_failed === "function"
               ? _T.err_vec_kb_failed(`${vecErrMsg}${embedDetail}`)
@@ -11075,7 +11551,7 @@ async function getStaticDataPayload(char, chat, resolvedGlobalNote) {
     try {
       if (typeof Risuai.getCurrentChatIndex === "function")
         return await Risuai.getCurrentChatIndex();
-    } catch {}
+    } catch { }
     return -1;
   }
 
@@ -11110,7 +11586,7 @@ async function getStaticDataPayload(char, chat, resolvedGlobalNote) {
     if (!char || chats.length === 0) {
       throw new Error(
         _T.st_continue_chat_no_chat_for_card ||
-          "This character has no available chat to continue.",
+        "This character has no available chat to continue.",
       );
     }
 
@@ -11122,7 +11598,7 @@ async function getStaticDataPayload(char, chat, resolvedGlobalNote) {
     if (!sourceChat) {
       throw new Error(
         _T.st_continue_chat_no_chat ||
-          "No active chat was found to continue.",
+        "No active chat was found to continue.",
       );
     }
 
@@ -11342,7 +11818,7 @@ async function getStaticDataPayload(char, chat, resolvedGlobalNote) {
       try {
         const parsed = JSON.parse(cachedText);
         if (Array.isArray(parsed)) staleCache = parsed;
-      } catch {}
+      } catch { }
     }
     if (
       staleCache.length > 0 &&
@@ -11366,7 +11842,7 @@ async function getStaticDataPayload(char, chat, resolvedGlobalNote) {
       if (!data && typeof res?.data === "string") {
         try {
           data = JSON.parse(res.data);
-        } catch {}
+        } catch { }
       }
       const rawList = Array.isArray(data?.data)
         ? data.data
@@ -11402,7 +11878,7 @@ async function getStaticDataPayload(char, chat, resolvedGlobalNote) {
       try {
         const parsed = JSON.parse(cachedText);
         if (Array.isArray(parsed)) staleCache = parsed;
-      } catch {}
+      } catch { }
     }
     if (
       staleCache.length > 0 &&
@@ -11446,7 +11922,7 @@ async function getStaticDataPayload(char, chat, resolvedGlobalNote) {
       if (!data && typeof res?.data === "string") {
         try {
           data = JSON.parse(res.data);
-        } catch {}
+        } catch { }
       }
       const rawList = Array.isArray(data?.data)
         ? data.data
@@ -11515,19 +11991,19 @@ async function getStaticDataPayload(char, chat, resolvedGlobalNote) {
     const topPricing = modelObj?.top_provider?.pricing || {};
     const inRaw = Number(
       pricing?.prompt ??
-        pricing?.input ??
-        pricing?.input_text ??
-        pricing?.prompt_token ??
-        topPricing?.prompt ??
-        topPricing?.input,
+      pricing?.input ??
+      pricing?.input_text ??
+      pricing?.prompt_token ??
+      topPricing?.prompt ??
+      topPricing?.input,
     );
     const outRaw = Number(
       pricing?.completion ??
-        pricing?.output ??
-        pricing?.output_text ??
-        pricing?.completion_token ??
-        topPricing?.completion ??
-        topPricing?.output,
+      pricing?.output ??
+      pricing?.output_text ??
+      pricing?.completion_token ??
+      topPricing?.completion ??
+      topPricing?.output,
     );
     const formatPerMillion = (v) => {
       if (!Number.isFinite(v) || v < 0) return "";
@@ -11610,7 +12086,7 @@ async function getStaticDataPayload(char, chat, resolvedGlobalNote) {
       try {
         const parsed = JSON.parse(cachedText);
         if (Array.isArray(parsed)) staleCache = parsed;
-      } catch {}
+      } catch { }
     }
     if (
       staleCache.length > 0 &&
@@ -11704,7 +12180,7 @@ async function getStaticDataPayload(char, chat, resolvedGlobalNote) {
       try {
         const parsed = JSON.parse(cachedText);
         if (Array.isArray(parsed)) staleCache = parsed;
-      } catch {}
+      } catch { }
     }
     if (
       staleCache.length > 0 &&
@@ -11732,7 +12208,7 @@ async function getStaticDataPayload(char, chat, resolvedGlobalNote) {
       if (!data && typeof res?.data === "string") {
         try {
           data = JSON.parse(res.data);
-        } catch {}
+        } catch { }
       }
       const rawList = Array.isArray(data?.data)
         ? data.data
@@ -11846,14 +12322,14 @@ async function getStaticDataPayload(char, chat, resolvedGlobalNote) {
       const options = getDatalistOptions(datalistId);
       const filtered = q
         ? options.filter(
-            (x) =>
-              String(x.value || "")
-                .toLowerCase()
-                .includes(q) ||
-              String(x.label || "")
-                .toLowerCase()
-                .includes(q),
-          )
+          (x) =>
+            String(x.value || "")
+              .toLowerCase()
+              .includes(q) ||
+            String(x.label || "")
+              .toLowerCase()
+              .includes(q),
+        )
         : options;
       fillModelSuggestionList(containerId, inputId, filtered);
     };
@@ -11902,7 +12378,7 @@ async function getStaticDataPayload(char, chat, resolvedGlobalNote) {
         await navigator.clipboard.writeText(value);
         return true;
       }
-    } catch (e) {}
+    } catch (e) { }
     const ta = document.createElement("textarea");
     ta.value = value;
     ta.setAttribute("readonly", "");
@@ -11912,7 +12388,7 @@ async function getStaticDataPayload(char, chat, resolvedGlobalNote) {
     ta.select();
     try {
       document.execCommand("copy");
-    } catch (e) {}
+    } catch (e) { }
     document.body.removeChild(ta);
   }
 
@@ -12356,7 +12832,7 @@ async function getStaticDataPayload(char, chat, resolvedGlobalNote) {
     if (!char || chats.length === 0) {
       throw new Error(
         _T.st_continue_chat_no_chat_for_card ||
-          "This character has no available chat to continue.",
+        "This character has no available chat to continue.",
       );
     }
 
@@ -12385,11 +12861,10 @@ async function getStaticDataPayload(char, chat, resolvedGlobalNote) {
           >
             <div class="pse-picker-chat-name">
               <span style="min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${escapeHtml(chatName)}</span>
-              ${
-                isCurrent
-                  ? `<span class="pse-picker-tag">${escapeHtml(_T.dlg_continue_chat_current || "current")}</span>`
-                  : ""
-              }
+              ${isCurrent
+            ? `<span class="pse-picker-tag">${escapeHtml(_T.dlg_continue_chat_current || "current")}</span>`
+            : ""
+          }
             </div>
             <div class="pse-picker-chat-meta">
               <span><b>${escapeHtml(String(totalTurns))}</b> ${escapeHtml(_T.dlg_continue_chat_turns || "turns")}</span>
@@ -12452,7 +12927,7 @@ async function getStaticDataPayload(char, chat, resolvedGlobalNote) {
     if (!keysToClean) {
       try {
         keysToClean = (await getScopedKeysForCurrentChat()).requestKeys;
-      } catch {}
+      } catch { }
     }
     if (keysToClean) {
       try {
@@ -12460,29 +12935,29 @@ async function getStaticDataPayload(char, chat, resolvedGlobalNote) {
           keysToClean.lastSyncError,
           fullMsg,
         );
-      } catch {}
+      } catch { }
       try {
         await Risuai.safeLocalStorage.setItem(
           keysToClean.lastExtractorMode,
           "aborted",
         );
-      } catch {}
+      } catch { }
       try {
         await Risuai.safeLocalStorage.removeItem(keysToClean.lastReqHash);
-      } catch {}
+      } catch { }
       try {
         await Risuai.safeLocalStorage.removeItem(keysToClean.lastExtractedData);
-      } catch {}
+      } catch { }
       try {
         await Risuai.safeLocalStorage.removeItem(keysToClean.regenSkip);
-      } catch {}
+      } catch { }
     }
     try {
       await Risuai.safeLocalStorage.setItem(
         LAST_SYNC_ERROR_KEY,
         fullMsg,
       );
-    } catch {}
+    } catch { }
     await Risuai.log(`${LOG} ❌ ${msg} — ${suffix}`);
     // Surface the error visibly to the user so the request never fails silently.
     // Risuai.alertError is available in API v3.0; fall back gracefully if absent.
@@ -12492,7 +12967,7 @@ async function getStaticDataPayload(char, chat, resolvedGlobalNote) {
       } else if (typeof Risuai.alert === "function") {
         await Risuai.alert(`[RisuAI Agent] ${fullMsg}`);
       }
-    } catch {}
+    } catch { }
     throw new Error(`[RisuAI Agent Error] ${msg}\n(${suffix})`);
   }
 
@@ -12517,7 +12992,7 @@ async function getStaticDataPayload(char, chat, resolvedGlobalNote) {
     overlayRoot.innerHTML = `
       <div class="pse-body">
         <div class="pse-card">
-          <h1 class="pse-title">👤 RisuAI Agent v4.0.2</h1>
+          <h1 class="pse-title">👤 RisuAI Agent v4.1.0</h1>
           <div id="pse-status" class="pse-status"></div>
           ${renderModelDatalists()}
 
@@ -12538,16 +13013,16 @@ async function getStaticDataPayload(char, chat, resolvedGlobalNote) {
               <label class="pse-label" style="margin-bottom:6px; color:var(--pse-text);">🌐 Language / 語言 / 언어</label>
               <div style="display:flex;gap:8px;">
                 ${["en", "tc", "ko"]
-                  .map((code) => {
-                    const labels = {
-                      en: "English",
-                      tc: "繁體中文",
-                      ko: "한국어",
-                    };
-                    const active = (configCache?.ui_language || "en") === code;
-                    return `<button class="pse-btn pse-lang-btn${active ? " pse-lang-active" : ""}" data-lang="${code}" type="button" style="flex:1;padding:7px 0;font-size:13px;">${labels[code]}</button>`;
-                  })
-                  .join("")}
+        .map((code) => {
+          const labels = {
+            en: "English",
+            tc: "繁體中文",
+            ko: "한국어",
+          };
+          const active = (configCache?.ui_language || "en") === code;
+          return `<button class="pse-btn pse-lang-btn${active ? " pse-lang-active" : ""}" data-lang="${code}" type="button" style="flex:1;padding:7px 0;font-size:13px;">${labels[code]}</button>`;
+        })
+        .join("")}
               </div>
             </div>
 
@@ -12829,7 +13304,7 @@ async function getStaticDataPayload(char, chat, resolvedGlobalNote) {
         if (overlay) overlay.remove();
         try {
           await Risuai.hideContainer();
-        } catch {}
+        } catch { }
       });
 
     overlayRoot.addEventListener("click", async (e) => {
@@ -12840,7 +13315,7 @@ async function getStaticDataPayload(char, chat, resolvedGlobalNote) {
       if (overlay) overlay.remove();
       try {
         await Risuai.hideContainer();
-      } catch {}
+      } catch { }
     });
 
     /* ── Bind tab switching immediately ── */
@@ -12911,12 +13386,12 @@ async function getStaticDataPayload(char, chat, resolvedGlobalNote) {
           const chunksRaw = await Risuai.pluginStorage.getItem(chunksKey);
           const chunks = chunksRaw
             ? (() => {
-                try {
-                  return JSON.parse(chunksRaw);
-                } catch {
-                  return [];
-                }
-              })()
+              try {
+                return JSON.parse(chunksRaw);
+              } catch {
+                return [];
+              }
+            })()
             : [];
           if (!chunks.length) continue;
           const embedCardKey = makeCardCacheKey(
@@ -12991,7 +13466,7 @@ async function getStaticDataPayload(char, chat, resolvedGlobalNote) {
             vec: vecByCardKey.get(cardKey) || null,
           });
         }
-      } catch {}
+      } catch { }
 
       if (!classifyBlocks.length && !personaBlocks.length) {
         wrap.innerHTML = `<div class="pse-assembly">${_T.no_cache}</div>`;
@@ -13021,22 +13496,20 @@ async function getStaticDataPayload(char, chat, resolvedGlobalNote) {
                 <span style="display:inline-block;padding:2px 8px;border-radius:10px;font-size:10px;font-weight:700;background:rgba(255,171,0,0.1);color:var(--pse-accent-amber);border:1px solid rgba(255,171,0,0.3);margin-left:4px;">
                   ${_T.tag_classify}
                 </span>
-                ${
-                  b.vec
-                    ? `
+                ${b.vec
+                ? `
                 <span style="display:inline-block;padding:2px 8px;border-radius:10px;font-size:10px;font-weight:700;background:rgba(41,121,255,0.1);color:var(--pse-accent-blue);border:1px solid rgba(41,121,255,0.3);">
                   ${_T.tag_vector}
                 </span>`
-                    : ""
-                }
-                ${
-                  b.vec?.modelName
-                    ? `
+                : ""
+              }
+                ${b.vec?.modelName
+                ? `
                 <span style="display:inline-block;padding:2px 8px;border-radius:10px;font-size:10px;font-weight:700;background:rgba(0,230,118,0.1);color:var(--pse-accent-green);border:1px solid rgba(0,230,118,0.3);">
                   ${escapeHtml(b.vec.modelName)}
                 </span>`
-                    : ""
-                }
+                : ""
+              }
               </div>
               <div style="margin-top:4px;"><b>${_T.lbl_chunks}</b>: ${escapeHtml(String(b.chunkCount))}</div>
               <div style="margin-top:4px;"><b>${_T.lbl_filesize}</b>: ${escapeHtml(formatBytes(b.sizeBytes))}</div>
@@ -13058,22 +13531,20 @@ async function getStaticDataPayload(char, chat, resolvedGlobalNote) {
                 <span style="display:inline-block;padding:2px 8px;border-radius:999px;font-size:10px;font-weight:700;background:rgba(255,64,129,0.12);color:#ff4081;border:1px solid rgba(255,64,129,0.35);margin-left:4px;">
                   ${_T.tag_persona}
                 </span>
-                ${
-                  b.vec
-                    ? `
+                ${b.vec
+                ? `
                 <span style="display:inline-block;padding:2px 8px;border-radius:10px;font-size:10px;font-weight:700;background:rgba(41,121,255,0.1);color:var(--pse-accent-blue);border:1px solid rgba(41,121,255,0.3);">
                   ${_T.tag_vector}
                 </span>`
-                    : ""
-                }
-                ${
-                  b.vec?.modelName
-                    ? `
+                : ""
+              }
+                ${b.vec?.modelName
+                ? `
                 <span style="display:inline-block;padding:2px 8px;border-radius:10px;font-size:10px;font-weight:700;background:rgba(0,230,118,0.1);color:var(--pse-accent-green);border:1px solid rgba(0,230,118,0.3);">
                   ${escapeHtml(b.vec.modelName)}
                 </span>`
-                    : ""
-                }
+                : ""
+              }
               </div>
               <div style="margin-top:4px;"><b>${_T.lbl_entries}</b>: ${escapeHtml(String(b.entryCount))}</div>
               <div style="margin-top:4px;"><b>${_T.lbl_filesize}</b>: ${escapeHtml(formatBytes(b.sizeBytes))}</div>
@@ -13136,7 +13607,7 @@ async function getStaticDataPayload(char, chat, resolvedGlobalNote) {
           const parsed = JSON.parse(raw);
           if (Array.isArray(parsed)) chunks = parsed;
         }
-      } catch {}
+      } catch { }
       if (!chunks.length) {
         showStatus(_T.st_persona_refresh_no_chunks, "err");
         return;
@@ -13157,9 +13628,9 @@ async function getStaticDataPayload(char, chat, resolvedGlobalNote) {
                 JSON.stringify(cache),
               );
             }
-          } catch {}
+          } catch { }
         }
-      } catch {}
+      } catch { }
 
       const prevNewPreset = _currentIsNewPreset;
       _currentIsNewPreset = true;
@@ -13174,7 +13645,7 @@ async function getStaticDataPayload(char, chat, resolvedGlobalNote) {
         showStatus(_T.st_persona_refreshed, "ok");
         try {
           alert(_T.st_persona_refreshed);
-        } catch {}
+        } catch { }
       } catch (e) {
         showStatus(
           _T.st_persona_refresh_failed + (e?.message || String(e)),
@@ -13185,7 +13656,7 @@ async function getStaticDataPayload(char, chat, resolvedGlobalNote) {
       }
     };
 
-    Promise.resolve().then(() => renderEmbeddingCacheList()).catch(() => {});
+    Promise.resolve().then(() => renderEmbeddingCacheList()).catch(() => { });
     document.querySelectorAll(".pse-lang-btn").forEach((btn) => {
       btn.addEventListener("click", async () => {
         const lang = btn.dataset.lang;
@@ -13210,7 +13681,7 @@ async function getStaticDataPayload(char, chat, resolvedGlobalNote) {
       try {
         cardSettings =
           JSON.parse(configCache.card_enable_settings || "{}") || {};
-      } catch {}
+      } catch { }
       try {
         const db = await Risuai.getDatabase();
         const characters = Array.isArray(db?.characters) ? db.characters : [];
@@ -13255,12 +13726,12 @@ async function getStaticDataPayload(char, chat, resolvedGlobalNote) {
 
             const memExtract =
               cs.memory_extract &&
-              ["1", "2", "3", "4"].includes(String(cs.memory_extract))
+                ["1", "2", "3", "4"].includes(String(cs.memory_extract))
                 ? String(cs.memory_extract)
                 : "1";
             const vecSearch =
               cs.vector_search &&
-              ["card_reorg", "1", "2"].includes(String(cs.vector_search))
+                ["card_reorg", "1", "2"].includes(String(cs.vector_search))
                 ? String(cs.vector_search)
                 : "card_reorg";
 
@@ -13354,7 +13825,7 @@ async function getStaticDataPayload(char, chat, resolvedGlobalNote) {
 
     /* setPage and tab click handlers were already bound above, right after DOM insertion */
 
-    Promise.resolve().then(() => renderCardEnableList()).catch(() => {});
+    Promise.resolve().then(() => renderCardEnableList()).catch(() => { });
 
     document
       .getElementById("pse-card-enable-list")
@@ -13469,7 +13940,7 @@ async function getStaticDataPayload(char, chat, resolvedGlobalNote) {
           let status = {};
           try {
             status = JSON.parse(rawStatus);
-          } catch {}
+          } catch { }
           const block = noteBtn.closest("[data-persona-card-key]");
           const cardKey = safeTrim(
             block?.getAttribute("data-persona-card-key") || "",
@@ -13618,7 +14089,7 @@ async function getStaticDataPayload(char, chat, resolvedGlobalNote) {
                   await Risuai.log(
                     `${LOG} Delete persona char failed: ${err?.message || String(err)}`,
                   );
-                } catch {}
+                } catch { }
               }
             });
 
@@ -13671,7 +14142,7 @@ async function getStaticDataPayload(char, chat, resolvedGlobalNote) {
                 await Risuai.pluginStorage.removeItem(
                   VCACHE_CARD_PREFIX + cardKey,
                 );
-              } catch {}
+              } catch { }
             }
             embeddingCacheStore = null;
             await saveEmbeddingCacheStore(store, {
@@ -13695,17 +14166,17 @@ async function getStaticDataPayload(char, chat, resolvedGlobalNote) {
             await Risuai.pluginStorage.removeItem(
               makeScopedStorageKey(STATIC_KNOWLEDGE_CHUNKS_KEY, scopeId),
             );
-          } catch {}
+          } catch { }
           try {
             await Risuai.pluginStorage.removeItem(
               makeScopedStorageKey(STATIC_DATA_HASH_KEY, scopeId),
             );
-          } catch {}
+          } catch { }
           try {
             await Risuai.pluginStorage.removeItem(
               makeScopedStorageKey(STEP0_COMPLETE_KEY, scopeId),
             );
-          } catch {}
+          } catch { }
           sessionStep0HandledHashByScope.delete(scopeId);
           await renderEmbeddingCacheList();
           showStatus(_T.st_card_deleted, "ok");
@@ -13738,7 +14209,7 @@ async function getStaticDataPayload(char, chat, resolvedGlobalNote) {
                   await Risuai.pluginStorage.removeItem(
                     VCACHE_CARD_PREFIX + cardKey,
                   );
-                } catch {}
+                } catch { }
               }
               embeddingCacheStore = null;
               await saveEmbeddingCacheStore(store, {
@@ -13746,10 +14217,10 @@ async function getStaticDataPayload(char, chat, resolvedGlobalNote) {
                 replaceCardKeys: removedCard ? [] : [cardKey],
               });
             }
-          } catch {}
+          } catch { }
           try {
             await Risuai.pluginStorage.removeItem(PCACHE_CARD_PREFIX + cardKey);
-          } catch {}
+          } catch { }
           await renderEmbeddingCacheList();
           showStatus(_T.st_card_deleted, "ok");
         }
@@ -13787,7 +14258,7 @@ async function getStaticDataPayload(char, chat, resolvedGlobalNote) {
         document.removeEventListener("keydown", onEsc);
         try {
           overlay.remove();
-        } catch {}
+        } catch { }
       };
       const onEsc = (e) => {
         if (e.key === "Escape") close();
@@ -13969,9 +14440,8 @@ async function getStaticDataPayload(char, chat, resolvedGlobalNote) {
                 </div>
               </div>
             </div>
-            ${
-              showRetention
-                ? `<div class="pse-entry-retention-row" style="display:${e.write_mode === "append" ? "flex" : "none"};align-items:center;gap:8px;flex-wrap:wrap;margin-top:4px;">
+            ${showRetention
+              ? `<div class="pse-entry-retention-row" style="display:${e.write_mode === "append" ? "flex" : "none"};align-items:center;gap:8px;flex-wrap:wrap;margin-top:4px;">
               <input class="pse-entry-retention-enabled" type="checkbox" id="ret_${callIndex}_${entryIndex}" ${e.retention_enabled ? "checked" : ""}
                 title="${_T.ret_enabled_title}" />
               <label for="ret_${callIndex}_${entryIndex}" class="pse-label" style="cursor:pointer;user-select:none;">${_T.ret_after_lbl}</label>
@@ -13982,7 +14452,7 @@ async function getStaticDataPayload(char, chat, resolvedGlobalNote) {
                 style="width:60px;" title="${_T.ret_keep_title}" ${e.retention_enabled ? "" : "disabled"} />
               <label class="pse-label">${_T.ret_end_lbl}</label>
             </div>`
-                : ""
+              : ""
             }
           </div>
         `;
@@ -14010,22 +14480,20 @@ async function getStaticDataPayload(char, chat, resolvedGlobalNote) {
               ${showFreq ? `<div class="pse-entry-col"><label class="pse-label">${_T.lbl_freq}</label><input class="pse-input pse-call-frequency" type="number" min="1" value="${String(call.every_n_turns || 1)}" /></div>` : ""}
               <button class="pse-entry-remove" type="button" data-remove-call="1" ${calls.length <= 1 ? "disabled" : ""}>✕</button>
             </div>
-            ${
-              showReadRounds || showReadLore
-                ? `
+            ${showReadRounds || showReadLore
+              ? `
             <div class="pse-call-row2">
               ${showReadRounds ? `<div class="pse-entry-col"><label class="pse-label">${_T.lbl_read_rounds}</label><input class="pse-input pse-call-read-rounds" type="number" min="0" value="${String(Math.max(0, toInt(call.read_dialogue_rounds, 4)))}" /></div>` : ""}
               ${showReadLore ? `<div class="pse-entry-col"><label class="pse-label">${_T.lbl_read_lore}</label><input class="pse-input pse-call-read-lorebook-names" value="${escapeHtml(String(call.read_lorebook_names || ""))}" /></div>` : ""}
             </div>`
-                : ""
+              : ""
             }
-            ${
-              showReadPersona
-                ? `
+            ${showReadPersona
+              ? `
             <div class="pse-call-row3">
               <div class="pse-entry-col"><label class="pse-label">${_T.lbl_read_persona}</label><input class="pse-input pse-call-read-persona-names" value="${escapeHtml(String(call.read_persona_names || ""))}" /></div>
             </div>`
-                : ""
+              : ""
             }
             <div class="pse-entry-list">${renderCallEntries(call, callIndex, options)}</div>
             <button class="pse-add-entry" type="button" data-add-entry="1" data-call-index="${callIndex}">${_T.btn_add_entry}</button>
@@ -14099,7 +14567,7 @@ async function getStaticDataPayload(char, chat, resolvedGlobalNote) {
         showStatus(message, "err");
         try {
           alert(message);
-        } catch {}
+        } catch { }
       }
     };
 
@@ -14212,13 +14680,13 @@ async function getStaticDataPayload(char, chat, resolvedGlobalNote) {
           if (embProv === "custom_api")
             return safeTrim(
               document.getElementById("embedding_request_model")?.value ||
-                embMod,
+              embMod,
             );
           return safeTrim(
             EMBEDDING_MODEL_TO_REQUEST[embMod] ||
-              embMod ||
-              preset.requestModel ||
-              "",
+            embMod ||
+            preset.requestModel ||
+            "",
           );
         })(),
         embedding_provider_model_map: JSON.stringify(uiEmbeddingProviderModelMap),
@@ -14256,7 +14724,7 @@ async function getStaticDataPayload(char, chat, resolvedGlobalNote) {
           0,
           Number(
             document.getElementById("vector_search_min_score")?.value ||
-              DEFAULTS.vector_search_min_score,
+            DEFAULTS.vector_search_min_score,
           ),
         ),
         vector_search_query_dialogue_rounds_2: Math.max(
@@ -14277,13 +14745,13 @@ async function getStaticDataPayload(char, chat, resolvedGlobalNote) {
           0,
           Number(
             document.getElementById("vector_search_min_score_2")?.value ||
-              DEFAULTS.vector_search_min_score_2,
+            DEFAULTS.vector_search_min_score_2,
           ),
         ),
         init_bootstrap_target_model:
           safeTrim(
             document.getElementById("init_bootstrap_target_model")?.value ||
-              DEFAULTS.init_bootstrap_target_model,
+            DEFAULTS.init_bootstrap_target_model,
           ) === "B"
             ? "B"
             : "A",
@@ -14297,7 +14765,7 @@ async function getStaticDataPayload(char, chat, resolvedGlobalNote) {
           : 0,
         extractor_a_thinking_level: safeTrim(
           document.getElementById("extractor_a_thinking_level")?.value ||
-            "medium",
+          "medium",
         ),
         extractor_b_thinking_enabled: document.getElementById(
           "extractor_b_thinking_enabled",
@@ -14306,7 +14774,7 @@ async function getStaticDataPayload(char, chat, resolvedGlobalNote) {
           : 0,
         extractor_b_thinking_level: safeTrim(
           document.getElementById("extractor_b_thinking_level")?.value ||
-            "medium",
+          "medium",
         ),
         extractor_a_concurrency: toInt(
           document.getElementById("extractor_a_concurrency")?.value,
@@ -14369,7 +14837,7 @@ async function getStaticDataPayload(char, chat, resolvedGlobalNote) {
         autosaveInFlight = false;
         if (autosaveQueued) {
           autosaveQueued = false;
-          runAutosave().catch(() => {});
+          runAutosave().catch(() => { });
         }
       }
     };
@@ -14378,7 +14846,7 @@ async function getStaticDataPayload(char, chat, resolvedGlobalNote) {
       if (autosaveTimer) clearTimeout(autosaveTimer);
       autosaveTimer = setTimeout(() => {
         autosaveTimer = null;
-        runAutosave().catch(() => {});
+        runAutosave().catch(() => { });
       }, delay);
     };
 
@@ -14443,13 +14911,13 @@ async function getStaticDataPayload(char, chat, resolvedGlobalNote) {
             ),
             read_lorebook_names: String(
               card.querySelector(".pse-call-read-lorebook-names")?.value ||
-                existing?.read_lorebook_names ||
-                "",
+              existing?.read_lorebook_names ||
+              "",
             ),
             read_persona_names: String(
               card.querySelector(".pse-call-read-persona-names")?.value ||
-                existing?.read_persona_names ||
-                "",
+              existing?.read_persona_names ||
+              "",
             ),
             entries: entries.length ? entries : [defaultOutputEntry(target)],
           },
@@ -14459,18 +14927,18 @@ async function getStaticDataPayload(char, chat, resolvedGlobalNote) {
       return calls.length
         ? calls
         : [
-            normalizeModelCall(
-              {
-                name: _T.callnote_a,
-                target_model: "A",
-                every_n_turns: 1,
-                read_dialogue_rounds: 4,
-                read_lorebook_names: "",
-                entries: [defaultOutputEntry("A")],
-              },
-              0,
-            ),
-          ];
+          normalizeModelCall(
+            {
+              name: _T.callnote_a,
+              target_model: "A",
+              every_n_turns: 1,
+              read_dialogue_rounds: 4,
+              read_lorebook_names: "",
+              entries: [defaultOutputEntry("A")],
+            },
+            0,
+          ),
+        ];
     };
 
     const syncUiModelCalls = () => {
@@ -14755,7 +15223,7 @@ async function getStaticDataPayload(char, chat, resolvedGlobalNote) {
                   },
                   0,
                 ),
-            );
+              );
             setCalls(calls);
             renderFn();
             scheduleAutosave(0);
@@ -14949,8 +15417,8 @@ async function getStaticDataPayload(char, chat, resolvedGlobalNote) {
 
       let savedCustomUrl = safeTrim(
         uiProviderUrlMap["custom_api"] ||
-          document.getElementById(urlId)?.value ||
-          "",
+        document.getElementById(urlId)?.value ||
+        "",
       );
       let prevProvider = safeTrim(
         document.getElementById(providerId)?.value || "custom_api",
@@ -15051,13 +15519,13 @@ async function getStaticDataPayload(char, chat, resolvedGlobalNote) {
           fillModelDatalist(datalistId, getModelsByProvider(providerNow));
           Promise.resolve()
             .then(() => refreshExtractorModelOptions(providerId, datalistId))
-            .catch(() => {});
+            .catch(() => { });
         }
       };
       providerEl.addEventListener("change", () => {
-        refresh(true).catch(() => {});
+        refresh(true).catch(() => { });
       });
-      refresh(false).catch(() => {});
+      refresh(false).catch(() => { });
     };
 
     const bindProviderFieldHints = (providerId, urlId, keyId) => {
@@ -15125,13 +15593,13 @@ async function getStaticDataPayload(char, chat, resolvedGlobalNote) {
     );
     let currentExtractorAProvider = safeTrim(
       document.getElementById("extractor_a_provider")?.value ||
-        configCache.extractor_a_provider ||
-        "custom_api",
+      configCache.extractor_a_provider ||
+      "custom_api",
     );
     let currentExtractorBProvider = safeTrim(
       document.getElementById("extractor_b_provider")?.value ||
-        configCache.extractor_b_provider ||
-        "custom_api",
+      configCache.extractor_b_provider ||
+      "custom_api",
     );
 
     const getDefaultModelForProvider = (provider) => {
@@ -15277,8 +15745,8 @@ async function getStaticDataPayload(char, chat, resolvedGlobalNote) {
     );
     let currentEmbeddingProvider = safeTrim(
       document.getElementById("embedding_provider")?.value ||
-        configCache.embedding_provider ||
-        "custom_api",
+      configCache.embedding_provider ||
+      "custom_api",
     );
 
     const refreshEmbeddingPresetByProvider = async (applyPreset = true) => {
@@ -15363,8 +15831,8 @@ async function getStaticDataPayload(char, chat, resolvedGlobalNote) {
       if (provider !== "custom_api")
         requestModelEl.value = safeTrim(
           EMBEDDING_MODEL_TO_REQUEST[safeTrim(modelEl.value)] ||
-            preset.requestModel ||
-            "",
+          preset.requestModel ||
+          "",
         );
       else requestModelEl.value = "";
     };
@@ -15372,7 +15840,7 @@ async function getStaticDataPayload(char, chat, resolvedGlobalNote) {
     document
       .getElementById("embedding_provider")
       ?.addEventListener("change", () => {
-        refreshEmbeddingPresetByProvider(true).catch(() => {});
+        refreshEmbeddingPresetByProvider(true).catch(() => { });
       });
     document.getElementById("embedding_url")?.addEventListener("input", () => {
       if (
@@ -15402,12 +15870,12 @@ async function getStaticDataPayload(char, chat, resolvedGlobalNote) {
         if (requestModelEl)
           requestModelEl.value = safeTrim(
             EMBEDDING_MODEL_TO_REQUEST[selectedModel] ||
-              selectedModel ||
-              requestModelEl.value ||
-              "",
+            selectedModel ||
+            requestModelEl.value ||
+            "",
           );
       });
-    refreshEmbeddingPresetByProvider(false).catch(() => {});
+    refreshEmbeddingPresetByProvider(false).catch(() => { });
 
     bindScrollableSuggestionDropdown({
       inputId: "extractor_a_model",
@@ -15488,13 +15956,13 @@ async function getStaticDataPayload(char, chat, resolvedGlobalNote) {
         // (the only user-visible channel available from a replacer context)
         try {
           await Risuai.log(`${LOG} ❌ Request blocked. ${msg}`);
-        } catch {}
+        } catch { }
         try {
           await Risuai.safeLocalStorage.setItem(
             LAST_SYNC_ERROR_KEY,
             `[${new Date().toISOString()}] ${msg}`,
           );
-        } catch {}
+        } catch { }
         // Surface the error visibly if it wasn't already shown by abortMainModelWithAuxError.
         // Avoid double-alerting: abortMainModelWithAuxError embeds "[RisuAI Agent Error]" prefix.
         if (!msg.startsWith("[RisuAI Agent Error]")) {
@@ -15504,7 +15972,7 @@ async function getStaticDataPayload(char, chat, resolvedGlobalNote) {
             } else if (typeof Risuai.alert === "function") {
               await Risuai.alert(`[RisuAI Agent] ❌ ${msg}`);
             }
-          } catch {}
+          } catch { }
         }
         throw outerErr;
       }
@@ -15529,7 +15997,7 @@ async function getStaticDataPayload(char, chat, resolvedGlobalNote) {
           "last_hook_type",
           String(type ?? ""),
         );
-      } catch {}
+      } catch { }
 
       await ensureLangInitialized();
       await refreshConfig();
@@ -15549,7 +16017,7 @@ async function getStaticDataPayload(char, chat, resolvedGlobalNote) {
           try {
             displayCardSettings =
               JSON.parse(configCache.card_enable_settings || "{}") || {};
-          } catch {}
+          } catch { }
           const displayRawCharId = String(
             displayChar?.chaId || displayChar?.id || displayChar?._id || "",
           ).replace(/[^0-9a-zA-Z_-]/g, "");
@@ -15573,7 +16041,7 @@ async function getStaticDataPayload(char, chat, resolvedGlobalNote) {
               displayCardCalls = getModelCallsByPreset(displayMemoryPreset);
             }
           }
-        } catch {}
+        } catch { }
         await applyRetentionCleanup(
           displayUserMsgCount,
           displayCardCalls || [],
@@ -15584,7 +16052,7 @@ async function getStaticDataPayload(char, chat, resolvedGlobalNote) {
           );
           Risuai.log(
             `${LOG} ⚠️ Retention cleanup failed during display hook: ${retentionErr?.message || String(retentionErr)}`,
-          ).catch(() => {});
+          ).catch(() => { });
         });
         return messages;
       }
@@ -15601,7 +16069,7 @@ async function getStaticDataPayload(char, chat, resolvedGlobalNote) {
             modeKey,
             `skipped_non_model:${String(type ?? "")}`,
           );
-        } catch {}
+        } catch { }
         return messages;
       }
 
@@ -15632,7 +16100,7 @@ async function getStaticDataPayload(char, chat, resolvedGlobalNote) {
       try {
         cardSettings =
           JSON.parse(configCache.card_enable_settings || "{}") || {};
-      } catch {}
+      } catch { }
       const rawCharId = String(
         char?.chaId || char?.id || char?._id || "",
       ).replace(/[^0-9a-zA-Z_-]/g, "");
@@ -15650,6 +16118,7 @@ async function getStaticDataPayload(char, chat, resolvedGlobalNote) {
           requestKeys.lastExtractorMode,
           "card_disabled",
         );
+        try { if (ProgressPanel.visible) await ProgressPanel.hide(); } catch (_ppErr) { }
         return messages;
       }
       const cardMemoryPreset = ["1", "2", "3", "4"].includes(
@@ -15672,6 +16141,56 @@ async function getStaticDataPayload(char, chat, resolvedGlobalNote) {
       _currentIsCardReorgEnabled = _cardReorgEnabled;
       _currentIsNewPreset = _newPreset;
 
+      // --- [修正開始] 將向量設定提前載入 ---
+      const vectorPresetNum = _vecPresetNum;
+      const effectiveVecConfig =
+        !_cardReorgEnabled && !_newPreset
+          ? {
+            vector_search_enabled: 0,
+            vector_search_query_dialogue_rounds: configCache.vector_search_query_dialogue_rounds,
+            vector_search_top_k: configCache.vector_search_top_k,
+            vector_search_min_score: configCache.vector_search_min_score,
+          }
+          : _cardReorgOnly || (!_cardReorgEnabled && _newPreset) || vectorPresetNum === 0
+            ? {
+              vector_search_enabled: 0,
+              vector_search_query_dialogue_rounds: configCache.vector_search_query_dialogue_rounds,
+              vector_search_top_k: configCache.vector_search_top_k,
+              vector_search_min_score: configCache.vector_search_min_score,
+            }
+            : {
+              vector_search_enabled: 1,
+              vector_search_query_dialogue_rounds: vectorPresetNum === 2 ? toInt(configCache.vector_search_query_dialogue_rounds_2, DEFAULTS.vector_search_query_dialogue_rounds_2) : toInt(configCache.vector_search_query_dialogue_rounds, DEFAULTS.vector_search_query_dialogue_rounds),
+              vector_search_top_k: vectorPresetNum === 2 ? toInt(configCache.vector_search_top_k_2, DEFAULTS.vector_search_top_k_2) : toInt(configCache.vector_search_top_k, DEFAULTS.vector_search_top_k),
+              vector_search_min_score: vectorPresetNum === 2 ? Number(configCache.vector_search_min_score_2) || DEFAULTS.vector_search_min_score_2 : Number(configCache.vector_search_min_score) || DEFAULTS.vector_search_min_score,
+            };
+      const vecBackup = {
+        vector_search_enabled: configCache.vector_search_enabled,
+        vector_search_query_dialogue_rounds: configCache.vector_search_query_dialogue_rounds,
+        vector_search_top_k: configCache.vector_search_top_k,
+        vector_search_min_score: configCache.vector_search_min_score,
+      };
+      Object.assign(configCache, effectiveVecConfig);
+      const isVectorEnabled = configCache.vector_search_enabled === 1;
+      // --- [修正結束] ---
+
+      // Show progress panel NOW — 此時已有正確的 isVectorEnabled
+      try {
+        const _previewCalls = cardMemoryPreset !== "off"
+          ? getModelCallsByPreset(cardMemoryPreset).filter(c => isModelCallDue(c, userMsgCount))
+          : [];
+        const _previewMain = _previewCalls.filter(c => safeTrim(c.target_model) !== "B").length;
+        const _previewAux = _previewCalls.filter(c => safeTrim(c.target_model) === "B").length;
+        const _previewEmbed = isVectorEnabled ? 1 : 0;
+        await ProgressPanel.show({
+          main: _previewMain, aux: _previewAux, embed: _previewEmbed,
+          mainTokens: 0, auxTokens: 0,
+          isStep0: false,
+        });
+        ProgressPanel.step("extract", _previewCalls.length > 0 ? "pending" : "done");
+        ProgressPanel.step("compose", "pending");
+      } catch (_ppErr) { }
+
       const gNoteData = await getGlobalNoteDataCached(char);
       const resolvedGlobalNote = safeTrim(
         gNoteData.replaceGlobalNote || gNoteData.globalNote,
@@ -15688,67 +16207,6 @@ async function getStaticDataPayload(char, chat, resolvedGlobalNote) {
         staticKeys.staticDataHash,
       );
 
-      const vectorPresetNum = _vecPresetNum;
-
-      const effectiveVecConfig =
-        !_cardReorgEnabled && !_newPreset
-          ? {
-              vector_search_enabled: 0,
-              vector_search_query_dialogue_rounds:
-                configCache.vector_search_query_dialogue_rounds,
-              vector_search_top_k: configCache.vector_search_top_k,
-              vector_search_min_score: configCache.vector_search_min_score,
-            }
-          : _cardReorgOnly ||
-              (!_cardReorgEnabled && _newPreset) ||
-              vectorPresetNum === 0
-            ? {
-                vector_search_enabled: 0,
-                vector_search_query_dialogue_rounds:
-                  configCache.vector_search_query_dialogue_rounds,
-                vector_search_top_k: configCache.vector_search_top_k,
-                vector_search_min_score: configCache.vector_search_min_score,
-              }
-            : {
-                vector_search_enabled: 1,
-                vector_search_query_dialogue_rounds:
-                  vectorPresetNum === 2
-                    ? toInt(
-                        configCache.vector_search_query_dialogue_rounds_2,
-                        DEFAULTS.vector_search_query_dialogue_rounds_2,
-                      )
-                    : toInt(
-                        configCache.vector_search_query_dialogue_rounds,
-                        DEFAULTS.vector_search_query_dialogue_rounds,
-                      ),
-                vector_search_top_k:
-                  vectorPresetNum === 2
-                    ? toInt(
-                        configCache.vector_search_top_k_2,
-                        DEFAULTS.vector_search_top_k_2,
-                      )
-                    : toInt(
-                        configCache.vector_search_top_k,
-                        DEFAULTS.vector_search_top_k,
-                      ),
-                vector_search_min_score:
-                  vectorPresetNum === 2
-                    ? Number(configCache.vector_search_min_score_2) ||
-                      DEFAULTS.vector_search_min_score_2
-                    : Number(configCache.vector_search_min_score) ||
-                      DEFAULTS.vector_search_min_score,
-              };
-      const vecBackup = {
-        vector_search_enabled: configCache.vector_search_enabled,
-        vector_search_query_dialogue_rounds:
-          configCache.vector_search_query_dialogue_rounds,
-        vector_search_top_k: configCache.vector_search_top_k,
-        vector_search_min_score: configCache.vector_search_min_score,
-      };
-      Object.assign(configCache, effectiveVecConfig);
-
-      const isVectorEnabled = configCache.vector_search_enabled === 1;
-
       try {
         let needsStep0 = false;
         let step0Reason = "";
@@ -15762,7 +16220,7 @@ async function getStaticDataPayload(char, chat, resolvedGlobalNote) {
           pendingReason = safeTrim(
             await Risuai.pluginStorage.getItem(staticKeys.step0Pending),
           );
-        } catch {}
+        } catch { }
         const hashChanged = currentStaticHash !== savedStaticHash;
         const sessionHandled =
           currentStaticHash ===
@@ -15774,13 +16232,13 @@ async function getStaticDataPayload(char, chat, resolvedGlobalNote) {
         } else if (!_cardReorgEnabled && !_newPreset) {
           try {
             await Risuai.pluginStorage.setItem(staticKeys.step0Complete, "1");
-          } catch {}
+          } catch { }
           try {
             await Risuai.pluginStorage.setItem(
               staticKeys.staticDataHash,
               currentStaticHash,
             );
-          } catch {}
+          } catch { }
           needsStep0 = false;
         } else if (hashChanged && !sessionHandled) {
           needsStep0 = true;
@@ -15810,13 +16268,13 @@ async function getStaticDataPayload(char, chat, resolvedGlobalNote) {
           } else if (!step0Complete) {
             try {
               await Risuai.pluginStorage.setItem(staticKeys.step0Complete, "1");
-            } catch {}
+            } catch { }
             try {
               await Risuai.pluginStorage.setItem(
                 staticKeys.staticDataHash,
                 currentStaticHash,
               );
-            } catch {}
+            } catch { }
           } else {
             if (isVectorEnabled || _newPreset) {
               const cardKey = await getActiveCardKey(char);
@@ -15851,6 +16309,78 @@ async function getStaticDataPayload(char, chat, resolvedGlobalNote) {
                 step0Reason === "persona_incomplete_pair") &&
                 (await hasCompletedClassification(staticKeys)));
             const reembedMode = step0Reason === "reembed";
+
+            // ── Step 0 progress panel with model call preview ────────────────
+            try {
+              const _needsClassify = _cardReorgEnabled || _newPreset;
+              const _needsEmbed = isVectorEnabled;
+              const _needsPersona = _newPreset;
+
+              // Estimate call counts for Step 0
+              let step0MainCalls = 0;
+              let step0AuxCalls = 0;
+              let step0EmbedCalls = 0;
+
+              if (!reembedMode) {
+                // Classify phase uses aux or main based on init_bootstrap_target_model
+                if (_needsClassify && !classifyDoneMode) {
+                  const bootstrapTarget = safeTrim(
+                    configCache.init_bootstrap_target_model || "A"
+                  );
+                  if (bootstrapTarget === "B") step0AuxCalls += 1;
+                  else step0MainCalls += 1;
+                }
+                // Persona extraction calls — categorize by each call's target_model
+                if (_needsPersona) {
+                  const personaCalls = parsePersonaCalls(configCache.persona_calls);
+                  for (const pc of personaCalls) {
+                    if (safeTrim(pc.target_model) === "B") step0AuxCalls += 1;
+                    else step0MainCalls += 1;
+                  }
+                }
+              }
+              // Embedding calls (1 batch = 1 call estimate)
+              if (_needsEmbed || _needsPersona) {
+                step0EmbedCalls += 1;
+              }
+
+              let step0MainTokens = 0;
+              let step0AuxTokens = 0;
+              try {
+                const payloadStr = JSON.stringify(currentStaticPayload || {});
+                const baseEst = Math.ceil(payloadStr.length / 3.5);
+                // Scale by call count: each call processes a portion of the data
+                if (step0MainCalls > 0) step0MainTokens = Math.ceil((baseEst + 1500) * step0MainCalls * 0.7);
+                if (step0AuxCalls > 0) step0AuxTokens = Math.ceil((baseEst * 0.6 + 1500) * step0AuxCalls * 0.7);
+              } catch { }
+
+              await ProgressPanel.hide();
+              await ProgressPanel.show({
+                main: step0MainCalls,
+                aux: step0AuxCalls,
+                embed: step0EmbedCalls,
+                mainTokens: step0MainTokens,
+                auxTokens: step0AuxTokens,
+                isStep0: true,
+                showClassifyStep: _needsClassify && !classifyDoneMode && !reembedMode,
+                showEmbedStep: _needsEmbed,
+                showPersonaStep: _needsPersona && !reembedMode,
+              });
+
+              const ppChoice = await ProgressPanel.waitForConfirm();
+              ProgressPanel.hideConfirm();
+
+              if (ppChoice === "cancel") {
+                await ProgressPanel.hide();
+                // Throw a sentinel so the outer catch(step0Err) can detect it
+                throw Object.assign(new Error("[RisuAI Agent] Step 0 cancelled by user. Click Regenerate/Send to retry."), { _ppCancelled: true });
+              }
+            } catch (_ppErr) {
+              // Re-throw anything — including the cancel sentinel
+              throw _ppErr;
+            }
+            // ────────────────────────────────────────────────────────────────
+
             if (isVectorEnabled) {
               if (classifyDoneMode) {
                 await Risuai.log(`${LOG} ${_T.log_step0_start_classify_done}`);
@@ -15889,10 +16419,28 @@ async function getStaticDataPayload(char, chat, resolvedGlobalNote) {
             await Risuai.log(`${LOG} ${_T.log_step0_complete}`);
             try {
               await Risuai.pluginStorage.removeItem(staticKeys.step0Pending);
-            } catch {}
+            } catch { }
             if (personaMissingForcedStep0) step0Reason = "";
+            // Transition panel to extraction phase after Step 0 completes
+            try {
+              await ProgressPanel.hide();
+              const _postStep0Calls = cardMemoryPreset !== "off"
+                ? getModelCallsByPreset(cardMemoryPreset).filter(c => isModelCallDue(c, userMsgCount))
+                : [];
+              const _postMain = _postStep0Calls.filter(c => safeTrim(c.target_model) !== "B").length;
+              const _postAux = _postStep0Calls.filter(c => safeTrim(c.target_model) === "B").length;
+              const _postEmbed = isVectorEnabled ? 1 : 0;
+              await ProgressPanel.show({ main: _postMain, aux: _postAux, embed: _postEmbed, mainTokens: 0, auxTokens: 0, isStep0: false });
+            } catch (_ppErr) { }
           } catch (step0Err) {
+            // If user cancelled via the ProgressPanel, it's already a clean abort — don't double-process
+            if (step0Err?._ppCancelled) {
+              await abortMainModelWithAuxError(step0Err.message, requestKeys);
+              return messages; // abortMainModelWithAuxError always throws; this line is never reached but makes the intent explicit
+            }
             const errMsg = step0Err?.message || String(step0Err);
+            // Skip re-logging if abortMainModelWithAuxError already ran (its errors have this prefix)
+            if (String(errMsg).startsWith("[RisuAI Agent Error]")) throw step0Err;
             try {
               await Risuai.safeLocalStorage.setItem(
                 requestKeys.lastSyncError,
@@ -15900,8 +16448,8 @@ async function getStaticDataPayload(char, chat, resolvedGlobalNote) {
               );
               try {
                 await Risuai.safeLocalStorage.removeItem(requestKeys.regenSkip);
-              } catch {}
-            } catch {}
+              } catch { }
+            } catch { }
             await Risuai.log(`${LOG} ${_T.log_step0_failed(errMsg)}`);
             const warnMsg =
               typeof _T.step0_abort_warning === "function"
@@ -15912,7 +16460,7 @@ async function getStaticDataPayload(char, chat, resolvedGlobalNote) {
         } else if (pendingReason) {
           try {
             await Risuai.pluginStorage.removeItem(staticKeys.step0Pending);
-          } catch {}
+          } catch { }
         }
 
         if (
@@ -15973,7 +16521,7 @@ async function getStaticDataPayload(char, chat, resolvedGlobalNote) {
               firstMessageHandledKey,
               firstMessageMarker,
             );
-          } catch {}
+          } catch { }
           await Risuai.safeLocalStorage.setItem(
             requestKeys.lastExtractorMode,
             "skipped_first_message",
@@ -15981,6 +16529,7 @@ async function getStaticDataPayload(char, chat, resolvedGlobalNote) {
           await Risuai.log(
             `${LOG} beforeRequest: skipping extraction on first message.`,
           );
+          try { await ProgressPanel.markDone(); } catch (_ppErr) { }
           return await mergeToSystemPromptWithRewrite(
             messages,
             null,
@@ -16004,6 +16553,7 @@ async function getStaticDataPayload(char, chat, resolvedGlobalNote) {
           await Risuai.log(
             `${LOG} beforeRequest: no usable conversation text.`,
           );
+          try { await ProgressPanel.markDone(); } catch (_ppErr) { }
           return await mergeToSystemPromptWithRewrite(
             messages,
             null,
@@ -16063,13 +16613,13 @@ async function getStaticDataPayload(char, chat, resolvedGlobalNote) {
         if (loreModified) {
           try {
             await Risuai.safeLocalStorage.removeItem(regenSkipKey);
-          } catch {}
+          } catch { }
         }
 
         let savedRegenToken = null;
         try {
           savedRegenToken = await Risuai.safeLocalStorage.getItem(regenSkipKey);
-        } catch {}
+        } catch { }
         if (!loreModified && savedRegenToken === regenSkipToken) {
           await Risuai.safeLocalStorage.setItem(
             requestKeys.lastExtractorMode,
@@ -16078,6 +16628,7 @@ async function getStaticDataPayload(char, chat, resolvedGlobalNote) {
           await Risuai.log(
             `${LOG} beforeRequest: regenerate detected — skipping extraction (same turn, same user message).`,
           );
+          try { await ProgressPanel.markDone(); } catch (_ppErr) { }
           return await mergeToSystemPromptWithRewrite(
             messages,
             null,
@@ -16098,6 +16649,9 @@ async function getStaticDataPayload(char, chat, resolvedGlobalNote) {
             `${LOG} Agent: Calling auxiliary model for analysis and data extraction...`,
           );
 
+          // Mark the extraction step as active now that calls are starting
+          try { ProgressPanel.step("extract", "active"); } catch (_ppErr) { }
+
           const PARALLEL_LIMIT = 3;
           const parallelCalls = dueCalls.filter((c) => {
             const target = safeTrim(c.target_model) === "B" ? "B" : "A";
@@ -16112,6 +16666,9 @@ async function getStaticDataPayload(char, chat, resolvedGlobalNote) {
               : configCache.extractor_a_concurrency !== 1;
           });
 
+          let _runningMainTokens = 0;
+          let _runningAuxTokens = 0;
+
           const executeCall = async (call) => {
             const usePersonaContext =
               _newPreset &&
@@ -16122,6 +16679,18 @@ async function getStaticDataPayload(char, chat, resolvedGlobalNote) {
               char,
               usePersonaContext,
             );
+            
+            try {
+              const estTokens = estimateInputTokensFromMessages(extractedMessages);
+              if (safeTrim(call.target_model) === "B") {
+                _runningAuxTokens += estTokens;
+                ProgressPanel.setTokens("aux", _runningAuxTokens);
+              } else {
+                _runningMainTokens += estTokens;
+                ProgressPanel.setTokens("main", _runningMainTokens);
+              }
+            } catch (_ppErr) { }
+
             const endpoint =
               call.target_model === "B" ? resolved.b : resolved.a;
             try {
@@ -16153,6 +16722,14 @@ async function getStaticDataPayload(char, chat, resolvedGlobalNote) {
               batch.map(executeCall),
             );
             parallelResults.push(...batchResults);
+            // Increment panel counters only for fulfilled (successful) calls
+            try {
+              for (const r of batchResults) {
+                if (r?.status !== "fulfilled") continue;
+                const tgt = r?.value?.call?.target_model;
+                ProgressPanel.increment(tgt === "B" ? "aux" : "main");
+              }
+            } catch (_ppErr) { }
             auxErrors = collectSettledErrors(batchResults);
             if (auxErrors.length > 0) break;
           }
@@ -16164,6 +16741,13 @@ async function getStaticDataPayload(char, chat, resolvedGlobalNote) {
                 (r) => r[0],
               );
               sequentialResults.push(settled);
+              // Increment panel counter only for fulfilled (successful) sequential call
+              try {
+                if (settled?.status === "fulfilled") {
+                  const tgt = settled?.value?.call?.target_model;
+                  ProgressPanel.increment(tgt === "B" ? "aux" : "main");
+                }
+              } catch (_ppErr) { }
               auxErrors = collectSettledErrors([settled]);
               if (auxErrors.length > 0) break;
             }
@@ -16234,8 +16818,15 @@ async function getStaticDataPayload(char, chat, resolvedGlobalNote) {
         if (dueCalls.length > 0) {
           try {
             await Risuai.safeLocalStorage.setItem(regenSkipKey, regenSkipToken);
-          } catch {}
+          } catch { }
         }
+
+        // Mark extract done → compose active → panel will close on markDone
+        try {
+          ProgressPanel.step("extract", "done");
+          ProgressPanel.step("compose", "active");
+          await ProgressPanel.markDone();
+        } catch (_ppErr) { }
 
         return await mergeToSystemPromptWithRewrite(
           messages,
@@ -16246,6 +16837,8 @@ async function getStaticDataPayload(char, chat, resolvedGlobalNote) {
         Object.assign(configCache, vecBackup);
         _currentIsCardReorgEnabled = false;
         _currentIsNewPreset = false;
+        // Always clean up the progress panel on any exit path (guard: only if still visible)
+        try { if (ProgressPanel.visible) await ProgressPanel.hide(); } catch (_ppErr) { }
       }
     })(messages, type);
   }
@@ -16297,7 +16890,7 @@ async function getStaticDataPayload(char, chat, resolvedGlobalNote) {
     console.error(`${LOG} INIT FAILED:`, err);
     try {
       await Risuai.log(`${LOG} failed: ${err?.message || String(err)}`);
-    } catch {}
+    } catch { }
   }
 
   if (typeof Risuai.onUnload === "function") {
@@ -16305,13 +16898,13 @@ async function getStaticDataPayload(char, chat, resolvedGlobalNote) {
       for (const id of uiIds) {
         try {
           await Risuai.unregisterUIPart(id);
-        } catch {}
+        } catch { }
       }
       if (replacerFn) {
         try {
           await Risuai.removeRisuReplacer("beforeRequest", replacerFn);
           replacerRegistered = false;
-        } catch {}
+        } catch { }
       }
     });
   }
