@@ -40,13 +40,13 @@ Instead of forcing your main AI model to juggle memory, world-building, and acti
 ## ✨ Core Features
 
 *   🦾 **Information Extraction:** Distills long, sprawling chat histories into high-density, easily digestible information blocks, completely replacing traditional Supa/HypaMemory and saving massive amounts of tokens.
+*   🔀 **Bot Reorganization:** Dismantles the character card and intelligently re-categorizes entries, injecting them into the most optimal structural positions within the prompt.
 *   👨‍👦 **Broad Prompt Compatibility:** Works alongside your favorite prompts. The plugin includes a built-in guide to help you tweak your presets for maximum compatibility.
 
 **The following advanced features can be selectively enabled based on your needs:**
 
 *   🎬 **Director's Notes:** Actively guides the plot, manages the character's emotional shifts and reactions, and corrects minor logical inconsistencies in real-time.
 *   🔍 **Vector Search:** Replaces rigid keyword matching with intelligent semantic retrieval, drastically increasing the relevance and density of injected background lore.
-*   🔀 **Bot Reorganization:** Dismantles the character card and intelligently re-categorizes entries, injecting them into the most optimal structural positions within the prompt.
 
 ---
 
