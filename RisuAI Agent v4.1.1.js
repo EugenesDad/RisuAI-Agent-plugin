@@ -14629,40 +14629,50 @@ CORRECT EXAMPLE:
       }
     };
 
+    // Helper: safely read a DOM input's value. If the element is absent (tab not
+    // yet rendered), fall back to the current configCache value so we never
+    // overwrite a valid setting with an empty string.
+    const _domStr = (id, cacheKey, def = "") => {
+      const el = document.getElementById(id);
+      if (el) return el.value;
+      const v = configCache[cacheKey];
+      return (v !== undefined && v !== null) ? String(v) : def;
+    };
+    const _domChecked = (id, cacheKey, def = false) => {
+      const el = document.getElementById(id);
+      if (el) return el.checked;
+      const v = configCache[cacheKey];
+      return (v !== undefined && v !== null) ? Number(v) === 1 : def;
+    };
+    const _domNum = (id, cacheKey, def = 0) => {
+      const el = document.getElementById(id);
+      if (el && String(el.value).trim() !== "") return el.value;
+      const v = configCache[cacheKey];
+      return (v !== undefined && v !== null) ? v : def;
+    };
+
     const collectFormData = () => {
       const exAProv = safeTrim(
-        document.getElementById("extractor_a_provider")?.value || "custom_api",
+        document.getElementById("extractor_a_provider")?.value || configCache.extractor_a_provider || "custom_api",
       );
-      const exAMod = safeTrim(
-        document.getElementById("extractor_a_model")?.value || "",
-      );
-      const exAKey = safeTrim(
-        document.getElementById("extractor_a_key")?.value || "",
-      );
+      const exAMod = safeTrim(_domStr("extractor_a_model", "extractor_a_model"));
+      const exAKey = safeTrim(_domStr("extractor_a_key", "extractor_a_key"));
       if (exAProv && exAMod) uiExtractorAProviderModelMap[exAProv] = exAMod;
       if (exAProv && exAKey) uiExtractorAProviderKeyMap[exAProv] = exAKey;
 
       const exBProv = safeTrim(
-        document.getElementById("extractor_b_provider")?.value || "custom_api",
+        document.getElementById("extractor_b_provider")?.value || configCache.extractor_b_provider || "custom_api",
       );
-      const exBMod = safeTrim(
-        document.getElementById("extractor_b_model")?.value || "",
-      );
-      const exBKey = safeTrim(
-        document.getElementById("extractor_b_key")?.value || "",
-      );
+      const exBMod = safeTrim(_domStr("extractor_b_model", "extractor_b_model"));
+      const exBKey = safeTrim(_domStr("extractor_b_key", "extractor_b_key"));
       if (exBProv && exBMod) uiExtractorBProviderModelMap[exBProv] = exBMod;
       if (exBProv && exBKey) uiExtractorBProviderKeyMap[exBProv] = exBKey;
 
       const embProv = safeTrim(
-        document.getElementById("embedding_provider")?.value || "custom_api",
+        document.getElementById("embedding_provider")?.value || configCache.embedding_provider || "custom_api",
       );
-      const embKey = safeTrim(
-        document.getElementById("embedding_key")?.value || "",
-      );
-      const embMod = safeTrim(
-        document.getElementById("embedding_model")?.value || "",
-      );
+      const embKey = safeTrim(_domStr("embedding_key", "embedding_key"));
+      const embMod = safeTrim(_domStr("embedding_model", "embedding_model"));
       if (embProv && embMod) uiEmbeddingProviderModelMap[embProv] = embMod;
       if (embProv && embKey) uiEmbeddingProviderKeyMap[embProv] = embKey;
 
@@ -14680,11 +14690,9 @@ CORRECT EXAMPLE:
       return {
         extractor_a_provider: exAProv,
         extractor_a_format: safeTrim(
-          document.getElementById("extractor_a_format")?.value || "openai",
+          _domStr("extractor_a_format", "extractor_a_format", "openai") || "openai",
         ),
-        extractor_a_url: safeTrim(
-          document.getElementById("extractor_a_url")?.value,
-        ),
+        extractor_a_url: safeTrim(_domStr("extractor_a_url", "extractor_a_url")),
         extractor_a_key: exAKey,
         extractor_a_model: exAMod,
         extractor_a_provider_model_map: JSON.stringify(
@@ -14703,11 +14711,9 @@ CORRECT EXAMPLE:
         ),
         extractor_b_provider: exBProv,
         extractor_b_format: safeTrim(
-          document.getElementById("extractor_b_format")?.value || "openai",
+          _domStr("extractor_b_format", "extractor_b_format", "openai") || "openai",
         ),
-        extractor_b_url: safeTrim(
-          document.getElementById("extractor_b_url")?.value,
-        ),
+        extractor_b_url: safeTrim(_domStr("extractor_b_url", "extractor_b_url")),
         extractor_b_key: exBKey,
         extractor_b_model: exBMod,
         extractor_b_provider_model_map: JSON.stringify(
@@ -14726,10 +14732,10 @@ CORRECT EXAMPLE:
         ),
         embedding_provider: embProv,
         embedding_format: safeTrim(
-          document.getElementById("embedding_format")?.value || "openai",
+          _domStr("embedding_format", "embedding_format", "openai") || "openai",
         ),
         embedding_model: embMod,
-        embedding_url: safeTrim(document.getElementById("embedding_url")?.value),
+        embedding_url: safeTrim(_domStr("embedding_url", "embedding_url")),
         embedding_key: embKey,
         embedding_request_model: (() => {
           const preset =
@@ -14737,7 +14743,7 @@ CORRECT EXAMPLE:
             EMBEDDING_PROVIDER_PRESETS.custom_api;
           if (embProv === "custom_api")
             return safeTrim(
-              document.getElementById("embedding_request_model")?.value ||
+              _domStr("embedding_request_model", "embedding_request_model") ||
               embMod,
             );
           return safeTrim(
@@ -14762,84 +14768,77 @@ CORRECT EXAMPLE:
           (() => { const el = document.getElementById("advanced_prefill_prompt"); return (el && el.value !== undefined) ? el.value : (configCache.advanced_prefill_prompt ?? ""); })(),
         advanced_prereply_prompt:
           (() => { const el = document.getElementById("advanced_prereply_prompt"); return (el && el.value !== undefined) ? el.value : (configCache.advanced_prereply_prompt ?? ""); })(),
-        read_mod_lorebook: document.getElementById("read_mod_lorebook")?.checked ? 1 : 0,
+        read_mod_lorebook: _domChecked("read_mod_lorebook", "read_mod_lorebook") ? 1 : 0,
         vector_search_enabled: configCache.vector_search_enabled ?? DEFAULTS.vector_search_enabled,
         vector_search_query_dialogue_rounds: Math.max(
           1,
           toInt(
-            document.getElementById("vector_search_query_dialogue_rounds")?.value,
+            _domNum("vector_search_query_dialogue_rounds", "vector_search_query_dialogue_rounds"),
             DEFAULTS.vector_search_query_dialogue_rounds,
           ),
         ),
         vector_search_top_k: Math.max(
           1,
           toInt(
-            document.getElementById("vector_search_top_k")?.value,
+            _domNum("vector_search_top_k", "vector_search_top_k"),
             DEFAULTS.vector_search_top_k,
           ),
         ),
         vector_search_min_score: Math.max(
           0,
           Number(
-            document.getElementById("vector_search_min_score")?.value ||
+            _domNum("vector_search_min_score", "vector_search_min_score") ||
             DEFAULTS.vector_search_min_score,
           ),
         ),
         vector_search_query_dialogue_rounds_2: Math.max(
           1,
           toInt(
-            document.getElementById("vector_search_query_dialogue_rounds_2")?.value,
+            _domNum("vector_search_query_dialogue_rounds_2", "vector_search_query_dialogue_rounds_2"),
             DEFAULTS.vector_search_query_dialogue_rounds_2,
           ),
         ),
         vector_search_top_k_2: Math.max(
           1,
           toInt(
-            document.getElementById("vector_search_top_k_2")?.value,
+            _domNum("vector_search_top_k_2", "vector_search_top_k_2"),
             DEFAULTS.vector_search_top_k_2,
           ),
         ),
         vector_search_min_score_2: Math.max(
           0,
           Number(
-            document.getElementById("vector_search_min_score_2")?.value ||
+            _domNum("vector_search_min_score_2", "vector_search_min_score_2") ||
             DEFAULTS.vector_search_min_score_2,
           ),
         ),
         init_bootstrap_target_model:
           safeTrim(
-            document.getElementById("init_bootstrap_target_model")?.value ||
+            _domStr("init_bootstrap_target_model", "init_bootstrap_target_model") ||
             DEFAULTS.init_bootstrap_target_model,
           ) === "B"
             ? "B"
             : "A",
         init_bootstrap_model_anchor_prompt:
-          document.getElementById("init_bootstrap_model_anchor_prompt")?.value ??
-          "",
-        extractor_a_thinking_enabled: document.getElementById(
-          "extractor_a_thinking_enabled",
-        )?.checked
+          _domStr("init_bootstrap_model_anchor_prompt", "init_bootstrap_model_anchor_prompt"),
+        extractor_a_thinking_enabled: _domChecked("extractor_a_thinking_enabled", "extractor_a_thinking_enabled")
           ? 1
           : 0,
         extractor_a_thinking_level: safeTrim(
-          document.getElementById("extractor_a_thinking_level")?.value ||
-          "medium",
+          _domStr("extractor_a_thinking_level", "extractor_a_thinking_level") || "medium",
         ),
-        extractor_b_thinking_enabled: document.getElementById(
-          "extractor_b_thinking_enabled",
-        )?.checked
+        extractor_b_thinking_enabled: _domChecked("extractor_b_thinking_enabled", "extractor_b_thinking_enabled")
           ? 1
           : 0,
         extractor_b_thinking_level: safeTrim(
-          document.getElementById("extractor_b_thinking_level")?.value ||
-          "medium",
+          _domStr("extractor_b_thinking_level", "extractor_b_thinking_level") || "medium",
         ),
         extractor_a_concurrency: toInt(
-          document.getElementById("extractor_a_concurrency")?.value,
+          _domNum("extractor_a_concurrency", "extractor_a_concurrency"),
           1,
         ),
         extractor_b_concurrency: toInt(
-          document.getElementById("extractor_b_concurrency")?.value,
+          _domNum("extractor_b_concurrency", "extractor_b_concurrency"),
           1,
         ),
         context_messages: configCache.context_messages,
@@ -14848,6 +14847,11 @@ CORRECT EXAMPLE:
           const cardList = document.querySelectorAll(
             "#pse-card-enable-list .pse-entry-block",
           );
+          // Guard: if the card list hasn't finished rendering yet (async),
+          // preserve the existing stored value instead of overwriting with {}.
+          if (cardList.length === 0) {
+            return configCache.card_enable_settings ?? JSON.stringify({});
+          }
           const cs = {};
           cardList.forEach((block) => {
             const cid = block.getAttribute("data-card-id");
