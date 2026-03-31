@@ -1,9 +1,9 @@
 //@name 👤 RisuAI Agent
-//@display-name 👤 RisuAI Agent v4.1.1
+//@display-name 👤 RisuAI Agent v4.1.2
 //@author penguineugene@protonmail.com
 //@link https://github.com/EugenesDad/RisuAI-Agent-plugin
 //@api 3.0
-//@version 4.1.1
+//@version 4.1.2
 
 (async () => {
   function _mapLangCode(raw) {
@@ -369,10 +369,32 @@
     </div>
   </div>
 
-  <div style="padding: 12px; border-radius: 8px; border-left: 4px solid #4CAF50; background: rgba(76, 175, 80, 0.05);">
+  <div style="padding: 12px; border-radius: 8px; border-left: 4px solid #4CAF50; background: rgba(76, 175, 80, 0.05); margin-bottom: 12px;">
     <div style="font-weight: bold; color: #2E7D32; margin-bottom: 8px;">📂 Data Storage Information</div>
     • Information extraction records are stored in <b>Lorebook > Chat</b> entries and can be reviewed or adjusted at any time.<br>
     • Index data for bot classification, vector search, and character core is stored in the <b>Cache Hub</b>.
+  </div>
+
+  <div style="padding: 12px; border-radius: 8px; margin-bottom: 12px; border-left: 4px solid #9C27B0; background: rgba(156, 39, 176, 0.05);">
+    <div style="font-weight: bold; color: #9C27B0; margin-bottom: 8px;">🧪 Information Extraction</div>
+    <div style="margin-bottom: 8px;">
+      <div style="font-weight: bold; color: #9C27B0; margin-bottom: 4px;">Settings (Extraction)</div>
+      • JSON structure is strictly locked to ensure stable output from smaller models. Customization via modifying default formats is strongly recommended.<br>
+      • Lorebook entry names must match the first tag in the JSON to be successfully written to the system.<br>
+      • Entries are automatically tagged with turn numbers; in "Append" mode, each output is a separate entry.<br>
+      • If "Always Active" is set to "No", relevant entries are pulled via vector search into System Prompts.<br>
+      • Please plan a clearing strategy when customizing to avoid database bloat.
+    </div>
+    <div style="margin-bottom: 8px;">
+      <div style="font-weight: bold; color: #9C27B0; margin-bottom: 4px;">Settings (Extraction + Director)</div>
+      • Adds a reading field for Character Persona Extraction Lorebook entries.
+    </div>
+    <div>
+      <div style="font-weight: bold; color: #9C27B0; margin-bottom: 4px;">Character Persona Extraction</div>
+      • Tasks are independent. Entries marked as "Character" in classification are sent to the LLM in batches of 5.<br>
+      • Generated entries are stored in the Cache Hub. During chat, relevant characters are pulled via vector search for "Settings (Extraction + Director)".<br>
+      • Contents here do not appear in system prompts.
+    </div>
   </div>
 </div>
 
@@ -384,16 +406,11 @@
       • Go to Information Extraction > Common Prompts, clear the <b style="color: var(--pse-accent-red); font-size: 13px;">Assistant Pre-Reply Prompt</b> and save.<br/>
       • If the error persists, clear the <b style="color: var(--pse-accent-red); font-size: 13px;">Assistant Prefill</b> as well.
     </div>
-    <div style="margin-bottom: 8px;">
+    <div>
       <div style="font-weight: bold; color: var(--pse-accent-blue); margin-bottom: 4px;">❓ What to do if responses are censored or empty</div>
       Since data is split into smaller chunks, NSFW density is higher, which increases the likelihood of censorship.<br/>
       • Strengthen the prefill prompt. However, deeper jailbreaking may degrade performance and output quality.<br/>
       • Switch to a model with less restrictive safety filtering.
-    </div>
-    <div>
-      <div style="font-weight: bold; color: var(--pse-accent-blue); margin-bottom: 4px;">❓ Notes for advanced users modifying prompts in Information Extraction</div>
-      • It is best to maintain the same JSON template.<br/>
-      • Lorebook entry names must match the first tag in the JSON to be correctly written to the system.
     </div>
   </div>`,
       lbl_loading: "Loading...",
@@ -787,10 +804,32 @@ Read upstream layers in this order. When layers conflict, higher layers win.
     </div>
   </div>
 
-  <div style="padding: 12px; border-radius: 8px; border-left: 4px solid #4CAF50; background: rgba(76, 175, 80, 0.05);">
+  <div style="padding: 12px; border-radius: 8px; border-left: 4px solid #4CAF50; background: rgba(76, 175, 80, 0.05); margin-bottom: 12px;">
     <div style="font-weight: bold; color: #2E7D32; margin-bottom: 8px;">📂 데이터 저장 안내</div>
     • 정보 추출 기록은 <b>로어북 > 채팅</b> 항목에 저장되며 언제든지 확인하거나 수정할 수 있습니다.<br>
     • 봇 분류, 벡터 검색 및 캐릭터 핵심의 인덱스 데이터는 <b>캐시 저장소</b>에 저장됩니다.
+  </div>
+
+  <div style="padding: 12px; border-radius: 8px; margin-bottom: 12px; border-left: 4px solid #9C27B0; background: rgba(156, 39, 176, 0.05);">
+    <div style="font-weight: bold; color: #9C27B0; margin-bottom: 8px;">🧪 정보 추출</div>
+    <div style="margin-bottom: 8px;">
+      <div style="font-weight: bold; color: #9C27B0; margin-bottom: 4px;">설정 (추출)</div>
+      • 소형 모델의 안정적인 출력을 위해 JSON 구조가 고정되어 있습니다. 기본 형식을 수정하여 커스텀하는 것을 권장합니다.<br>
+      • 로어북 항목 이름이 JSON의 첫 번째 태그와 일치해야 시스템에 정상적으로 기록됩니다.<br>
+      • 모든 항목에는 자동으로 턴 수가 추가되며, 「추가」 모드 시 매번 독립된 항목으로 생성됩니다.<br>
+      • 「언제나 활성화」를 「아니요」로 설정하면 벡터 검색으로 관련 항목을 추출해 시스템 프롬프트에 넣습니다.<br>
+      • 커스텀 시 데이터베이스 비대화를 방지하기 위해 정리 전략을 계획하는 것이 좋습니다.
+    </div>
+    <div style="margin-bottom: 8px;">
+      <div style="font-weight: bold; color: #9C27B0; margin-bottom: 4px;">설정 (추출 + 디렉터)</div>
+      • 캐릭터 페르소나 추출용 로어북 항목 읽기 칸이 추가됩니다.
+    </div>
+    <div>
+      <div style="font-weight: bold; color: #9C27B0; margin-bottom: 4px;">캐릭터 페르소나 추출</div>
+      • 호출 작업은 독립적이며, 분류에서 "캐릭터"로 표시된 항목을 5개 단위로 모델에 전송합니다.<br>
+      • 생성된 항목은 캐시 저장소에 저장됩니다. 대화 중 벡터 검색으로 관련 캐릭터를 추출하여 「설정 (추출 + 디렉터)」에서 사용합니다.<br>
+      • 이곳의 내용은 시스템 프롬프트에 직접 나타나지 않습니다.
+    </div>
   </div>
 </div>
 
@@ -802,16 +841,11 @@ Read upstream layers in this order. When layers conflict, higher layers win.
       • 정보 추출 > 공통 프롬프트에서 <b style="color: var(--pse-accent-red); font-size: 13px;">사전 응답 프롬프트</b>를 비우고 저장해 주세요.<br/>
       • 여전히 오류가 발생하면 <b style="color: var(--pse-accent-red); font-size: 13px;">어시스턴트 프리필</b>도 비워주세요.
     </div>
-    <div style="margin-bottom: 8px;">
+    <div>
       <div style="font-weight: bold; color: var(--pse-accent-blue); margin-bottom: 4px;">❓ 검열로 인해 빈 응답이 나오거나 출력이 안 될 때</div>
       데이터가 작은 단위로 나뉘어 있어 NSFW 농도가 높게 측정될 수 있으며, 이로 인해 검열 가능성이 높아집니다.<br/>
       • 프리필 프롬프트를 강화하십시오. 단, 과도한 탈옥은 모델 성능과 출력 품질 저하를 유발할 수 있습니다.<br/>
       • 검열이 적은 모델로 교체하십시오.
-    </div>
-    <div>
-      <div style="font-weight: bold; color: var(--pse-accent-blue); margin-bottom: 4px;">❓ 정보 추출 프롬프트 수정 시 고급 사용자 주의사항</div>
-      • 가능한 동일한 JSON 템플릿 구조를 유지하십시오.<br/>
-      • 로어북 항목 이름이 JSON의 첫 번째 태그(Tag)와 일치해야 시스템에 정상적으로 기록됩니다.
     </div>
   </div>`,
       lbl_loading: "로딩 중...",
@@ -1254,6 +1288,28 @@ Practical conflict rule:
     • 資訊萃取的記錄存放於 <b>Lorebook > 聊天</b> 條目內，可隨時檢閱或調整。<br>
     • <b>卡片分類 & 向量搜尋 & 角色核心</b> 的索引資料則會放置於 <b>快取倉庫</b> 內。
   </div>
+
+  <div style="padding: 12px; border-radius: 8px; margin-bottom: 12px; border-left: 4px solid #9C27B0; background: rgba(156, 39, 176, 0.05);">
+    <div style="font-weight: bold; color: #9C27B0; margin-bottom: 8px;">🧪 資訊萃取</div>
+    <div style="margin-bottom: 8px;">
+      <div style="font-weight: bold; color: #9C27B0; margin-bottom: 4px;">設定 (萃取)</div>
+      • 有強制鎖死 JSON 結構，以便小型模型穩定輸出。強烈建議以修改預設格式的方式進行自定義。<br>
+      • Lorebook 條目名稱必須與 JSON 的第一個標籤 (Tag) 相同，才能順利寫入系統。<br>
+      • 系統會自動為寫入條目加上回合數；若模式為「添加」，則每次產出皆為獨立條目。<br>
+      • 若「始終啟用」選「否」，則會以向量搜尋抽出關聯條目放入 System Prompts。<br>
+      • 自行修改時建議規劃清理策略，避免資料庫無效膨脹。
+    </div>
+    <div style="margin-bottom: 8px;">
+      <div style="font-weight: bold; color: #9C27B0; margin-bottom: 4px;">設定 (萃取 + 導演)</div>
+      • 增加角色人格萃取的 Lorebook 條目讀取格。
+    </div>
+    <div>
+      <div style="font-weight: bold; color: #9C27B0; margin-bottom: 4px;">角色人格萃取</div>
+      • 呼叫任務皆為獨立，會將分類中被標記成「角色」的條目，以 5 條一組傳送給 LLM。<br>
+      • 產出條目儲存於快取倉庫。對話時以向量搜尋抽出相關角色後，交給設定 (萃取 + 導演) 使用。<br>
+      • 這邊的內容都不會出現於 system prompts 中。
+    </div>
+  </div>
 </div>
 
   <div style="padding: 12px; border-radius: 8px; border-left: 4px solid var(--pse-accent-blue); background: rgba(33, 150, 243, 0.05);">
@@ -1269,11 +1325,6 @@ Practical conflict rule:
       因為資料量被切割成比較小塊，所以NSFW濃度比較高，進而增加被審查機率。<br>
       • 加強預填入提示詞。但越獄可能會導致性能下降，影響輸出品質。<br>
       • 換成審查力度較小的模型。
-    </div>
-<div>
-      <div style="font-weight: bold; color: var(--pse-accent-blue); margin-bottom: 4px;">❓ 進階使用者、自行修改資訊萃取內提示詞的注意事項</div>
-      • 最好維持相同的json範本。<br>
-      • Lorebook條目名稱必須與json的第一個tag相同，才能順利寫入系統。
     </div>
   </div>`,
 
@@ -1398,7 +1449,7 @@ Practical conflict rule:
   let _langInitialized = false;
 
   const PLUGIN_NAME = "👤 RisuAI Agent";
-  const PLUGIN_VER = "4.1.1";
+  const PLUGIN_VER = "4.1.2";
   const LOG = "[RisuAIAgent]";
   const SYSTEM_INJECT_TAG = "PLUGIN_PARALLEL_STATUS";
   const SYSTEM_REWRITE_TAG = "PLUGIN_PARALLEL_REWRITE";
@@ -13050,7 +13101,7 @@ CORRECT EXAMPLE:
     overlayRoot.innerHTML = `
       <div class="pse-body">
         <div class="pse-card">
-          <h1 class="pse-title">👤 RisuAI Agent v4.1.1</h1>
+          <h1 class="pse-title">👤 RisuAI Agent v4.1.2</h1>
           <div id="pse-status" class="pse-status"></div>
           ${renderModelDatalists()}
 
