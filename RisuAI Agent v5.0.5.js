@@ -1,9 +1,9 @@
 //@name 👤 RisuAI Agent
-//@display-name 👤 RisuAI Agent v5.0
+//@display-name 👤 RisuAI Agent v5.0.5
 //@author penguineugene@protonmail.com
 //@link https://github.com/EugenesDad/RisuAI-Agent-plugin
 //@api 3.0
-//@version 5.0
+//@version 5.0.5
 
 (async () => {
  function _mapLangCode(raw) {
@@ -114,7 +114,16 @@
  lbl_entries: "Entries",
  lbl_filesize: "File Size",
  btn_delete: "Delete",
- btn_refresh_persona: "Add Unregistered Characters",
+ btn_refresh_persona: "Auto-Append Characters",
+ btn_manual_append_persona: "Manual Append",
+ manual_append_title: "Manual Character Entry",
+ manual_append_guide: "Copy the prompt below and feed it to another LLM along with the character data. Then paste the result into the input box and click \"Submit Data\".",
+ btn_copy_prompt: "Copy Prompt",
+ btn_input_data: "Submit Data",
+ st_manual_append_ok: (n) => `Written successfully. ${n} character(s) added.`,
+ st_manual_append_partial: (written, skipped) => `Partial success: ${written} written, ${skipped} skipped (incomplete pairs or empty data).`,
+ st_manual_append_failed: "Write failed: ",
+ st_manual_append_invalid_json: "Could not parse JSON. Please paste valid JSON output from the LLM.",
  lbl_classify_only: "Classification only",
  lbl_chunks: "Entries",
  tag_vector: "Vector",
@@ -149,15 +158,19 @@
  lbl_persona_entries: "Character Persona Entries",
  lbl_persona_entries_count: "Character",
  lbl_delete_char_cache: "Delete this character's cache",
+ lbl_char_editor: "Edit Character Cache",
+ st_char_edit_saved: "Character cache updated.",
+ st_char_edit_invalid_json: "Invalid JSON — please check the format and try again.",
+ st_char_edit_failed: "Save failed: ",
  lbl_no_persona_data: "No character data found.",
  model_suggest_title: " Recommended Models",
  model_suggest_s1: `<b>Setting 1: Single Character or Light Adventure Bot</b><br/>• Main Model: Models suited for summarizing large datasets (Gemini 3 Flash)<br/>• Auxiliary Model: Non-coding models for 1k~5k context (Gemini 3.1 Flash Lite)<br/>• Embedding Model: Multilingual vector search model (gemini-embedding-2-preview)`,
  model_suggest_s2: `<b>Setting 1 or 2: Complex or Multi-Character Bots</b><br/>• Main Model: Models for deep analysis of large datasets (Gemini 3.1 Pro, Claude 4.6 Sonnet)<br/>• Auxiliary Model: High-performance models for 1k~10k context (Gemini 3 Flash)<br/>• Embedding Model: Multilingual vector search model (gemini-embedding-2-preview)`,
  mode_guide_title: " Mode Guide & Model Call Instructions",
- mode_guide_content: `<div style="border-top: 1px solid rgba(255, 152, 0, 0.1); padding-top: 12px;"> <!--  Initial Setup (Violet) --> <div style=" background: rgba(156, 39, 176, 0.10); padding: 8px 12px; border-radius: 8px; margin-bottom: 16px;"> <b style="color:var(--pse-text); font-size: 14px;"> Initial Setup</b> <div style="margin-top: 6px; display: grid; gap: 4px; font-size: 12px; color: var(--pse-text);"> <div>• <b>Classification:</b> Captures the first paragraph of Character Description, Lorebook characters, and Replace Global Note, sending them in groups of 25 to the model for tag classification.</div> <div>• <b>Persona Extraction (When Director mode is enabled):</b> Next, entries tagged as characters are sent to the LLM in groups of 20 for persona extraction.</div> <div>• <b>Vector (When Director mode or Vector Search is enabled):</b> Finally, the vector model sends data in batches according to each provider's default settings to obtain vector tags.</div> </div> </div> <!--  Default Mode Choice (Indigo) --> <div style=" background: rgba(63, 81, 181, 0.10); padding: 8px 12px; border-radius: 8px; margin-bottom: 16px;"> <b style="color:var(--pse-text); font-size: 14px;"> Default Mode Choice</b> <div style="margin-top: 6px; display: grid; gap: 4px; margin-bottom: 8px; font-size: 12px; color: var(--pse-text);"> <div>• <b>Settings Difference:</b> "Setting 1" is for general bots; "Setting 2" is designed for complex plots.</div> <div>• <b>Extraction:</b> Condenses chat logs, replacing traditional long-turn dialogue and Supa/Hypa Memory.</div> <div>• <b>Director:</b> Guides the plot and character reactions, enhancing depth and continuity.</div> <div>• <b>Bot Reorg Only:</b> Reclassifies bot entries into the most effective positions in the prompt structure.</div> <div>• <b>Enable Vector Search:</b> Replaces keyword matching with semantic search to increase info density.</div> <div>• <b>No Embedding Model:</b> Setting 1/2(Extraction) + Bot Reorg Only</div> </div> </div> <!--  Model Call Frequency (Blue) --> <div style=" background: rgba(33, 150, 243, 0.12); padding: 8px 12px; border-radius: 8px; margin-bottom: 16px;"> <b style="color:var(--pse-text); font-size: 14px;"> Model Call Frequency</b> <div style="margin-top: 8px;"> <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 8px;"> <span style="background: var(--pse-accent-blue); color: white; padding: 1px 6px; border-radius: 4px; font-size: 11px; font-weight: bold;">New Chat</span> <span style="color: var(--pse-muted); font-size: 12px;">More complex setups take longer to initialize</span> </div> <div style="display: grid; gap: 4px; padding-left: 4px; margin-bottom: 12px; font-size: 12px; color: var(--pse-text);"> <div>• <b>Director:</b> Calls Main model for persona extraction</div> <div>• <b>Bot Reorg:</b> Calls Aux model for data classification</div> <div>• <b>Vector Search:</b> Calls Embedding model to build index</div> </div> <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 8px;"> <span style="background: var(--pse-accent-blue); color: white; padding: 1px 6px; border-radius: 4px; font-size: 11px; font-weight: bold;">During Chat</span> </div> <div style="display:grid; gap:8px; padding-left:4px;"> <div style="background:rgba(33, 150, 243, 0.1); border:1px solid rgba(33, 150, 243, 0.2); padding:8px; border-radius:6px;"> <div style="color:var(--pse-text); font-weight:bold; font-size:12px; margin-bottom:4px; border-bottom:1px solid rgba(33, 150, 243, 0.1);"> Extraction Mode</div> <div style="font-size:12px; color:var(--pse-text);"> • <b>Setting 1:</b> Main (1 call/10, 15 turns), Aux (2/turn + 1 call/3 turns)<br/> • <b>Setting 2:</b> Main (1 call/3, 10, 15 turns), Aux (3/turn + 1 call/2, 3 turns)
- </div> </div> <div style="background:rgba(33, 150, 243, 0.1); border:1px solid rgba(33, 150, 243, 0.2); padding:8px; border-radius:6px;"> <div style="color:var(--pse-text); font-weight:bold; font-size:12px; margin-bottom:4px; border-bottom:1px solid rgba(33, 150, 243, 0.1);"> Extraction + Director</div> <div style="font-size:12px; color:var(--pse-text);"> • <b>Setting 1:</b> Main (1 call/10, 15 turns), Aux (4/turn + 1 call/3 turns)<br/> • <b>Setting 2:</b> Main (1 call/4, 10, 15 turns), Aux (4/turn + 1 call/2, 3 turns)
- </div> </div> <div style="background:rgba(33, 150, 243, 0.1); border:1px solid rgba(33, 150, 243, 0.2); padding:8px; border-radius:6px;"> <div style="color:var(--pse-text); font-weight:bold; font-size:12px; margin-bottom:4px; border-bottom:1px solid rgba(33, 150, 243, 0.1);"> Director & Vector Search</div> <div style="font-size:12px; color:var(--pse-text);"> • <b>Freq:</b> Embedding model 1 call/turn.
- </div> </div> </div> </div> </div> <!--  Continue Chat (Teal) --> <div style=" background: rgba(0, 150, 136, 0.08); padding: 8px 12px; border-radius: 8px; margin-bottom: 16px;"> <b style="color: var(--pse-accent-teal, #009688); font-size: 14px;"> Continue Chat</b> <div style="margin-top: 6px; display: grid; gap: 4px; font-size: 12px; color: var(--pse-text);"> <div>• Only use when you experience lag.</div> <div>• After clicking "Continue Chat", a list of chats for that character will appear. Click the record you want to continue.</div> <div>• You can then continue by using the record suffixed with "(continue)".</div> </div> </div> <!--  Custom Preset Users (Rose) --> <div style=" background: rgba(255, 23, 68, 0.10); padding: 8px 12px; border-radius: 8px; margin-bottom: 16px;"> <b style="color:var(--pse-muted); font-size: 14px;"> Custom Preset Users</b> <div style="margin-top: 6px; display: grid; gap: 4px; font-size: 12px; color: var(--pse-text);"> <div>• "Preset Setting 1" or "Preset Setting 2" will appear on the bot card. Click and follow the instructions.</div> </div> </div> </div>`,
+ mode_guide_content: `<div style="border-top: 1px solid rgba(255, 152, 0, 0.1); padding-top: 12px;"> <!--  Initial Setup (Violet) --> <div style=" background: rgba(156, 39, 176, 0.20); padding: 8px 12px; border-radius: 8px; margin-bottom: 16px;"> <b style="color:var(--pse-text); font-size: 14px;"> Initial Setup</b> <div style="margin-top: 6px; display: grid; gap: 4px; font-size: 12px; color: var(--pse-text);"> <div>• <b>Classification:</b> Captures the first paragraph of Character Description, Lorebook characters, and Replace Global Note, sending them in groups of 25 to the model for tag classification.</div> <div>• <b>Persona Extraction (When Director mode is enabled):</b> Next, entries tagged as characters are sent to the LLM in groups of 20 for persona extraction.</div> <div>• <b>Vector (When Director mode or Vector Search is enabled):</b> Finally, the vector model sends data in batches according to each provider's default settings to obtain vector tags.</div> </div> </div> <!--  Default Mode Choice (Indigo) --> <div style=" background: rgba(63, 81, 181, 0.20); padding: 8px 12px; border-radius: 8px; margin-bottom: 16px;"> <b style="color:var(--pse-text); font-size: 14px;"> Default Mode Choice</b> <div style="margin-top: 6px; display: grid; gap: 4px; margin-bottom: 8px; font-size: 12px; color: var(--pse-text);"> <div>• <b>Settings Difference:</b> "Setting 1" is for general bots; "Setting 2" is designed for complex plots.</div> <div>• <b>Extraction:</b> Condenses chat logs, replacing traditional long-turn dialogue and Supa/Hypa Memory.</div> <div>• <b>Director:</b> Guides the plot and character reactions, enhancing depth and continuity.</div> <div>• <b>Bot Reorg Only:</b> Reclassifies bot entries into the most effective positions in the prompt structure.</div> <div>• <b>Enable Vector Search:</b> Replaces keyword matching with semantic search to increase info density.</div> <div>• <b>No Embedding Model:</b> Setting 1/2(Extraction) + Bot Reorg Only</div> </div> </div> <!--  Model Call Frequency (Blue) --> <div style=" background: rgba(33, 150, 243, 0.22); padding: 8px 12px; border-radius: 8px; margin-bottom: 16px;"> <b style="color:var(--pse-text); font-size: 14px;"> Model Call Frequency</b> <div style="margin-top: 8px;"> <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 8px;"> <span style="background: var(--pse-accent-blue); color: white; padding: 1px 6px; border-radius: 4px; font-size: 11px; font-weight: bold;">New Chat</span> <span style="color: var(--pse-muted); font-size: 12px;">More complex setups take longer to initialize</span> </div> <div style="display: grid; gap: 4px; padding-left: 4px; margin-bottom: 12px; font-size: 12px; color: var(--pse-text);"> <div>• <b>Director:</b> Calls Main model for persona extraction</div> <div>• <b>Bot Reorg:</b> Calls Aux model for data classification</div> <div>• <b>Vector Search:</b> Calls Embedding model to build index</div> </div> <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 8px;"> <span style="background: var(--pse-accent-blue); color: white; padding: 1px 6px; border-radius: 4px; font-size: 11px; font-weight: bold;">During Chat</span> </div> <div style="display:grid; gap:8px; padding-left:4px;"> <div style="background:rgba(33, 150, 243, 0.20); border:1px solid rgba(33, 150, 243, 0.38); padding:8px; border-radius:6px;"> <div style="color:var(--pse-text); font-weight:bold; font-size:12px; margin-bottom:4px; border-bottom:1px solid rgba(33, 150, 243, 0.25);"> Extraction Mode</div> <div style="font-size:12px; color:var(--pse-text);"> • <b>Setting 1:</b> Main (1 call/10, 15 turns), Aux (2/turn + 1 call/3 turns)<br/> • <b>Setting 2:</b> Main (1 call/3, 10, 15 turns), Aux (3/turn + 1 call/2, 3 turns)
+ </div> </div> <div style="background:rgba(33, 150, 243, 0.20); border:1px solid rgba(33, 150, 243, 0.38); padding:8px; border-radius:6px;"> <div style="color:var(--pse-text); font-weight:bold; font-size:12px; margin-bottom:4px; border-bottom:1px solid rgba(33, 150, 243, 0.25);"> Extraction + Director</div> <div style="font-size:12px; color:var(--pse-text);"> • <b>Setting 1:</b> Main (1 call/10, 15 turns), Aux (4/turn + 1 call/3 turns)<br/> • <b>Setting 2:</b> Main (1 call/4, 10, 15 turns), Aux (4/turn + 1 call/2, 3 turns)
+ </div> </div> <div style="background:rgba(33, 150, 243, 0.20); border:1px solid rgba(33, 150, 243, 0.38); padding:8px; border-radius:6px;"> <div style="color:var(--pse-text); font-weight:bold; font-size:12px; margin-bottom:4px; border-bottom:1px solid rgba(33, 150, 243, 0.25);"> Director & Vector Search</div> <div style="font-size:12px; color:var(--pse-text);"> • <b>Freq:</b> Embedding model 1 call/turn.
+ </div> </div> </div> </div> </div> <!--  Continue Chat (Teal) --> <div style=" background: rgba(0, 150, 136, 0.18); padding: 8px 12px; border-radius: 8px; margin-bottom: 16px;"> <b style="color: var(--pse-accent-teal, #003028); font-size: 14px;"> Continue Chat</b> <div style="margin-top: 6px; display: grid; gap: 4px; font-size: 12px; color: var(--pse-text);"> <div>• Only use when you experience lag.</div> <div>• After clicking "Continue Chat", a list of chats for that character will appear. Click the record you want to continue.</div> <div>• You can then continue by using the record suffixed with "(continue)".</div> </div> </div> <!--  Custom Preset Users (Rose) --> <div style=" background: rgba(255, 23, 68, 0.20); padding: 8px 12px; border-radius: 8px; margin-bottom: 16px;"> <b style="color:var(--pse-muted); font-size: 14px;"> Custom Preset Users</b> <div style="margin-top: 6px; display: grid; gap: 4px; font-size: 12px; color: var(--pse-text);"> <div>• "Preset Setting 1" or "Preset Setting 2" will appear on the bot card. Click and follow the instructions.</div> </div> </div> </div>`,
  btn_reset_factory: "Reset All to Factory Defaults",
  editor_cancel: "Cancel",
  editor_apply: "Apply",
@@ -250,10 +263,10 @@
  help_tab_p2: "Preset 2",
  mode_guide_title: " Mode Explanation & Model Call Guide",
  mode_guide_click: "(Click to expand/collapse)",
- help_html: `<div style="font-family: inherit; line-height: 1.5;"> <div style="padding: 12px; border-radius: 8px; margin-bottom: 12px; background: rgba(233, 30, 99, 0.12);"> <div style="font-weight: bold; color: #E91E63; margin-bottom: 8px;"> Plugin Guide</div> <div style="margin-bottom: 4px;">Detailed guides are available at the top of individual pages.</div> <div style="margin-bottom: 4px;">• <b>Enable Settings:</b> Configure the plugin mode for individual cards.</div> <div style="margin-bottom: 4px;">• <b>Core Models:</b> Set the main, auxiliary, and embedding models. These are independent of RisuAI's built-in models.</div> <div style="margin-bottom: 4px;">• <b>Cache Hub:</b> Stores data for Card Classification, Vector Search, and Character Core.</div> <div style="margin-bottom: 4px;">• <b>Information Extraction:</b> For advanced users. Customize details for Extraction & Director mode details.</div> <div>• <b>Vector Search:</b> For advanced users. Customize vector search details.</div> </div> <div style="padding: 12px; border-radius: 8px; margin-bottom: 12px; background: rgba(255, 179, 0, 0.12);"> <div style="font-weight: bold; color: #FB8C00; margin-bottom: 8px;"> Preset Modification Guide</div> <div style="margin-bottom: 4px;">1. Delete fields: <b>Character Description, Lorebook, Global Note, Supa/HypaMemory</b>.</div> <div style="margin-bottom: 12px;">2. <b>Advanced Settings:</b> Enter Chat > Check \"Advanced\", then set <b>Range Start</b> to <b>-10</b>.</div> <div style="margin-bottom: 12px;">The above adjustments are sufficient.</div> <div>3. To achieve 100% performance of this plugin, further edit the system prompt to demote the AI's identity to an <b>Actor</b>.</div> </div> <div style="padding: 12px; border-radius: 8px; margin-bottom: 12px; background: rgba(76, 175, 80, 0.12);"> <div style="font-weight: bold; color: #2E7D32; margin-bottom: 8px;">Compatibility</div> <div style="margin-bottom: 8px;"> <div style="font-weight: bold; color: #43A047; margin-bottom: 4px;"> Compatible</div> • In plugin mode, you can switch between (already modified) presets mid-session.<br> • In plugin mode, you can toggle Card Reorganization and Vector Search functions mid-session.<br> • Can transition smoothly to non-plugin mode.
- </div> <div> <div style="font-weight: bold; color: #E53935; margin-bottom: 4px;"> Caution</div> • Default preset prompts must be modified to use this plugin.<br> • Cannot connect directly to non-plugin chat history.<br> • Do not repeatedly toggle the plugin on/off mid-conversation.
- </div> </div> <div style="padding: 12px; border-radius: 8px; background: rgba(76, 175, 80, 0.12); margin-bottom: 12px;"> <div style="font-weight: bold; color: #2E7D32; margin-bottom: 8px;"> Data Storage</div> • Information extraction records are stored in <b>Lorebook > Chat</b> entries and can be reviewed or adjusted at any time.<br> • Index data for Card Classification, Vector Search, and Character Core is stored in the <b>Cache Hub</b>.
- </div> <div style="padding: 12px; border-radius: 8px; background: rgba(33, 150, 243, 0.12);"> <div style="font-weight: bold; color:var(--pse-text); margin-bottom: 8px;">⁉ Q&A</div> <div style="margin-bottom: 8px;"> <div style="font-weight: bold; color:var(--pse-text); margin-bottom: 4px;"> If <b style="color: var(--pse-accent-red); font-size: 13px;">ERROR 400: Call model not supported</b> appears</div> • This means you may be using Claude, DeepSeek, Mistral, or a model that doesn't support prefill format.<br/> • Go to Information Extraction > Common Prompts, and clear <b style="color: var(--pse-accent-red); font-size: 13px;">Assistant Prefill</b>.
+ help_html: `<div style="font-family: inherit; line-height: 1.5;"> <div style="padding: 12px; border-radius: 8px; margin-bottom: 12px; background: rgba(233, 30, 99, 0.22);"> <div style="font-weight: bold; color: #700E2F; margin-bottom: 8px;"> Plugin Guide</div> <div style="margin-bottom: 4px;">Detailed guides are available at the top of individual pages.</div> <div style="margin-bottom: 4px;">• <b>Enable Settings:</b> Configure the plugin mode for individual cards.</div> <div style="margin-bottom: 4px;">• <b>Core Models:</b> Set the main, auxiliary, and embedding models. These are independent of RisuAI's built-in models.</div> <div style="margin-bottom: 4px;">• <b>Cache Hub:</b> Stores data for Card Classification, Vector Search, and Character Core.</div> <div style="margin-bottom: 4px;">• <b>Information Extraction:</b> For advanced users. Customize details for Extraction & Director mode details.</div> <div>• <b>Vector Search:</b> For advanced users. Customize vector search details.</div> </div> <div style="padding: 12px; border-radius: 8px; margin-bottom: 12px; background: rgba(255, 179, 0, 0.22);"> <div style="font-weight: bold; color: #7D4500; margin-bottom: 8px;"> Preset Modification Guide</div> <div style="margin-bottom: 4px;">1. Delete fields: <b>Character Description, Lorebook, Global Note, Supa/HypaMemory</b>.</div> <div style="margin-bottom: 12px;">2. <b>Advanced Settings:</b> Enter Chat > Check \"Advanced\", then set <b>Range Start</b> to <b>-10</b>.</div> <div style="margin-bottom: 12px;">The above adjustments are sufficient.</div> <div>3. To achieve 100% performance of this plugin, further edit the system prompt to demote the AI's identity to an <b>Actor</b>.</div> </div> <div style="padding: 12px; border-radius: 8px; margin-bottom: 12px; background: rgba(76, 175, 80, 0.22);"> <div style="font-weight: bold; color: #153D18; margin-bottom: 8px;">Compatibility</div> <div style="margin-bottom: 8px;"> <div style="font-weight: bold; color: #204F23; margin-bottom: 4px;"> Compatible</div> • In plugin mode, you can switch between (already modified) presets mid-session.<br> • In plugin mode, you can toggle Card Reorganization and Vector Search functions mid-session.<br> • Can transition smoothly to non-plugin mode.
+ </div> <div> <div style="font-weight: bold; color: #701B1A; margin-bottom: 4px;"> Caution</div> • Default preset prompts must be modified to use this plugin.<br> • Cannot connect directly to non-plugin chat history.<br> • Do not repeatedly toggle the plugin on/off mid-conversation.
+ </div> </div> <div style="padding: 12px; border-radius: 8px; background: rgba(76, 175, 80, 0.22); margin-bottom: 12px;"> <div style="font-weight: bold; color: #153D18; margin-bottom: 8px;"> Data Storage</div> • Information extraction records are stored in <b>Lorebook > Chat</b> entries and can be reviewed or adjusted at any time.<br> • Index data for Card Classification, Vector Search, and Character Core is stored in the <b>Cache Hub</b>.
+ </div> <div style="padding: 12px; border-radius: 8px; background: rgba(33, 150, 243, 0.22);"> <div style="font-weight: bold; color:var(--pse-text); margin-bottom: 8px;">⁉ Q&A</div> <div style="margin-bottom: 8px;"> <div style="font-weight: bold; color:var(--pse-text); margin-bottom: 4px;"> If <b style="color: var(--pse-accent-red); font-size: 13px;">ERROR 400: Call model not supported</b> appears</div> • This means you may be using Claude, DeepSeek, Mistral, or a model that doesn't support prefill format.<br/> • Go to Information Extraction > Common Prompts, and clear <b style="color: var(--pse-accent-red); font-size: 13px;">Assistant Prefill</b>.
  </div> <div> <div style="font-weight: bold; color:var(--pse-text); margin-bottom: 4px;"> What to do if responses are censored or empty</div> Since data is split into smaller chunks, NSFW density is higher, which increases the likelihood of censorship.<br/> • Strengthen the prefill prompt.<br/> • Switch to a model with less restrictive safety filtering.
  </div> </div>
 </div>`,
@@ -304,7 +317,7 @@
  lbl_custom_preset_guide: " For Custom Preset Users",
  auto_inject_title: " Auto-Injection Enabled",
  auto_inject_desc: "Default settings detected. The system will <b>automatically</b> inject the System Prompts. No manual setup required!",
- help_p1_html: `<div style=" background: rgba(255, 171, 0, 0.12); padding: 12px; border-radius: 8px;"> <b style="color:var(--pse-muted); font-size: 14px;"> Preset Adjustment Guide</b> <div style="margin-top: 8px; font-size: 13px; line-height: 1.6; color: var(--pse-text);"> <div style="margin-bottom: 4px;">1. <b>Delete fields:</b> Character Description, Lorebook, Global Note, Supa/HypaMemory.</div> <div style="margin-bottom: 12px;">2. <b>Advanced Settings:</b> Enter Chat > Check "Advanced", then set <b>Range Start</b> to <b>-10</b>.</div> <b style="color:var(--pse-muted); font-size: 14px;"> For Custom Preset Users</b> <div style="margin-top: 8px;"> <div style="margin-bottom: 4px;">3. Refer to the following system prompt and modify it to your own version.</div> <div style="margin-bottom: 4px;">4. Go to Bot > Prompts page, open the <b>top-most System Prompt</b>, and insert the prompt.</div> <div>5. To achieve 100% performance of this plugin, further edit the system prompt to demote the AI's identity to an <b>Actor</b>.</div> </div> </div> <div style="margin-top:12px;"> <textarea class="pse-code-window" readonly># PRIORITY ORDER
+ help_p1_html: `<div style=" background: rgba(255, 171, 0, 0.22); padding: 12px; border-radius: 8px;"> <b style="color:var(--pse-muted); font-size: 14px;"> Preset Adjustment Guide</b> <div style="margin-top: 8px; font-size: 13px; line-height: 1.6; color: var(--pse-text);"> <div style="margin-bottom: 4px;">1. <b>Delete fields:</b> Character Description, Lorebook, Global Note, Supa/HypaMemory.</div> <div style="margin-bottom: 12px;">2. <b>Advanced Settings:</b> Enter Chat > Check "Advanced", then set <b>Range Start</b> to <b>-10</b>.</div> <b style="color:var(--pse-muted); font-size: 14px;"> For Custom Preset Users</b> <div style="margin-top: 8px;"> <div style="margin-bottom: 4px;">3. Refer to the following system prompt and modify it to your own version.</div> <div style="margin-bottom: 4px;">4. Go to Bot > Prompts page, open the <b>top-most System Prompt</b>, and insert the prompt.</div> <div>5. To achieve 100% performance of this plugin, further edit the system prompt to demote the AI's identity to an <b>Actor</b>.</div> </div> </div> <div style="margin-top:12px;"> <textarea class="pse-code-window" readonly># PRIORITY ORDER
 Read upstream layers in this order. When layers conflict, higher layers win.
 1. Hard constraints
 \`rp_logic_state.known_contradiction\` | \`rp_turn_advice.response_guard\`
@@ -312,9 +325,9 @@ Read upstream layers in this order. When layers conflict, higher layers win.
 \`rp_turn_advice.character_routing\` | \`rp_scene_and_role_state\`
 3. Durable continuity
 \`rp_persona_evolution_state\` | \`rp_persistent_memory\` | \`rp_arc_memory\` | \`rp_turn_trace\` | \`rp_facet_activation_ledger\` | \`rp_recent_world_entries\` | \`rp_world_encyclopedia\`</textarea> <button class="pse-btn pse-copy-sql-btn" type="button" style="width:100%;padding:6px;font-size:12px;background:var(--pse-accent-greyblue);"> Copy System Prompt</button> </div> </div>`,
- help_p1_html_auto: `<div style=" background: rgba(255, 171, 0, 0.12); padding: 12px; border-radius: 8px;"> <b style="color:var(--pse-muted); font-size: 14px;"> Preset Adjustment Guide</b> <div style="margin-top: 8px; font-size: 13px; line-height: 1.6; color: var(--pse-text);"> <div style="margin-bottom: 4px;">1. <b>Delete fields:</b> Character Description, Lorebook, Global Note, Supa/HypaMemory.</div> <div style="margin-bottom: 4px;">2. <b>Advanced Settings:</b> Enter Chat > Check "Advanced", then set <b>Range Start</b> to <b>-10</b>.</div> </div> <div style="margin-top:12px; padding: 12px; border-radius: 8px; background: rgba(0, 150, 136, 0.1);"> <b style="color: var(--pse-accent-teal); font-size: 14px;"> Auto-Injection Enabled</b> <div style="margin-top: 8px; font-size: 13px; line-height: 1.6; color: var(--pse-text);"> Default settings detected. The system will <b>automatically</b> inject the System Prompts. No manual setup required!
+ help_p1_html_auto: `<div style=" background: rgba(255, 171, 0, 0.22); padding: 12px; border-radius: 8px;"> <b style="color:var(--pse-muted); font-size: 14px;"> Preset Adjustment Guide</b> <div style="margin-top: 8px; font-size: 13px; line-height: 1.6; color: var(--pse-text);"> <div style="margin-bottom: 4px;">1. <b>Delete fields:</b> Character Description, Lorebook, Global Note, Supa/HypaMemory.</div> <div style="margin-bottom: 4px;">2. <b>Advanced Settings:</b> Enter Chat > Check "Advanced", then set <b>Range Start</b> to <b>-10</b>.</div> </div> <div style="margin-top:12px; padding: 12px; border-radius: 8px; background: rgba(0, 150, 136, 0.20);"> <b style="color: var(--pse-accent-teal); font-size: 14px;"> Auto-Injection Enabled</b> <div style="margin-top: 8px; font-size: 13px; line-height: 1.6; color: var(--pse-text);"> Default settings detected. The system will <b>automatically</b> inject the System Prompts. No manual setup required!
  </div> </div> </div>`,
- help_p2_html: `<div style=" background: rgba(255, 23, 68, 0.10); padding: 12px; border-radius: 8px;"> <b style="color:var(--pse-muted); font-size: 14px;"> Preset Adjustment Guide</b> <div style="margin-top: 8px; font-size: 13px; line-height: 1.6; color: var(--pse-text);"> <div style="margin-bottom: 4px;">1. <b>Delete fields:</b> Character Description, Lorebook, Global Note, Supa/HypaMemory.</div> <div style="margin-bottom: 12px;">2. <b>Advanced Settings:</b> Enter Chat > Check "Advanced", then set <b>Range Start</b> to <b>-10</b>.</div> <b style="color:var(--pse-muted); font-size: 14px;"> For Custom Preset Users</b> <div style="margin-top: 8px;"> <div style="margin-bottom: 4px;">3. Refer to the following system prompt and modify it to your own version.</div> <div style="margin-bottom: 4px;">4. Go to Bot > Prompts page, open the <b>top-most System Prompt</b>, and insert the prompt.</div> <div>5. To achieve 100% performance of this plugin, further edit the system prompt to demote the AI's identity to an <b>Actor</b>.</div> </div> </div> <div style="margin-top:12px;"> <textarea class="pse-code-window" readonly># UPSTREAM MEMORY USAGE GUIDE
+ help_p2_html: `<div style=" background: rgba(255, 23, 68, 0.20); padding: 12px; border-radius: 8px;"> <b style="color:var(--pse-muted); font-size: 14px;"> Preset Adjustment Guide</b> <div style="margin-top: 8px; font-size: 13px; line-height: 1.6; color: var(--pse-text);"> <div style="margin-bottom: 4px;">1. <b>Delete fields:</b> Character Description, Lorebook, Global Note, Supa/HypaMemory.</div> <div style="margin-bottom: 12px;">2. <b>Advanced Settings:</b> Enter Chat > Check "Advanced", then set <b>Range Start</b> to <b>-10</b>.</div> <b style="color:var(--pse-muted); font-size: 14px;"> For Custom Preset Users</b> <div style="margin-top: 8px;"> <div style="margin-bottom: 4px;">3. Refer to the following system prompt and modify it to your own version.</div> <div style="margin-bottom: 4px;">4. Go to Bot > Prompts page, open the <b>top-most System Prompt</b>, and insert the prompt.</div> <div>5. To achieve 100% performance of this plugin, further edit the system prompt to demote the AI's identity to an <b>Actor</b>.</div> </div> </div> <div style="margin-top:12px;"> <textarea class="pse-code-window" readonly># UPSTREAM MEMORY USAGE GUIDE
 
 ## Boundary Constraints
 - You are an actor and scene narrator, not a director. Do not invent plot twists, scene changes without authorization from ra_logic_state.entrance_signal.
@@ -346,7 +359,7 @@ Read upstream layers in this order. When layers conflict, higher layers win.
 5. Verify ra_knowledge_matrix facts and secrets.
 6. Check ra_pattern_guard for forbidden tokens.
 7. Write output. Express only one dominant facet per character.</textarea> <button class="pse-btn pse-copy-sql-btn" type="button" style="width:100%;padding:6px;font-size:12px;background:var(--pse-accent-greyblue);"> Copy System Prompt</button> </div> </div>`,
- help_p2_html_auto: `<div style=" background: rgba(255, 23, 68, 0.10); padding: 12px; border-radius: 8px;"> <b style="color:var(--pse-muted); font-size: 14px;"> Preset Adjustment Guide</b> <div style="margin-top: 8px; font-size: 13px; line-height: 1.6; color: var(--pse-text);"> <div style="margin-bottom: 4px;">1. <b>Delete fields:</b> Character Description, Lorebook, Global Note, Supa/HypaMemory.</div> <div style="margin-bottom: 4px;">2. <b>Advanced Settings:</b> Enter Chat > Check "Advanced", then set <b>Range Start</b> to <b>-10</b>.</div> </div> <div style="margin-top:12px; padding: 12px; border-radius: 8px; background: rgba(0, 150, 136, 0.1);"> <b style="color: var(--pse-accent-teal); font-size: 14px;"> Auto-Injection Enabled</b> <div style="margin-top: 8px; font-size: 13px; line-height: 1.6; color: var(--pse-text);"> Default settings detected. The system will <b>automatically</b> inject the System Prompts. No manual setup required!
+ help_p2_html_auto: `<div style=" background: rgba(255, 23, 68, 0.20); padding: 12px; border-radius: 8px;"> <b style="color:var(--pse-muted); font-size: 14px;"> Preset Adjustment Guide</b> <div style="margin-top: 8px; font-size: 13px; line-height: 1.6; color: var(--pse-text);"> <div style="margin-bottom: 4px;">1. <b>Delete fields:</b> Character Description, Lorebook, Global Note, Supa/HypaMemory.</div> <div style="margin-bottom: 4px;">2. <b>Advanced Settings:</b> Enter Chat > Check "Advanced", then set <b>Range Start</b> to <b>-10</b>.</div> </div> <div style="margin-top:12px; padding: 12px; border-radius: 8px; background: rgba(0, 150, 136, 0.20);"> <b style="color: var(--pse-accent-teal); font-size: 14px;"> Auto-Injection Enabled</b> <div style="margin-top: 8px; font-size: 13px; line-height: 1.6; color: var(--pse-text);"> Default settings detected. The system will <b>automatically</b> inject the System Prompts. No manual setup required!
  </div> </div> </div>`,
  cache_guide_title: " Cache Hub Guide",
  cache_guide_content: `<div style="display:grid; gap:8px;"> <div>• Each card forms 1-2 storage areas.</div> <div>• <b>Delete Vector Data:</b> Manual operation when changing embedding models if the system doesn't auto-switch or errors occur.</div> <div>• <b>Classification:</b> Categorized records of the card's entry segments.</div> <div>• <b>Persona:</b> Character persona records for the card.</div> <div>• <b> Character Extraction Entries:</b> Confirm how many characters are recorded. This only records characters listed in the card or mod lorebooks; characters met during gameplay are not automatically added. If you need to add or rewrite failed entries, click "Add Unregistered Characters" to re-run the process.</div> </div>`,
@@ -354,7 +367,7 @@ Read upstream layers in this order. When layers conflict, higher layers win.
  vector_guide_content: `<div style="display:grid; gap:8px;"> <div>• <b>Hybrid Similarity & Freshness:</b> Weight of entries decreases as turns pass.</div> <div>• <b>Process:</b> Each turn, recent and previous dialogue data is sent to the embedding model for vector tagging.</div> <div>• <b>Matching:</b> Tags are compared by the system.</div> <div>• <b>Lorebook TopK:</b> TopK entries are extracted and placed in the context.</div> <div>• <b>Extraction Feed (Lorebook > Chat):</b> TopK*2 entries are fed to the information extraction model.</div> <div>• <b>Extraction Feed (Cache Hub > Persona):</b> TopK*2 entries are fed to the information extraction model.</div> </div>`,
  extraction_guide_title: " Extraction & Instruction Guide",
  extraction_guide_content: `<div style="display:grid; gap:12px;">
-  <div style="background:rgba(156,39,176,0.08); padding:10px 12px; border-radius:8px;">
+  <div style="background:rgba(156,39,176,0.18); padding:10px 12px; border-radius:8px;">
     <b style="font-size:13px; color:var(--pse-text);"> Core State Layer — Updated Every Turn</b>
     <div style="margin-top:6px; display:grid; gap:4px; font-size:12px; color:var(--pse-text);">
       <div>• <code>ra_turn_trace</code>: Records the current turn's real-time actions, time passing, and dynamic changes. The AI's short-term memory anchor.</div>
@@ -363,7 +376,7 @@ Read upstream layers in this order. When layers conflict, higher layers win.
       <div>• <code>ra_cast_state</code> <span style="opacity:0.7;">(Setting 4)</span>: Manages the active character roster and each character's positioning and pose in multi-character scenes.</div>
     </div>
   </div>
-  <div style="background:rgba(63,81,181,0.08); padding:10px 12px; border-radius:8px;">
+  <div style="background:rgba(63,81,181,0.18); padding:10px 12px; border-radius:8px;">
     <b style="font-size:13px; color:var(--pse-text);"> Logic & Plot Layer</b>
     <div style="margin-top:6px; display:grid; gap:4px; font-size:12px; color:var(--pse-text);">
       <div>• <code>ra_logic_state</code>: Acts as the "referee." Checks whether player actions violate existing logic and issues mandatory directives to the execution model.</div>
@@ -371,7 +384,7 @@ Read upstream layers in this order. When layers conflict, higher layers win.
       <div>• <code>ra_turning_point_log</code>: Records major plot turning points, retained long-term to maintain narrative continuity.</div>
     </div>
   </div>
-  <div style="background:rgba(33,150,243,0.08); padding:10px 12px; border-radius:8px;">
+  <div style="background:rgba(33,150,243,0.18); padding:10px 12px; border-radius:8px;">
     <b style="font-size:13px; color:var(--pse-text);"> Strategy & Cognition Layer — Enhanced in Settings 2 & 4</b>
     <div style="margin-top:6px; display:grid; gap:4px; font-size:12px; color:var(--pse-text);">
       <div>• <code>ra_knowledge_matrix</code>: Knowledge matrix. Records who knows what and who doesn't — the core tool for handling information asymmetry and intrigue.</div>
@@ -380,7 +393,7 @@ Read upstream layers in this order. When layers conflict, higher layers win.
       <div>• <code>ra_pattern_guard</code>: Detects when dialogue falls into repetitive patterns and provides "variation suggestions" to break repetition loops.</div>
     </div>
   </div>
-  <div style="background:rgba(0,150,136,0.08); padding:10px 12px; border-radius:8px;">
+  <div style="background:rgba(0,150,136,0.18); padding:10px 12px; border-radius:8px;">
     <b style="font-size:13px; color:var(--pse-text);"> Director & Persona Navigation Layer — Settings 3 & 4 Only</b>
     <div style="margin-top:6px; display:grid; gap:4px; font-size:12px; color:var(--pse-text);">
       <div>• <code>ra_persona_importance</code>: Determines which "facet" of a character should be expressed this turn (e.g., should the character show "warmth" or "authority" right now).</div>
@@ -388,7 +401,7 @@ Read upstream layers in this order. When layers conflict, higher layers win.
       <div>• <code>ra_facet_audit</code>: Audits the AI's performance from the previous turn, checking for character breaks or persona collapse, and corrects in the next turn.</div>
     </div>
   </div>
-  <div style="background:rgba(255,152,0,0.08); padding:10px 12px; border-radius:8px;">
+  <div style="background:rgba(255,152,0,0.18); padding:10px 12px; border-radius:8px;">
     <b style="font-size:13px; color:var(--pse-text);"> Long-Term Memory & Archive Layer — Low-Frequency Updates</b>
     <div style="margin-top:6px; display:grid; gap:4px; font-size:12px; color:var(--pse-text);">
       <div>• <code>ra_world_log</code>: Temporarily stores newly established world facts.</div>
@@ -398,7 +411,7 @@ Read upstream layers in this order. When layers conflict, higher layers win.
     </div>
   </div>
   <div style="border-top: 1px dashed rgba(255,171,0,0.3); padding-top: 10px; display:grid; gap:10px;">
-    <div style="background:rgba(255,171,0,0.08); padding:10px 12px; border-radius:8px;">
+    <div style="background:rgba(255,171,0,0.18); padding:10px 12px; border-radius:8px;">
       <b style="font-size:13px; color:var(--pse-text);"> Recycling & Cleanup Mechanism</b>
       <div style="margin-top:6px; display:grid; gap:4px; font-size:12px; color:var(--pse-text);">
         <div>• <b>Overwrite:</b> Keeps only the latest data each time, for state-type entries (e.g., <code>ra_scene_state</code>), ensuring the AI only sees the "current" environment.</div>
@@ -406,7 +419,7 @@ Read upstream layers in this order. When layers conflict, higher layers win.
         <div>• <b>Retention (Auto-Pruning):</b> For Append mode, set <b>After (threshold)</b> (pruning begins after accumulating N turns) and <b>Keep (amount)</b> (retain only the most recent N turns) to prevent database bloat.</div>
       </div>
     </div>
-    <div style="background:rgba(233,30,99,0.08); padding:10px 12px; border-radius:8px;">
+    <div style="background:rgba(233,30,99,0.18); padding:10px 12px; border-radius:8px;">
       <b style="font-size:13px; color:var(--pse-text);"> Customization Notes</b>
       <div style="margin-top:6px; display:grid; gap:4px; font-size:12px; color:var(--pse-text);">
         <div>• The system enforces a locked JSON structure by default to ensure stable output from smaller models. It is recommended to customize by modifying the default format.</div>
@@ -416,7 +429,7 @@ Read upstream layers in this order. When layers conflict, higher layers win.
         <div>• When customizing, plan a cleanup strategy to avoid unnecessary database bloat.</div>
       </div>
     </div>
-    <div style="background:rgba(0,150,136,0.08); padding:10px 12px; border-radius:8px;">
+    <div style="background:rgba(0,150,136,0.18); padding:10px 12px; border-radius:8px;">
       <b style="font-size:13px; color:var(--pse-text);"> Bot Persona Extraction (Settings 3 & 4)</b>
       <div style="margin-top:6px; display:grid; gap:4px; font-size:12px; color:var(--pse-text);">
         <div>• Persona extraction results are stored in the Cache Hub. During conversations, relevant characters are retrieved via vector search and passed to the "Extraction + Director" settings.</div>
@@ -504,7 +517,16 @@ Read upstream layers in this order. When layers conflict, higher layers win.
  lbl_entries: "항목 수",
  lbl_filesize: "파일 크기",
  btn_delete: "삭제",
- btn_refresh_persona: "미등록 캐릭터 추가",
+ btn_refresh_persona: "자동 캐릭터 추가",
+ btn_manual_append_persona: "수동 추가",
+ manual_append_title: "수동 캐릭터 입력",
+ manual_append_guide: "아래 프롬프트를 복사하여 캐릭터 데이터와 함께 다른 LLM에 전달하세요. 결과를 입력 창에 붙여넣고 \"데이터 입력\"을 클릭하세요.",
+ btn_copy_prompt: "프롬프트 복사",
+ btn_input_data: "데이터 입력",
+ st_manual_append_ok: (n) => `저장 완료. ${n}개의 캐릭터가 추가되었습니다.`,
+ st_manual_append_partial: (written, skipped) => `일부 저장: ${written}개 저장, ${skipped}개 건너뜀 (쌍 불완전 또는 빈 데이터).`,
+ st_manual_append_failed: "저장 실패: ",
+ st_manual_append_invalid_json: "JSON을 파싱할 수 없습니다. LLM의 유효한 JSON 출력을 붙여넣으세요.",
  lbl_classify_only: "분류 전용",
  lbl_chunks: "항목 수",
  tag_vector: "벡터",
@@ -540,15 +562,19 @@ Read upstream layers in this order. When layers conflict, higher layers win.
  lbl_persona_entries: "캐릭터 페르소나 항목",
  lbl_persona_entries_count: "캐릭터",
  lbl_delete_char_cache: "이 캐릭터의 캐시 삭제",
+ lbl_char_editor: "캐릭터 캐시 편집",
+ st_char_edit_saved: "캐릭터 캐시가 업데이트되었습니다.",
+ st_char_edit_invalid_json: "잘못된 JSON 형식입니다. 형식을 확인하고 다시 시도해주세요.",
+ st_char_edit_failed: "저장 실패: ",
  lbl_no_persona_data: "캐릭터 데이터가 없습니다.",
  model_suggest_title: " 권장 모델",
  model_suggest_s1: `<b>설정 1: 단일 캐릭터 또는 가벼운 모험용 봇</b><br/>• 메인 모델: 대량의 정보를 요약하기에 적합 (Gemini 3 Flash)<br/>• 보조 모델: 가벼운 처리에 적합 (Gemini 3.1 Flash Lite)<br/>• 임베딩 모델: 다국어 벡터 검색용 (gemini-embedding-2-preview)`,
  model_suggest_s2: `<b>설정 1 또는 2: 복잡하거나 다중 캐릭터형 봇</b><br/>• 메인 모델: 깊이 있는 분석에 적합 (Gemini 3.1 Pro, Claude 4.6 Sonnet)<br/>• 보조 모델: 중량급 처리에 적합 (Gemini 3 Flash)<br/>• 임베딩 모델: 다국어 벡터 검색용 (gemini-embedding-2-preview)`,
  mode_guide_title: " 모드 및 호출 빈도 안내",
- mode_guide_content: `<div style="border-top: 1px solid rgba(255, 152, 0, 0.1); padding-top: 12px;"> <!--  초기 설정 (Violet) --> <div style=" background: rgba(156, 39, 176, 0.10); padding: 8px 12px; border-radius: 8px; margin-bottom: 16px;"> <b style="color:var(--pse-text); font-size: 14px;"> 초기 설정</b> <div style="margin-top: 6px; display: grid; gap: 4px; font-size: 12px; color: var(--pse-text);"> <div>• <b>분류:</b> 캐릭터 설명, 로어북 캐릭터, 글로벌 노트 대체 기능의 첫 번째 단락을 캡처하여 25개 단위로 모델에 전송하여 태그 분류를 수행합니다.</div> <div>• <b>캐릭터 페르소나 추출(디렉터 모드 활성화 시):</b> 다음으로, 캐릭터로 태그된 항목을 20개씩 묶어 LLM에 전송하여 페르소나 추출을 진행합니다.</div> <div>• <b>벡터(디렉터 모드 또는 벡터 검색 활성화 시):</b> 마지막으로, 벡터 모델은 각 제공업체의 기본 설정에 따라 데이터를 배치로 전송하여 벡터 태그를 획득합니다.</div> </div> </div> <!--  기본 모드 선택 (Indigo) --> <div style=" background: rgba(63, 81, 181, 0.10); padding: 8px 12px; border-radius: 8px; margin-bottom: 16px;"> <b style="color:var(--pse-text); font-size: 14px;"> 기본 모드 선택</b> <div style="margin-top: 6px; display: grid; gap: 4px; margin-bottom: 8px; font-size: 12px; color: var(--pse-text);"> <div>• <b>설정 차이:</b> 「설정 1」은 일반 봇용이며, 「설정 2」는 복잡한 시나리오용입니다.</div> <div>• <b>추출:</b> 대화 내용을 압축하여 기존의 긴 기록을 대체하고 토큰을 절약합니다.</div> <div>• <b>디렉터:</b> 시나리오의 흐름과 캐릭터 반응을 가이드하여 깊이 있는 경험을 제공합니다.</div> <div>• <b>봇 재구성만 사용:</b> 봇 데이터를 분석하여 프롬프트 내 가장 효율적인 위치로 재배치합니다.</div> <div>• <b>벡터 검색 활성화:</b> 키워드 매칭 대신 의미 기반 검색을 통해 관련 정보의 밀도를 높입니다.</div> <div>• <b>임베딩 모델 미사용:</b> 설정 1/2(추출) + 봇 재구성만 사용</div> </div> </div> <!--  모델 호출 빈도 (Blue) --> <div style=" background: rgba(33, 150, 243, 0.12); padding: 8px 12px; border-radius: 8px; margin-bottom: 16px;"> <b style="color:var(--pse-text); font-size: 14px;"> 모델 호출 빈도</b> <div style="margin-top: 8px;"> <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 8px;"> <span style="background: var(--pse-accent-blue); color: white; padding: 1px 6px; border-radius: 4px; font-size: 11px; font-weight: bold;">대화 시작</span> <span style="color: var(--pse-muted); font-size: 12px;">봇이 복잡할수록 초기화에 더 많은 시간이 소요됩니다.</span> </div> <div style="display: grid; gap: 4px; padding-left: 4px; margin-bottom: 12px; font-size: 12px; color: var(--pse-text);"> <div>• <b>디렉터:</b> 페르소나 추출을 위해 메인 모델 호출</div> <div>• <b>봇 재구성:</b> 데이터 분류를 위해 보조 모델 호출</div> <div>• <b>벡터 검색:</b> 인덱스 구축을 위해 임베딩 모델 호출</div> </div> <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 8px;"> <span style="background: var(--pse-accent-blue); color: white; padding: 1px 6px; border-radius: 4px; font-size: 11px; font-weight: bold;">대화 중</span> </div> <div style="display:grid; gap:8px; padding-left:4px;"> <div style="background:rgba(33, 150, 243, 0.1); border:1px solid rgba(33, 150, 243, 0.2); padding:8px; border-radius:6px;"> <div style="color:var(--pse-text); font-weight:bold; font-size:12px; margin-bottom:4px; border-bottom:1px solid rgba(33, 150, 243, 0.1);"> 추출 모드</div> <div style="font-size:12px; color:var(--pse-text);"> • <b>설정 1:</b> 메인 (10, 15 턴마다 1회), 보조 (턴당 2회 + 3턴마다 1회)<br/> • <b>설정 2:</b> 메인 (3, 10, 15 턴마다 1회), 보조 (턴당 3회 + 2, 3턴마다 1회)
- </div> </div> <div style="background:rgba(33, 150, 243, 0.1); border:1px solid rgba(33, 150, 243, 0.2); padding:8px; border-radius:6px;"> <div style="color:var(--pse-text); font-weight:bold; font-size:12px; margin-bottom:4px; border-bottom:1px solid rgba(33, 150, 243, 0.1);"> 추출 + 디렉터</div> <div style="font-size:12px; color:var(--pse-text);"> • <b>설정 1:</b> 메인 (10, 15 턴마다 1회), 보조 (턴당 4회 + 3턴마다 1회)<br/> • <b>설정 2:</b> 메인 (4, 10, 15 턴마다 1회), 보조 (턴당 4회 + 2, 3턴마다 1회)
- </div> </div> <div style="background:rgba(33, 150, 243, 0.1); border:1px solid rgba(33, 150, 243, 0.2); padding:8px; border-radius:6px;"> <div style="color:var(--pse-text); font-weight:bold; font-size:12px; margin-bottom:4px; border-bottom:1px solid rgba(33, 150, 243, 0.1);"> 디렉터 & 벡터 검색</div> <div style="font-size:12px; color:var(--pse-text);"> • <b>주기:</b> 임베딩 모델 턴당 1회 호출.
- </div> </div> </div> </div> </div> <!--  채팅 이어가기 (Teal) --> <div style=" background: rgba(0, 150, 136, 0.08); padding: 8px 12px; border-radius: 8px; margin-bottom: 16px;"> <b style="color: var(--pse-accent-teal, #009688); font-size: 14px;"> 채팅 이어가기</b> <div style="margin-top: 6px; display: grid; gap: 4px; font-size: 12px; color: var(--pse-text);"> <div>• 렉이 느껴질 때 이 기능을 사용하세요.</div> <div>• 「채팅 이어가기」를 클릭하면 해당 캐릭터의 채팅 목록이 나타납니다. 이어가고 싶은 기록을 선택하세요.</div> <div>• 이후 접미사 (continue)가 붙은 기록을 사용하여 대화를 이어갈 수 있습니다.</div> </div> </div> <!--  커스텀 프리셋 사용자 (Rose) --> <div style=" background: rgba(255, 23, 68, 0.10); padding: 8px 12px; border-radius: 8px; margin-bottom: 16px;"> <b style="color:var(--pse-muted); font-size: 14px;"> 커스텀 프리셋 사용자</b> <div style="margin-top: 6px; display: grid; gap: 4px; font-size: 12px; color: var(--pse-text);"> <div>• 봇 카드에 "기본 설정 1" 또는 "기본 설정 2"가 나타납니다. 클릭 후 안내에 따라 조작하세요.</div> </div> </div> </div>`,
+ mode_guide_content: `<div style="border-top: 1px solid rgba(255, 152, 0, 0.1); padding-top: 12px;"> <!--  초기 설정 (Violet) --> <div style=" background: rgba(156, 39, 176, 0.20); padding: 8px 12px; border-radius: 8px; margin-bottom: 16px;"> <b style="color:var(--pse-text); font-size: 14px;"> 초기 설정</b> <div style="margin-top: 6px; display: grid; gap: 4px; font-size: 12px; color: var(--pse-text);"> <div>• <b>분류:</b> 캐릭터 설명, 로어북 캐릭터, 글로벌 노트 대체 기능의 첫 번째 단락을 캡처하여 25개 단위로 모델에 전송하여 태그 분류를 수행합니다.</div> <div>• <b>캐릭터 페르소나 추출(디렉터 모드 활성화 시):</b> 다음으로, 캐릭터로 태그된 항목을 20개씩 묶어 LLM에 전송하여 페르소나 추출을 진행합니다.</div> <div>• <b>벡터(디렉터 모드 또는 벡터 검색 활성화 시):</b> 마지막으로, 벡터 모델은 각 제공업체의 기본 설정에 따라 데이터를 배치로 전송하여 벡터 태그를 획득합니다.</div> </div> </div> <!--  기본 모드 선택 (Indigo) --> <div style=" background: rgba(63, 81, 181, 0.20); padding: 8px 12px; border-radius: 8px; margin-bottom: 16px;"> <b style="color:var(--pse-text); font-size: 14px;"> 기본 모드 선택</b> <div style="margin-top: 6px; display: grid; gap: 4px; margin-bottom: 8px; font-size: 12px; color: var(--pse-text);"> <div>• <b>설정 차이:</b> 「설정 1」은 일반 봇용이며, 「설정 2」는 복잡한 시나리오용입니다.</div> <div>• <b>추출:</b> 대화 내용을 압축하여 기존의 긴 기록을 대체하고 토큰을 절약합니다.</div> <div>• <b>디렉터:</b> 시나리오의 흐름과 캐릭터 반응을 가이드하여 깊이 있는 경험을 제공합니다.</div> <div>• <b>봇 재구성만 사용:</b> 봇 데이터를 분석하여 프롬프트 내 가장 효율적인 위치로 재배치합니다.</div> <div>• <b>벡터 검색 활성화:</b> 키워드 매칭 대신 의미 기반 검색을 통해 관련 정보의 밀도를 높입니다.</div> <div>• <b>임베딩 모델 미사용:</b> 설정 1/2(추출) + 봇 재구성만 사용</div> </div> </div> <!--  모델 호출 빈도 (Blue) --> <div style=" background: rgba(33, 150, 243, 0.22); padding: 8px 12px; border-radius: 8px; margin-bottom: 16px;"> <b style="color:var(--pse-text); font-size: 14px;"> 모델 호출 빈도</b> <div style="margin-top: 8px;"> <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 8px;"> <span style="background: var(--pse-accent-blue); color: white; padding: 1px 6px; border-radius: 4px; font-size: 11px; font-weight: bold;">대화 시작</span> <span style="color: var(--pse-muted); font-size: 12px;">봇이 복잡할수록 초기화에 더 많은 시간이 소요됩니다.</span> </div> <div style="display: grid; gap: 4px; padding-left: 4px; margin-bottom: 12px; font-size: 12px; color: var(--pse-text);"> <div>• <b>디렉터:</b> 페르소나 추출을 위해 메인 모델 호출</div> <div>• <b>봇 재구성:</b> 데이터 분류를 위해 보조 모델 호출</div> <div>• <b>벡터 검색:</b> 인덱스 구축을 위해 임베딩 모델 호출</div> </div> <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 8px;"> <span style="background: var(--pse-accent-blue); color: white; padding: 1px 6px; border-radius: 4px; font-size: 11px; font-weight: bold;">대화 중</span> </div> <div style="display:grid; gap:8px; padding-left:4px;"> <div style="background:rgba(33, 150, 243, 0.20); border:1px solid rgba(33, 150, 243, 0.38); padding:8px; border-radius:6px;"> <div style="color:var(--pse-text); font-weight:bold; font-size:12px; margin-bottom:4px; border-bottom:1px solid rgba(33, 150, 243, 0.25);"> 추출 모드</div> <div style="font-size:12px; color:var(--pse-text);"> • <b>설정 1:</b> 메인 (10, 15 턴마다 1회), 보조 (턴당 2회 + 3턴마다 1회)<br/> • <b>설정 2:</b> 메인 (3, 10, 15 턴마다 1회), 보조 (턴당 3회 + 2, 3턴마다 1회)
+ </div> </div> <div style="background:rgba(33, 150, 243, 0.20); border:1px solid rgba(33, 150, 243, 0.38); padding:8px; border-radius:6px;"> <div style="color:var(--pse-text); font-weight:bold; font-size:12px; margin-bottom:4px; border-bottom:1px solid rgba(33, 150, 243, 0.25);"> 추출 + 디렉터</div> <div style="font-size:12px; color:var(--pse-text);"> • <b>설정 1:</b> 메인 (10, 15 턴마다 1회), 보조 (턴당 4회 + 3턴마다 1회)<br/> • <b>설정 2:</b> 메인 (4, 10, 15 턴마다 1회), 보조 (턴당 4회 + 2, 3턴마다 1회)
+ </div> </div> <div style="background:rgba(33, 150, 243, 0.20); border:1px solid rgba(33, 150, 243, 0.38); padding:8px; border-radius:6px;"> <div style="color:var(--pse-text); font-weight:bold; font-size:12px; margin-bottom:4px; border-bottom:1px solid rgba(33, 150, 243, 0.25);"> 디렉터 & 벡터 검색</div> <div style="font-size:12px; color:var(--pse-text);"> • <b>주기:</b> 임베딩 모델 턴당 1회 호출.
+ </div> </div> </div> </div> </div> <!--  채팅 이어가기 (Teal) --> <div style=" background: rgba(0, 150, 136, 0.18); padding: 8px 12px; border-radius: 8px; margin-bottom: 16px;"> <b style="color: var(--pse-accent-teal, #003028); font-size: 14px;"> 채팅 이어가기</b> <div style="margin-top: 6px; display: grid; gap: 4px; font-size: 12px; color: var(--pse-text);"> <div>• 렉이 느껴질 때 이 기능을 사용하세요.</div> <div>• 「채팅 이어가기」를 클릭하면 해당 캐릭터의 채팅 목록이 나타납니다. 이어가고 싶은 기록을 선택하세요.</div> <div>• 이후 접미사 (continue)가 붙은 기록을 사용하여 대화를 이어갈 수 있습니다.</div> </div> </div> <!--  커스텀 프리셋 사용자 (Rose) --> <div style=" background: rgba(255, 23, 68, 0.20); padding: 8px 12px; border-radius: 8px; margin-bottom: 16px;"> <b style="color:var(--pse-muted); font-size: 14px;"> 커스텀 프리셋 사용자</b> <div style="margin-top: 6px; display: grid; gap: 4px; font-size: 12px; color: var(--pse-text);"> <div>• 봇 카드에 "기본 설정 1" 또는 "기본 설정 2"가 나타납니다. 클릭 후 안내에 따라 조작하세요.</div> </div> </div> </div>`,
  btn_reset_factory: "모든 설정을 기본값으로 초기화",
  editor_cancel: "취소",
  editor_apply: "적용",
@@ -640,10 +666,10 @@ Read upstream layers in this order. When layers conflict, higher layers win.
  help_tab_p2: "프리셋 2",
  mode_guide_title: " 모드 설명 및 모델 호출 가이드",
  mode_guide_click: "(클릭하여 펼치기/접기)",
- help_html: `<div style="font-family: inherit; line-height: 1.5;"> <div style="padding: 12px; border-radius: 8px; margin-bottom: 12px; background: rgba(233, 30, 99, 0.12);"> <div style="font-weight: bold; color: #E91E63; margin-bottom: 8px;"> 플러그인 안내</div> <div style="margin-bottom: 4px;">각 페이지 상단에 상세 가이드가 제공됩니다.</div> <div style="margin-bottom: 4px;">• <b>활성화 설정:</b> 개별 봇의 플러그인 모드를 설정합니다.</div> <div style="margin-bottom: 4px;">• <b>코어 모델:</b> 메인 모델, 보조 모델, 임베딩 모델을 설정합니다. RisuAI의 기본 모델과는 별개입니다.</div> <div style="margin-bottom: 4px;">• <b>캐시 저장소:</b> 봇 분류, 벡터 검색, 캐릭터 핵심 데이터를 저장합니다.</div> <div style="margin-bottom: 4px;">• <b>정보 추출:</b> 고급 사용자용. 추출 및 디렉터 모드의 세부 사항을 사용자 정의합니다.</div> <div>• <b>벡터 검색:</b> 고급 사용자용. 벡터 검색의 세부 사항을 사용자 정의합니다.</div> </div> <div style="padding: 12px; border-radius: 8px; margin-bottom: 12px; background: rgba(255, 179, 0, 0.12);"> <div style="font-weight: bold; color: #FB8C00; margin-bottom: 8px;"> 프리셋 수정 가이드</div> <div style="margin-bottom: 4px;">1. 삭제 항목: <b>캐릭터 설명, 로어북, 글로벌 노트, Supa/HypaMemory</b>.</div> <div style="margin-bottom: 4px;">2. <b>고급 설정:</b> 채팅 진입 > 「고급」 체크 후 「범위 시작」을 <b>-10</b>으로 설정.</div> <div style="margin-bottom: 12px;">위의 조정만으로 충분합니다.</div> <div>3. 이 플러그인의 성능을 100% 활용하려면 시스템 프롬프트를 추가로 편집하여 AI의 신분을 <b>배우(Actor)</b>로 낮추십시오.</div> </div> <div style="padding: 12px; border-radius: 8px; margin-bottom: 12px; background: rgba(76, 175, 80, 0.12);"> <div style="font-weight: bold; color: #2E7D32; margin-bottom: 8px;">호환성 안내</div> <div style="margin-bottom: 8px;"> <div style="font-weight: bold; color: #43A047; margin-bottom: 4px;"> 호환 가능</div> • 플러그인 모드에서 (이미 수정된) 프리셋 간 전환이 가능합니다.<br> • 플러그인 모드에서 봇 재구성 및 벡터 검색 기능을 전환할 수 있습니다.<br> • 비플러그인 모드로 원활하게 전환할 수 있습니다.
- </div> <div> <div style="font-weight: bold; color: #E53935; margin-bottom: 4px;"> 주의사항</div> • 이 플러그인을 사용하려면 기본 프리셋 프롬프트를 수정해야 합니다.<br> • 플러그인을 사용하지 않은 대화 기록과는 직접 연결할 수 없습니다.<br> • 대화 도중 플러그인을 반복해서 켜고 끄지 마십시오.
- </div> </div> <div style="padding: 12px; border-radius: 8px; background: rgba(76, 175, 80, 0.12); margin-bottom: 12px;"> <div style="font-weight: bold; color: #2E7D32; margin-bottom: 8px;"> 데이터 저장 안내</div> • 정보 추출 기록은 <b>로어북 > 채팅</b> 항목에 저장되며 언제든지 확인하거나 수정할 수 있습니다.<br> • 봇 분류, 벡터 검색 및 캐릭터 핵심의 인덱스 데이터는 <b>캐시 저장소</b>에 저장됩니다.
- </div> <div style="padding: 12px; border-radius: 8px; background: rgba(33, 150, 243, 0.12);"> <div style="font-weight: bold; color:var(--pse-text); margin-bottom: 8px;">⁉ Q&A</div> <div style="margin-bottom: 8px;"> <div style="font-weight: bold; color:var(--pse-text); margin-bottom: 4px;"> <b style="color: var(--pse-accent-red); font-size: 13px;">ERROR 400: 지원되지 않는 모델</b>이 발생하는 경우</div> • Claude, DeepSeek, Mistral 등 프리필(Prefill) 형식을 지원하지 않는 모델을 사용 중일 수 있습니다.<br/> • 정보 추출 > 공통 프롬프트에서 <b style="color: var(--pse-accent-red); font-size: 13px;">어시스턴트 프리필</b>을 비우십시오.
+ help_html: `<div style="font-family: inherit; line-height: 1.5;"> <div style="padding: 12px; border-radius: 8px; margin-bottom: 12px; background: rgba(233, 30, 99, 0.22);"> <div style="font-weight: bold; color: #700E2F; margin-bottom: 8px;"> 플러그인 안내</div> <div style="margin-bottom: 4px;">각 페이지 상단에 상세 가이드가 제공됩니다.</div> <div style="margin-bottom: 4px;">• <b>활성화 설정:</b> 개별 봇의 플러그인 모드를 설정합니다.</div> <div style="margin-bottom: 4px;">• <b>코어 모델:</b> 메인 모델, 보조 모델, 임베딩 모델을 설정합니다. RisuAI의 기본 모델과는 별개입니다.</div> <div style="margin-bottom: 4px;">• <b>캐시 저장소:</b> 봇 분류, 벡터 검색, 캐릭터 핵심 데이터를 저장합니다.</div> <div style="margin-bottom: 4px;">• <b>정보 추출:</b> 고급 사용자용. 추출 및 디렉터 모드의 세부 사항을 사용자 정의합니다.</div> <div>• <b>벡터 검색:</b> 고급 사용자용. 벡터 검색의 세부 사항을 사용자 정의합니다.</div> </div> <div style="padding: 12px; border-radius: 8px; margin-bottom: 12px; background: rgba(255, 179, 0, 0.22);"> <div style="font-weight: bold; color: #7D4500; margin-bottom: 8px;"> 프리셋 수정 가이드</div> <div style="margin-bottom: 4px;">1. 삭제 항목: <b>캐릭터 설명, 로어북, 글로벌 노트, Supa/HypaMemory</b>.</div> <div style="margin-bottom: 4px;">2. <b>고급 설정:</b> 채팅 진입 > 「고급」 체크 후 「범위 시작」을 <b>-10</b>으로 설정.</div> <div style="margin-bottom: 12px;">위의 조정만으로 충분합니다.</div> <div>3. 이 플러그인의 성능을 100% 활용하려면 시스템 프롬프트를 추가로 편집하여 AI의 신분을 <b>배우(Actor)</b>로 낮추십시오.</div> </div> <div style="padding: 12px; border-radius: 8px; margin-bottom: 12px; background: rgba(76, 175, 80, 0.22);"> <div style="font-weight: bold; color: #153D18; margin-bottom: 8px;">호환성 안내</div> <div style="margin-bottom: 8px;"> <div style="font-weight: bold; color: #204F23; margin-bottom: 4px;"> 호환 가능</div> • 플러그인 모드에서 (이미 수정된) 프리셋 간 전환이 가능합니다.<br> • 플러그인 모드에서 봇 재구성 및 벡터 검색 기능을 전환할 수 있습니다.<br> • 비플러그인 모드로 원활하게 전환할 수 있습니다.
+ </div> <div> <div style="font-weight: bold; color: #701B1A; margin-bottom: 4px;"> 주의사항</div> • 이 플러그인을 사용하려면 기본 프리셋 프롬프트를 수정해야 합니다.<br> • 플러그인을 사용하지 않은 대화 기록과는 직접 연결할 수 없습니다.<br> • 대화 도중 플러그인을 반복해서 켜고 끄지 마십시오.
+ </div> </div> <div style="padding: 12px; border-radius: 8px; background: rgba(76, 175, 80, 0.22); margin-bottom: 12px;"> <div style="font-weight: bold; color: #153D18; margin-bottom: 8px;"> 데이터 저장 안내</div> • 정보 추출 기록은 <b>로어북 > 채팅</b> 항목에 저장되며 언제든지 확인하거나 수정할 수 있습니다.<br> • 봇 분류, 벡터 검색 및 캐릭터 핵심의 인덱스 데이터는 <b>캐시 저장소</b>에 저장됩니다.
+ </div> <div style="padding: 12px; border-radius: 8px; background: rgba(33, 150, 243, 0.22);"> <div style="font-weight: bold; color:var(--pse-text); margin-bottom: 8px;">⁉ Q&A</div> <div style="margin-bottom: 8px;"> <div style="font-weight: bold; color:var(--pse-text); margin-bottom: 4px;"> <b style="color: var(--pse-accent-red); font-size: 13px;">ERROR 400: 지원되지 않는 모델</b>이 발생하는 경우</div> • Claude, DeepSeek, Mistral 등 프리필(Prefill) 형식을 지원하지 않는 모델을 사용 중일 수 있습니다.<br/> • 정보 추출 > 공통 프롬프트에서 <b style="color: var(--pse-accent-red); font-size: 13px;">어시스턴트 프리필</b>을 비우십시오.
  </div> <div> <div style="font-weight: bold; color:var(--pse-text); margin-bottom: 4px;"> 검열로 인해 빈 응답이 나오거나 출력이 안 될 때</div> 데이터가 작은 단위로 나뉘어 있어 NSFW 농도가 높게 측정될 수 있으며, 이로 인해 검열 가능성이 높아집니다.<br/> • 프리필 프롬프트를 강화하십시오.<br/> • 검열이 적은 모델로 교체하십시오.
  </div> </div>
 </div>`,
@@ -692,7 +718,7 @@ Read upstream layers in this order. When layers conflict, higher layers win.
  "설정 2: 메인 (4, 10, 15 턴마다), 보조 (턴당 4회 + 2 & 3턴마다)",
  auto_inject_title: " 자동 주입 활성화됨",
  auto_inject_desc: "기본 설정이 감지되었습니다. 발송 시 시스템이 지정된 System Prompts를 <b>자동으로</b> 주입합니다. 수동 설정은 필요하지 않습니다!",
- help_p1_html: `<div style=" background: rgba(255, 171, 0, 0.12); padding: 12px; border-radius: 8px;"> <b style="color:var(--pse-muted); font-size: 14px;"> 프리셋 조정 가이드</b> <div style="margin-top: 8px; font-size: 13px; line-height: 1.6; color: var(--pse-text);"> <div style="margin-bottom: 4px;">1. <b>삭제 항목:</b> 캐릭터 설명(Character Description), 로어북(Lorebook), 글로벌 노트(Global Note), Supa/HypaMemory.</div> <div style="margin-bottom: 4px;">2. <b>고급 설정:</b> 채팅 진입 > 「고급」 체크 후 「범위 시작」을 <b>-10</b>으로 설정.</div> <div>3. 아래의 시스템 프롬프트를 복사한 후, 봇 > 프롬프트 페이지로 이동하여 <b>최상단 시스템 프롬프트</b>를 열고 프롬프트를 <b>가장 마지막에</b> 삽입하십시오.</div> </div> <div style="margin-top:12px;"> <textarea class="pse-code-window" readonly># PRIORITY ORDER
+ help_p1_html: `<div style=" background: rgba(255, 171, 0, 0.22); padding: 12px; border-radius: 8px;"> <b style="color:var(--pse-muted); font-size: 14px;"> 프리셋 조정 가이드</b> <div style="margin-top: 8px; font-size: 13px; line-height: 1.6; color: var(--pse-text);"> <div style="margin-bottom: 4px;">1. <b>삭제 항목:</b> 캐릭터 설명(Character Description), 로어북(Lorebook), 글로벌 노트(Global Note), Supa/HypaMemory.</div> <div style="margin-bottom: 4px;">2. <b>고급 설정:</b> 채팅 진입 > 「고급」 체크 후 「범위 시작」을 <b>-10</b>으로 설정.</div> <div>3. 아래의 시스템 프롬프트를 복사한 후, 봇 > 프롬프트 페이지로 이동하여 <b>최상단 시스템 프롬프트</b>를 열고 프롬프트를 <b>가장 마지막에</b> 삽입하십시오.</div> </div> <div style="margin-top:12px;"> <textarea class="pse-code-window" readonly># PRIORITY ORDER
 Read upstream layers in this order. When layers conflict, higher layers win.
 1. Hard constraints
 \`rp_logic_state.known_contradiction\` | \`rp_turn_advice.response_guard\`
@@ -700,7 +726,7 @@ Read upstream layers in this order. When layers conflict, higher layers win.
 \`rp_turn_advice.character_routing\` | \`rp_scene_and_role_state\`
 3. Durable continuity
 \`rp_persona_evolution_state\` | \`rp_persistent_memory\` | \`rp_arc_memory\` | \`rp_turn_trace\` | \`rp_facet_activation_ledger\` | \`rp_recent_world_entries\` | \`rp_world_encyclopedia\`</textarea> <button class="pse-btn pse-copy-sql-btn" type="button" style="width:100%;padding:6px;font-size:12px;background:var(--pse-accent-greyblue);"> 시스템 프롬프트 복사</button> </div> </div>`,
- help_p2_html: `<div style=" background: rgba(255, 23, 68, 0.10); padding: 12px; border-radius: 8px;"> <b style="color:var(--pse-muted); font-size: 14px;"> 프리셋 조정 가이드</b> <div style="margin-top: 8px; font-size: 13px; line-height: 1.6; color: var(--pse-text);"> <div style="margin-bottom: 4px;">1. <b>삭제 항목:</b> 캐릭터 설명(Character Description), 로어북(Lorebook), 글로벌 노트(Global Note), Supa/HypaMemory.</div> <div style="margin-bottom: 4px;">2. <b>고급 설정:</b> 채팅 진입 > 「고급」 체크 후 「범위 시작」을 <b>-10</b>으로 설정.</div> <div>3. 아래의 시스템 프롬프트를 복사한 후, 봇 > 프롬프트 페이지로 이동하여 <b>최상단 시스템 프롬프트</b>를 열고 프롬프트를 삽입한 다음, <b style="color:var(--pse-muted); font-size: 13px;">시스템 프롬프트 안에서 AI의 신분을 배우(Actor)로 강등</b>시키세요.</div> <div>기존 프롬프트의 <b style="color:var(--pse-muted); font-size: 13px;">Director</b>, <b style="color:var(--pse-muted); font-size: 13px;">Planner</b>, <b style="color:var(--pse-muted); font-size: 13px;">Narrator</b>, <b style="color:var(--pse-muted); font-size: 13px;">Storyteller</b> 계층 관련 내용을 <b style="color:var(--pse-muted); font-size: 13px;">Actor</b>, <b style="color:var(--pse-muted); font-size: 13px;">Executor</b> 계층으로 강등시키십시오.</div> </div> <div style="margin-top:12px;"> <textarea class="pse-code-window" readonly># UPSTREAM MEMORY USAGE GUIDE
+ help_p2_html: `<div style=" background: rgba(255, 23, 68, 0.20); padding: 12px; border-radius: 8px;"> <b style="color:var(--pse-muted); font-size: 14px;"> 프리셋 조정 가이드</b> <div style="margin-top: 8px; font-size: 13px; line-height: 1.6; color: var(--pse-text);"> <div style="margin-bottom: 4px;">1. <b>삭제 항목:</b> 캐릭터 설명(Character Description), 로어북(Lorebook), 글로벌 노트(Global Note), Supa/HypaMemory.</div> <div style="margin-bottom: 4px;">2. <b>고급 설정:</b> 채팅 진입 > 「고급」 체크 후 「범위 시작」을 <b>-10</b>으로 설정.</div> <div>3. 아래의 시스템 프롬프트를 복사한 후, 봇 > 프롬프트 페이지로 이동하여 <b>최상단 시스템 프롬프트</b>를 열고 프롬프트를 삽입한 다음, <b style="color:var(--pse-muted); font-size: 13px;">시스템 프롬프트 안에서 AI의 신분을 배우(Actor)로 강등</b>시키세요.</div> <div>기존 프롬프트의 <b style="color:var(--pse-muted); font-size: 13px;">Director</b>, <b style="color:var(--pse-muted); font-size: 13px;">Planner</b>, <b style="color:var(--pse-muted); font-size: 13px;">Narrator</b>, <b style="color:var(--pse-muted); font-size: 13px;">Storyteller</b> 계층 관련 내용을 <b style="color:var(--pse-muted); font-size: 13px;">Actor</b>, <b style="color:var(--pse-muted); font-size: 13px;">Executor</b> 계층으로 강등시키십시오.</div> </div> <div style="margin-top:12px;"> <textarea class="pse-code-window" readonly># UPSTREAM MEMORY USAGE GUIDE
 
 ## Boundary Constraints
 - You are an actor and scene narrator, not a director. Do not invent plot twists, scene changes without authorization from ra_logic_state.entrance_signal.
@@ -732,9 +758,9 @@ Read upstream layers in this order. When layers conflict, higher layers win.
 5. Verify ra_knowledge_matrix facts and secrets.
 6. Check ra_pattern_guard for forbidden tokens.
 7. Write output. Express only one dominant facet per character.</textarea> <button class="pse-btn pse-copy-sql-btn" type="button" style="width:100%;padding:6px;font-size:12px;background:var(--pse-accent-greyblue);"> 시스템 프롬프트 복사</button> </div> </div>`,
- help_p1_html_auto: `<div style=" background: rgba(255, 171, 0, 0.12); padding: 12px; border-radius: 8px;"> <b style="color:var(--pse-muted); font-size: 14px;"> 프리셋 조정 가이드</b> <div style="margin-top: 8px; font-size: 13px; line-height: 1.6; color: var(--pse-text);"> <div style="margin-bottom: 4px;">1. <b>삭제 항목:</b> 캐릭터 설명(Character Description), 로어북(Lorebook), 글로벌 노트(Global Note), Supa/HypaMemory.</div> <div style="margin-bottom: 4px;">2. <b>고급 설정:</b> 채팅 진입 > 「고급」 체크 후 「범위 시작」을 <b>-10</b>으로 설정.</div> </div> <div style="margin-top:12px; padding: 12px; border-radius: 8px; background: rgba(0, 150, 136, 0.1);"> <b style="color: var(--pse-accent-teal); font-size: 14px;"> 자동 주입 활성화됨</b> <div style="margin-top: 8px; font-size: 13px; line-height: 1.6; color: var(--pse-text);"> 기본 설정이 감지되었습니다. 발송 시 시스템이 지정된 System Prompts를 <b>자동으로</b> 주입합니다. 수동 설정은 필요하지 않습니다!
+ help_p1_html_auto: `<div style=" background: rgba(255, 171, 0, 0.22); padding: 12px; border-radius: 8px;"> <b style="color:var(--pse-muted); font-size: 14px;"> 프리셋 조정 가이드</b> <div style="margin-top: 8px; font-size: 13px; line-height: 1.6; color: var(--pse-text);"> <div style="margin-bottom: 4px;">1. <b>삭제 항목:</b> 캐릭터 설명(Character Description), 로어북(Lorebook), 글로벌 노트(Global Note), Supa/HypaMemory.</div> <div style="margin-bottom: 4px;">2. <b>고급 설정:</b> 채팅 진입 > 「고급」 체크 후 「범위 시작」을 <b>-10</b>으로 설정.</div> </div> <div style="margin-top:12px; padding: 12px; border-radius: 8px; background: rgba(0, 150, 136, 0.20);"> <b style="color: var(--pse-accent-teal); font-size: 14px;"> 자동 주입 활성화됨</b> <div style="margin-top: 8px; font-size: 13px; line-height: 1.6; color: var(--pse-text);"> 기본 설정이 감지되었습니다. 발송 시 시스템이 지정된 System Prompts를 <b>자동으로</b> 주입합니다. 수동 설정은 필요하지 않습니다!
  </div> </div> </div>`,
- help_p2_html_auto: `<div style=" background: rgba(255, 23, 68, 0.10); padding: 12px; border-radius: 8px;"> <b style="color:var(--pse-muted); font-size: 14px;"> 프리셋 조정 가이드</b> <div style="margin-top: 8px; font-size: 13px; line-height: 1.6; color: var(--pse-text);"> <div style="margin-bottom: 4px;">1. <b>삭제 항목:</b> 캐릭터 설명(Character Description), 로어북(Lorebook), 글로벌 노트(Global Note), Supa/HypaMemory.</div> <div style="margin-bottom: 4px;">2. <b>고급 설정:</b> 채팅 진입 > 「고급」 체크 후 「범위 시작」을 <b>-10</b>으로 설정.</div> </div> <div style="margin-top:12px; padding: 12px; border-radius: 8px; background: rgba(0, 150, 136, 0.1);"> <b style="color: var(--pse-accent-teal); font-size: 14px;"> 자동 주입 활성화됨</b> <div style="margin-top: 8px; font-size: 13px; line-height: 1.6; color: var(--pse-text);"> 기본 설정이 감지되었습니다. 발송 시 시스템이 지정된 System Prompts를 <b>자동으로</b> 주입합니다. 수동 설정은 필요하지 않습니다!
+ help_p2_html_auto: `<div style=" background: rgba(255, 23, 68, 0.20); padding: 12px; border-radius: 8px;"> <b style="color:var(--pse-muted); font-size: 14px;"> 프리셋 조정 가이드</b> <div style="margin-top: 8px; font-size: 13px; line-height: 1.6; color: var(--pse-text);"> <div style="margin-bottom: 4px;">1. <b>삭제 항목:</b> 캐릭터 설명(Character Description), 로어북(Lorebook), 글로벌 노트(Global Note), Supa/HypaMemory.</div> <div style="margin-bottom: 4px;">2. <b>고급 설정:</b> 채팅 진입 > 「고급」 체크 후 「범위 시작」을 <b>-10</b>으로 설정.</div> </div> <div style="margin-top:12px; padding: 12px; border-radius: 8px; background: rgba(0, 150, 136, 0.20);"> <b style="color: var(--pse-accent-teal); font-size: 14px;"> 자동 주입 활성화됨</b> <div style="margin-top: 8px; font-size: 13px; line-height: 1.6; color: var(--pse-text);"> 기본 설정이 감지되었습니다. 발송 시 시스템이 지정된 System Prompts를 <b>자동으로</b> 주입합니다. 수동 설정은 필요하지 않습니다!
  </div> </div> </div>`,
  cache_guide_title: " 캐시 저장소 안내",
  cache_guide_content: `<div style="display:grid; gap:8px;"> <div>• 각 카드마다 1~2개의 저장 영역이 생성됩니다.</div> <div>• <b>벡터 데이터 삭제:</b> 임베딩 모델 변경 시 시스템이 자동 전환되지 않거나 오류가 발생할 때 사용하는 수동 조작입니다.</div> <div>• <b>분류:</b> 해당 카드의 항목 분할 및 분류 기록입니다.</div> <div>• <b>페르소나:</b> 해당 카드의 캐릭터 페르소나 기록입니다.</div> <div>• <b> 캐릭터 추출 항목:</b> 카드가 기록한 캐릭터 수를 확인할 수 있습니다. 카드나 모드 로어북에 기재된 캐릭터만 기록되며, 플레이 중 만난 캐릭터는 자동으로 생성되지 않습니다. 추가가 필요하거나 이전에 쓰기에 실패했다면 "미등록 캐릭터 추가"를 클릭하여 시스템을 다시 실행할 수 있습니다.</div> </div>`,
@@ -742,7 +768,7 @@ Read upstream layers in this order. When layers conflict, higher layers win.
  vector_guide_content: `<div style="display:grid; gap:8px;"> <div>• <b>유사도 & 신선도 혼합:</b> 턴이 지날수록 항목의 가중치가 낮아집니다.</div> <div>• <b>프로세스:</b> 매 대화마다 최신 턴과 이전 턴의 데이터를 통합하여 임베딩 모델에 전송하고 벡터 태그를 획득합니다.</div> <div>• <b>매칭:</b> 획득한 벡터 태그를 시스템이 비교합니다.</div> <div>• <b>로어북 TopK:</b> 로어북 항목 중 TopK 항목을 추출하여 컨텍스트에 배치합니다.</div> <div>• <b>정보 추출 피드 (로어북 > 채팅):</b> TopK*2 항목을 정보 추출 모델에 제공합니다.</div> <div>• <b>정보 추출 피드 (캐시 저장소 > 페르소나):</b> TopK*2 항목을 정보 추출 모델에 제공합니다.</div> </div>`,
  extraction_guide_title: " 추출 및 명령어 분석 가이드",
  extraction_guide_content: `<div style="display:grid; gap:12px;">
-  <div style="background:rgba(156,39,176,0.08); padding:10px 12px; border-radius:8px;">
+  <div style="background:rgba(156,39,176,0.18); padding:10px 12px; border-radius:8px;">
     <b style="font-size:13px; color:var(--pse-text);"> 핵심 상태 레이어 — 매 턴 업데이트</b>
     <div style="margin-top:6px; display:grid; gap:4px; font-size:12px; color:var(--pse-text);">
       <div>• <code>ra_turn_trace</code>: 현재 턴의 즉각적인 행동, 시간 경과, 동적 변화를 기록합니다. AI의 단기 기억 앵커입니다.</div>
@@ -751,7 +777,7 @@ Read upstream layers in this order. When layers conflict, higher layers win.
       <div>• <code>ra_cast_state</code> <span style="opacity:0.7;">(설정 4)</span>: 다중 캐릭터 장면에서 등장 명단과 각 캐릭터의 위치 및 포즈를 관리합니다.</div>
     </div>
   </div>
-  <div style="background:rgba(63,81,181,0.08); padding:10px 12px; border-radius:8px;">
+  <div style="background:rgba(63,81,181,0.18); padding:10px 12px; border-radius:8px;">
     <b style="font-size:13px; color:var(--pse-text);"> 로직 & 플롯 레이어</b>
     <div style="margin-top:6px; display:grid; gap:4px; font-size:12px; color:var(--pse-text);">
       <div>• <code>ra_logic_state</code>: "심판" 역할을 합니다. 플레이어의 행동이 기존 로직에 위배되는지 확인하고, 실행 모델에 강제 지시를 내립니다.</div>
@@ -759,7 +785,7 @@ Read upstream layers in this order. When layers conflict, higher layers win.
       <div>• <code>ra_turning_point_log</code>: 주요 플롯 전환점을 기록하고 장기 보존하여 서사의 일관성을 유지합니다.</div>
     </div>
   </div>
-  <div style="background:rgba(33,150,243,0.08); padding:10px 12px; border-radius:8px;">
+  <div style="background:rgba(33,150,243,0.18); padding:10px 12px; border-radius:8px;">
     <b style="font-size:13px; color:var(--pse-text);"> 전략 & 인지 레이어 — 설정 2 & 4 강화</b>
     <div style="margin-top:6px; display:grid; gap:4px; font-size:12px; color:var(--pse-text);">
       <div>• <code>ra_knowledge_matrix</code>: 지식 매트릭스. 누가 무엇을 알고 모르는지 기록하며, 정보 비대칭과 음모를 다루는 핵심 도구입니다.</div>
@@ -768,7 +794,7 @@ Read upstream layers in this order. When layers conflict, higher layers win.
       <div>• <code>ra_pattern_guard</code>: 대화가 반복적인 패턴에 빠지는 것을 감지하고, 반복 루프를 깨기 위한 "변주 제안"을 제공합니다.</div>
     </div>
   </div>
-  <div style="background:rgba(0,150,136,0.08); padding:10px 12px; border-radius:8px;">
+  <div style="background:rgba(0,150,136,0.18); padding:10px 12px; border-radius:8px;">
     <b style="font-size:13px; color:var(--pse-text);"> 디렉터 & 페르소나 내비게이션 레이어 — 설정 3 & 4 전용</b>
     <div style="margin-top:6px; display:grid; gap:4px; font-size:12px; color:var(--pse-text);">
       <div>• <code>ra_persona_importance</code>: 이번 턴에 캐릭터의 어떤 "측면"을 표현해야 할지 결정합니다 (예: 지금 "따뜻함"을 보여야 할지 "위엄"을 보여야 할지).</div>
@@ -776,7 +802,7 @@ Read upstream layers in this order. When layers conflict, higher layers win.
       <div>• <code>ra_facet_audit</code>: 이전 턴 AI의 퍼포먼스를 감사하여 캐릭터 이탈이나 페르소나 붕괴를 점검하고 다음 턴에서 수정합니다.</div>
     </div>
   </div>
-  <div style="background:rgba(255,152,0,0.08); padding:10px 12px; border-radius:8px;">
+  <div style="background:rgba(255,152,0,0.18); padding:10px 12px; border-radius:8px;">
     <b style="font-size:13px; color:var(--pse-text);"> 장기 기억 & 아카이브 레이어 — 저빈도 업데이트</b>
     <div style="margin-top:6px; display:grid; gap:4px; font-size:12px; color:var(--pse-text);">
       <div>• <code>ra_world_log</code>: 새로 등장한 세계관 사실들을 임시 저장합니다.</div>
@@ -786,7 +812,7 @@ Read upstream layers in this order. When layers conflict, higher layers win.
     </div>
   </div>
   <div style="border-top: 1px dashed rgba(255,171,0,0.3); padding-top: 10px; display:grid; gap:10px;">
-    <div style="background:rgba(255,171,0,0.08); padding:10px 12px; border-radius:8px;">
+    <div style="background:rgba(255,171,0,0.18); padding:10px 12px; border-radius:8px;">
       <b style="font-size:13px; color:var(--pse-text);"> 회수 & 정리 메커니즘</b>
       <div style="margin-top:6px; display:grid; gap:4px; font-size:12px; color:var(--pse-text);">
         <div>• <b>Overwrite（덮어쓰기）:</b> 매번 최신 데이터만 보존합니다. 상태 유형 항목 (예: <code>ra_scene_state</code>)에 적합하며, AI가 "현재" 환경만 볼 수 있게 합니다.</div>
@@ -794,7 +820,7 @@ Read upstream layers in this order. When layers conflict, higher layers win.
         <div>• <b>Retention（자동 정리）:</b> Append 모드의 경우, <b>After（트리거 임계값）</b> (N 턴 누적 후 정리 시작)와 <b>Keep（보존 수량）</b> (최근 N 턴만 유지)을 설정하여 데이터베이스 불필요한 팽창을 방지합니다.</div>
       </div>
     </div>
-    <div style="background:rgba(233,30,99,0.08); padding:10px 12px; border-radius:8px;">
+    <div style="background:rgba(233,30,99,0.18); padding:10px 12px; border-radius:8px;">
       <b style="font-size:13px; color:var(--pse-text);"> 커스텀 설정 주의사항</b>
       <div style="margin-top:6px; display:grid; gap:4px; font-size:12px; color:var(--pse-text);">
         <div>• 소형 모델의 안정적인 출력을 위해 시스템은 기본적으로 JSON 구조를 고정합니다. 기본 포맷을 수정하는 방식으로 커스텀하는 것을 권장합니다.</div>
@@ -804,7 +830,7 @@ Read upstream layers in this order. When layers conflict, higher layers win.
         <div>• 커스텀 시 불필요한 데이터베이스 팽창을 막기 위한 정리 전략을 계획하는 것을 권장합니다.</div>
       </div>
     </div>
-    <div style="background:rgba(0,150,136,0.08); padding:10px 12px; border-radius:8px;">
+    <div style="background:rgba(0,150,136,0.18); padding:10px 12px; border-radius:8px;">
       <b style="font-size:13px; color:var(--pse-text);"> 봇 페르소나 추출 (설정 3 & 4)</b>
       <div style="margin-top:6px; display:grid; gap:4px; font-size:12px; color:var(--pse-text);">
         <div>• 페르소나 추출 결과는 캐시 저장소에 보관됩니다. 대화 중 벡터 검색으로 관련 캐릭터를 불러와 "추출 + 디렉터" 설정에 전달합니다.</div>
@@ -892,7 +918,16 @@ Read upstream layers in this order. When layers conflict, higher layers win.
  lbl_entries: "條目數",
  lbl_filesize: "檔案大小",
  btn_delete: "刪除",
- btn_refresh_persona: "追加未登錄角色",
+ btn_refresh_persona: "自動追加角色",
+ btn_manual_append_persona: "手動追加角色",
+ manual_append_title: "手動輸入角色資料",
+ manual_append_guide: "請複製下方提示詞，連同角色資料一起餵給其他 LLM，再將輸出結果貼入輸入框並點擊「輸入資料」。",
+ btn_copy_prompt: "複製提示詞",
+ btn_input_data: "輸入資料",
+ st_manual_append_ok: (n) => `寫入成功，共追加 ${n} 個角色。`,
+ st_manual_append_partial: (written, skipped) => `部分成功：${written} 個已寫入，${skipped} 個略過（配對不完整或資料為空）。`,
+ st_manual_append_failed: "寫入失敗：",
+ st_manual_append_invalid_json: "無法解析 JSON，請貼入 LLM 輸出的合法 JSON 格式資料。",
  lbl_classify_only: "僅進行分類",
  lbl_chunks: "條目數",
  tag_vector: "向量",
@@ -925,6 +960,10 @@ Read upstream layers in this order. When layers conflict, higher layers win.
  lbl_persona_entries: "角色萃取條目",
  lbl_persona_entries_count: "角色",
  lbl_delete_char_cache: "刪除此角色的快取",
+ lbl_char_editor: "編輯角色快取",
+ st_char_edit_saved: "角色快取已更新。",
+ st_char_edit_invalid_json: "JSON 格式錯誤，請確認格式後再試。",
+ st_char_edit_failed: "儲存失敗：",
  lbl_no_persona_data: "找不到角色資料。",
  btn_reset_factory: "將所有設定重置為出廠預設",
  editor_cancel: "取消",
@@ -1014,17 +1053,17 @@ Read upstream layers in this order. When layers conflict, higher layers win.
  help_tab_p2: "預設設定2",
  mode_guide_title: " 模式說明與模型呼叫指南",
  mode_guide_click: "(點擊展開/收起)",
- mode_guide_content: `<div style="border-top: 1px solid rgba(255, 152, 0, 0.1); padding-top: 12px;"> <!--  初始設定 (Violet) --> <div style=" background: rgba(156, 39, 176, 0.10); padding: 8px 12px; border-radius: 8px; margin-bottom: 16px;"> <b style="color:var(--pse-text); font-size: 14px;"> 初始設定</b> <div style="margin-top: 6px; display: grid; gap: 4px; font-size: 12px; color: var(--pse-text);"> <div>• <b>分類：</b>會擷取角色敘述、Lorebook角色、替換全域備註的第一段內容，以25條一組，發送給模型進行標籤分類。</div> <div>• <b>角色人格萃取(啟用導演模式時)：</b>接下來，會將標籤為角色的條目，20條一組送給LLM進行人格萃取。</div> <div>• <b>向量(啟用導演模式或向量搜尋時)：</b>最後，向量模型會按照各供應商的預設設定，將資料批次送出，以獲得向量標記。</div> </div> </div> <!--  預設模式選擇 (Indigo) --> <div style=" background: rgba(63, 81, 181, 0.10); padding: 8px 12px; border-radius: 8px; margin-bottom: 16px;"> <b style="color:var(--pse-text); font-size: 14px;"> 預設模式選擇</b> <div style="margin-top: 6px; display: grid; gap: 4px; margin-bottom: 8px; font-size: 12px; color: var(--pse-text);"> <div>• <b>設定差異：</b>「設定 1」適用於一般卡片；「設定 2」專為劇情複雜的卡片設計。</div> <div>• <b>萃取：</b>濃縮對話記錄，取代傳統的長回合對話與 Supa/Hypa Memory。</div> <div>• <b>導演：</b>進一步指導劇情、角色反應與變化，強化角色的立體感與劇情連貫度。</div> <div>• <b>僅卡片重組：</b>將卡片重新分類後，放進提示詞結構中最有效的位置。</div> <div>• <b>啟用向量搜尋：</b>取代傳統的關鍵字觸發，提高有效資訊密度。</div> <div>• <b>不使用嵌入模型：</b>設定1/2(萃取) + 僅卡片重組</div> </div> </div> <!--  預設模式模型呼叫頻率 (Blue) --> <div style=" background: rgba(33, 150, 243, 0.12); padding: 8px 12px; border-radius: 8px; margin-bottom: 16px;"> <b style="color:var(--pse-text); font-size: 14px;"> 預設模式模型呼叫頻率</b> <div style="margin-top: 8px;"> <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 8px;"> <span style="background: var(--pse-accent-blue); color: white; padding: 1px 6px; border-radius: 4px; font-size: 11px; font-weight: bold;">開啟對話</span> <span style="color: var(--pse-muted); font-size: 12px;">越複雜的卡片，前置時間越長</span> </div> <div style="display: grid; gap: 4px; padding-left: 4px; margin-bottom: 12px; font-size: 12px; color: var(--pse-text);"> <div>• <b>導演：</b>呼叫主要模型，進行人格萃取</div> <div>• <b>卡片重組：</b>呼叫輔助模型，進行資料分類</div> <div>• <b>向量搜尋：</b>呼叫嵌入模型建立索引</div> </div> <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 8px;"> <span style="background: var(--pse-accent-blue); color: white; padding: 1px 6px; border-radius: 4px; font-size: 11px; font-weight: bold;">之後聊天</span> </div> <div style="display:grid; gap:8px; padding-left:4px;"> <div style="background:rgba(33, 150, 243, 0.1); border:1px solid rgba(33, 150, 243, 0.2); padding:8px; border-radius:6px;"> <div style="color:var(--pse-text); font-weight:bold; font-size:12px; margin-bottom:4px; border-bottom:1px solid rgba(33, 150, 243, 0.1);"> 萃取模式</div> <div style="font-size:12px; color:var(--pse-text);"> • <b>設定 1：</b>主要模型10、15回合各1次，輔助模型1回合2次 + 3回合1次<br/> • <b>設定 2：</b>主要模型3、10、15回合各1次，輔助模型1回合3次 + 2、3回合各1次
- </div> </div> <div style="background:rgba(33, 150, 243, 0.1); border:1px solid rgba(33, 150, 243, 0.2); padding:8px; border-radius:6px;"> <div style="color:var(--pse-text); font-weight:bold; font-size:12px; margin-bottom:4px; border-bottom:1px solid rgba(33, 150, 243, 0.1);"> 萃取 + 導演</div> <div style="font-size:12px; color:var(--pse-text);"> • <b>設定 1：</b>主要模型10、15 回合各1次，輔助模型1回合4次 + 3回合1次<br/> • <b>設定 2：</b>主要模型4、10、15回合各1次，輔助模型1回合4次 + 2、3回合各1次
- </div> </div> <div style="background:rgba(33, 150, 243, 0.1); border:1px solid rgba(33, 150, 243, 0.2); padding:8px; border-radius:6px;"> <div style="color:var(--pse-text); font-weight:bold; font-size:12px; margin-bottom:4px; border-bottom:1px solid rgba(33, 150, 243, 0.1);"> 導演 & 向量搜尋</div> <div style="font-size:12px; color:var(--pse-text);"> • <b>頻率：</b>嵌入模型每回合呼叫1次。
- </div> </div> </div> </div> </div> <!--  接續聊天 (Teal) --> <div style=" background: rgba(0, 150, 136, 0.08); padding: 8px 12px; border-radius: 8px; margin-bottom: 16px;"> <b style="color: var(--pse-accent-teal, #009688); font-size: 14px;"> 接續聊天</b> <div style="margin-top: 6px; display: grid; gap: 4px; font-size: 12px; color: var(--pse-text);"> <div>• 感受到Lag時再使用即可。</div> <div>• 點擊接續聊天之後，會跳出所有的聊天記錄。點擊你要接續的記錄即可。</div> <div>• 接下來，即可直接使用後綴帶有(continue)的記錄，繼續遊玩。</div> </div> </div>`,
+ mode_guide_content: `<div style="border-top: 1px solid rgba(255, 152, 0, 0.1); padding-top: 12px;"> <!--  初始設定 (Violet) --> <div style=" background: rgba(156, 39, 176, 0.20); padding: 8px 12px; border-radius: 8px; margin-bottom: 16px;"> <b style="color:var(--pse-text); font-size: 14px;"> 初始設定</b> <div style="margin-top: 6px; display: grid; gap: 4px; font-size: 12px; color: var(--pse-text);"> <div>• <b>分類：</b>會擷取角色敘述、Lorebook角色、替換全域備註的第一段內容，以25條一組，發送給模型進行標籤分類。</div> <div>• <b>角色人格萃取(啟用導演模式時)：</b>接下來，會將標籤為角色的條目，20條一組送給LLM進行人格萃取。</div> <div>• <b>向量(啟用導演模式或向量搜尋時)：</b>最後，向量模型會按照各供應商的預設設定，將資料批次送出，以獲得向量標記。</div> </div> </div> <!--  預設模式選擇 (Indigo) --> <div style=" background: rgba(63, 81, 181, 0.20); padding: 8px 12px; border-radius: 8px; margin-bottom: 16px;"> <b style="color:var(--pse-text); font-size: 14px;"> 預設模式選擇</b> <div style="margin-top: 6px; display: grid; gap: 4px; margin-bottom: 8px; font-size: 12px; color: var(--pse-text);"> <div>• <b>設定差異：</b>「設定 1」適用於一般卡片；「設定 2」專為劇情複雜的卡片設計。</div> <div>• <b>萃取：</b>濃縮對話記錄，取代傳統的長回合對話與 Supa/Hypa Memory。</div> <div>• <b>導演：</b>進一步指導劇情、角色反應與變化，強化角色的立體感與劇情連貫度。</div> <div>• <b>僅卡片重組：</b>將卡片重新分類後，放進提示詞結構中最有效的位置。</div> <div>• <b>啟用向量搜尋：</b>取代傳統的關鍵字觸發，提高有效資訊密度。</div> <div>• <b>不使用嵌入模型：</b>設定1/2(萃取) + 僅卡片重組</div> </div> </div> <!--  預設模式模型呼叫頻率 (Blue) --> <div style=" background: rgba(33, 150, 243, 0.22); padding: 8px 12px; border-radius: 8px; margin-bottom: 16px;"> <b style="color:var(--pse-text); font-size: 14px;"> 預設模式模型呼叫頻率</b> <div style="margin-top: 8px;"> <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 8px;"> <span style="background: var(--pse-accent-blue); color: white; padding: 1px 6px; border-radius: 4px; font-size: 11px; font-weight: bold;">開啟對話</span> <span style="color: var(--pse-muted); font-size: 12px;">越複雜的卡片，前置時間越長</span> </div> <div style="display: grid; gap: 4px; padding-left: 4px; margin-bottom: 12px; font-size: 12px; color: var(--pse-text);"> <div>• <b>導演：</b>呼叫主要模型，進行人格萃取</div> <div>• <b>卡片重組：</b>呼叫輔助模型，進行資料分類</div> <div>• <b>向量搜尋：</b>呼叫嵌入模型建立索引</div> </div> <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 8px;"> <span style="background: var(--pse-accent-blue); color: white; padding: 1px 6px; border-radius: 4px; font-size: 11px; font-weight: bold;">之後聊天</span> </div> <div style="display:grid; gap:8px; padding-left:4px;"> <div style="background:rgba(33, 150, 243, 0.20); border:1px solid rgba(33, 150, 243, 0.38); padding:8px; border-radius:6px;"> <div style="color:var(--pse-text); font-weight:bold; font-size:12px; margin-bottom:4px; border-bottom:1px solid rgba(33, 150, 243, 0.25);"> 萃取模式</div> <div style="font-size:12px; color:var(--pse-text);"> • <b>設定 1：</b>主要模型10、15回合各1次，輔助模型1回合2次 + 3回合1次<br/> • <b>設定 2：</b>主要模型3、10、15回合各1次，輔助模型1回合3次 + 2、3回合各1次
+ </div> </div> <div style="background:rgba(33, 150, 243, 0.20); border:1px solid rgba(33, 150, 243, 0.38); padding:8px; border-radius:6px;"> <div style="color:var(--pse-text); font-weight:bold; font-size:12px; margin-bottom:4px; border-bottom:1px solid rgba(33, 150, 243, 0.25);"> 萃取 + 導演</div> <div style="font-size:12px; color:var(--pse-text);"> • <b>設定 1：</b>主要模型10、15 回合各1次，輔助模型1回合4次 + 3回合1次<br/> • <b>設定 2：</b>主要模型4、10、15回合各1次，輔助模型1回合4次 + 2、3回合各1次
+ </div> </div> <div style="background:rgba(33, 150, 243, 0.20); border:1px solid rgba(33, 150, 243, 0.38); padding:8px; border-radius:6px;"> <div style="color:var(--pse-text); font-weight:bold; font-size:12px; margin-bottom:4px; border-bottom:1px solid rgba(33, 150, 243, 0.25);"> 導演 & 向量搜尋</div> <div style="font-size:12px; color:var(--pse-text);"> • <b>頻率：</b>嵌入模型每回合呼叫1次。
+ </div> </div> </div> </div> </div> <!--  接續聊天 (Teal) --> <div style=" background: rgba(0, 150, 136, 0.18); padding: 8px 12px; border-radius: 8px; margin-bottom: 16px;"> <b style="color: var(--pse-accent-teal, #003028); font-size: 14px;"> 接續聊天</b> <div style="margin-top: 6px; display: grid; gap: 4px; font-size: 12px; color: var(--pse-text);"> <div>• 感受到Lag時再使用即可。</div> <div>• 點擊接續聊天之後，會跳出所有的聊天記錄。點擊你要接續的記錄即可。</div> <div>• 接下來，即可直接使用後綴帶有(continue)的記錄，繼續遊玩。</div> </div> </div>`,
  cache_guide_title: " 快取倉庫說明",
  cache_guide_content: `<div style="display:grid; gap:8px;"> <div>• 每張卡片會形成 1~2 個儲存區域。</div> <div>• <b>刪除向量資料：</b>當您更換嵌入模型，但系統沒有自動切換或出現錯誤時的手動操作。</div> <div>• <b>分類：</b>該卡片的條目切割與分類記錄。</div> <div>• <b>人格：</b>該卡片的角色人格記錄。</div> <div>• <b> 角色萃取條目：</b>可確認該卡片記錄了多少角色。該處僅會記錄記載於卡片或模組 Lorebook 上的角色，遊玩過程遇見的並不會自動建立。若需要追加或先前寫入失敗，可點選「追加未登錄角色」讓系統重新處理。</div> </div>`,
  vector_guide_title: " 向量搜尋說明",
  vector_guide_content: `<div style="display:grid; gap:8px;"> <div>• <b>混合相似度與新鮮度：</b>條目權重會隨著回合數增加而逐漸降低。</div> <div>• <b>運作流程：</b>每次對話時，系統會統整最近一回合與先前回合的資料送往嵌入模型，獲取向量標記。</div> <div>• <b>比對機制：</b>系統取得向量標記後會進行比對。</div> <div>• <b>Lorebook TopK：</b>抽出 Lorebook 中最相關的 TopK 條目放置於上下文中。</div> <div>• <b>資訊萃取 (Lorebook > 聊天)：</b>抽出 TopK*2 的條目餵給資訊萃取模型。</div> <div>• <b>資訊萃取 (快取倉庫 > 角色人格)：</b>抽出 TopK*2 的條目餵給資訊萃取模型。</div> </div>`,
  extraction_guide_title: " 萃取與指令分析指南",
  extraction_guide_content: `<div style="display:grid; gap:12px;">
-  <div style="background:rgba(156,39,176,0.08); padding:10px 12px; border-radius:8px;">
+  <div style="background:rgba(156,39,176,0.18); padding:10px 12px; border-radius:8px;">
     <b style="font-size:13px; color:var(--pse-text);"> 核心狀態層 — 每回合更新</b>
     <div style="margin-top:6px; display:grid; gap:4px; font-size:12px; color:var(--pse-text);">
       <div>• <code>ra_turn_trace</code>：記錄當前回合的即時動作、時間流逝與動態變化。AI 的短期記憶錨點。</div>
@@ -1033,7 +1072,7 @@ Read upstream layers in this order. When layers conflict, higher layers win.
       <div>• <code>ra_cast_state</code> <span style="opacity:0.7;">(設定 4)</span>：管理多角色場景的登場名單與各自站位姿勢。</div>
     </div>
   </div>
-  <div style="background:rgba(63,81,181,0.08); padding:10px 12px; border-radius:8px;">
+  <div style="background:rgba(63,81,181,0.18); padding:10px 12px; border-radius:8px;">
     <b style="font-size:13px; color:var(--pse-text);"> 邏輯與劇情層</b>
     <div style="margin-top:6px; display:grid; gap:4px; font-size:12px; color:var(--pse-text);">
       <div>• <code>ra_logic_state</code>：擔任「裁判」。檢查玩家動作是否違反邏輯，並對執行模型發出強制指令。</div>
@@ -1041,7 +1080,7 @@ Read upstream layers in this order. When layers conflict, higher layers win.
       <div>• <code>ra_turning_point_log</code>：記錄重大劇情轉折點，長期保留以維持敘事連貫。</div>
     </div>
   </div>
-  <div style="background:rgba(33,150,243,0.08); padding:10px 12px; border-radius:8px;">
+  <div style="background:rgba(33,150,243,0.18); padding:10px 12px; border-radius:8px;">
     <b style="font-size:13px; color:var(--pse-text);"> 策略與認知層 — 設定 2 & 4 強化</b>
     <div style="margin-top:6px; display:grid; gap:4px; font-size:12px; color:var(--pse-text);">
       <div>• <code>ra_knowledge_matrix</code>：知識矩陣。記錄誰知道什麼、誰不知道什麼，是處理「資訊差」與「陰謀詭計」的核心。</div>
@@ -1050,7 +1089,7 @@ Read upstream layers in this order. When layers conflict, higher layers win.
       <div>• <code>ra_pattern_guard</code>：偵測對話是否陷入重複套路，並提供「變化建議」以打破復讀機效應。</div>
     </div>
   </div>
-  <div style="background:rgba(0,150,136,0.08); padding:10px 12px; border-radius:8px;">
+  <div style="background:rgba(0,150,136,0.18); padding:10px 12px; border-radius:8px;">
     <b style="font-size:13px; color:var(--pse-text);"> 導演與人格導航層 — 設定 3 & 4 獨有</b>
     <div style="margin-top:6px; display:grid; gap:4px; font-size:12px; color:var(--pse-text);">
       <div>• <code>ra_persona_importance</code>：決定當前回合角色應展現哪個「側面」（如：此時應表現「慈愛」還是「威嚴」）。</div>
@@ -1058,7 +1097,7 @@ Read upstream layers in this order. When layers conflict, higher layers win.
       <div>• <code>ra_facet_audit</code>：審計上一輪 AI 的表現，檢查是否出戲或人格崩壞，並在下一輪修正。</div>
     </div>
   </div>
-  <div style="background:rgba(255,152,0,0.08); padding:10px 12px; border-radius:8px;">
+  <div style="background:rgba(255,152,0,0.18); padding:10px 12px; border-radius:8px;">
     <b style="font-size:13px; color:var(--pse-text);"> 長期記憶與存檔層 — 低頻率更新</b>
     <div style="margin-top:6px; display:grid; gap:4px; font-size:12px; color:var(--pse-text);">
       <div>• <code>ra_world_log</code>：暫存新出現的世界事實。</div>
@@ -1068,7 +1107,7 @@ Read upstream layers in this order. When layers conflict, higher layers win.
     </div>
   </div>
   <div style="border-top: 1px dashed rgba(255,171,0,0.3); padding-top: 10px; display:grid; gap:10px;">
-    <div style="background:rgba(255,171,0,0.08); padding:10px 12px; border-radius:8px;">
+    <div style="background:rgba(255,171,0,0.18); padding:10px 12px; border-radius:8px;">
       <b style="font-size:13px; color:var(--pse-text);"> 回收與清理機制</b>
       <div style="margin-top:6px; display:grid; gap:4px; font-size:12px; color:var(--pse-text);">
         <div>• <b>Overwrite（覆蓋）：</b>每次只保留最新一份資料，適用於狀態類條目（如 <code>ra_scene_state</code>），確保 AI 只看到「當下」的環境。</div>
@@ -1076,7 +1115,7 @@ Read upstream layers in this order. When layers conflict, higher layers win.
         <div>• <b>Retention（自動修剪）：</b>針對 Append 模式，可設定 <b>After（觸發門檻）</b>（累積超過 N 輪後開始修剪）與 <b>Keep（保留數量）</b>（僅保留最近 N 輪），防止資料庫無效膨脹。</div>
       </div>
     </div>
-    <div style="background:rgba(233,30,99,0.08); padding:10px 12px; border-radius:8px;">
+    <div style="background:rgba(233,30,99,0.18); padding:10px 12px; border-radius:8px;">
       <b style="font-size:13px; color:var(--pse-text);"> 自訂設定須知</b>
       <div style="margin-top:6px; display:grid; gap:4px; font-size:12px; color:var(--pse-text);">
         <div>• 系統預設強制鎖死 JSON 結構，以確保小型模型能穩定輸出。建議以修改預設格式的方式進行自訂。</div>
@@ -1086,7 +1125,7 @@ Read upstream layers in this order. When layers conflict, higher layers win.
         <div>• 自行修改時建議規劃清理策略，避免資料庫無效膨脹。</div>
       </div>
     </div>
-    <div style="background:rgba(0,150,136,0.08); padding:10px 12px; border-radius:8px;">
+    <div style="background:rgba(0,150,136,0.18); padding:10px 12px; border-radius:8px;">
       <b style="font-size:13px; color:var(--pse-text);"> 角色人格萃取（設定 3 & 4）</b>
       <div style="margin-top:6px; display:grid; gap:4px; font-size:12px; color:var(--pse-text);">
         <div>• 人格萃取的結果儲存於快取倉庫。對話時以向量搜尋抽出相關角色，交由「萃取 + 導演」設定使用。</div>
@@ -1095,10 +1134,10 @@ Read upstream layers in this order. When layers conflict, higher layers win.
     </div>
   </div>
 </div>`,
- help_html: `<div style="font-family: inherit; line-height: 1.5;"> <div style="padding: 12px; border-radius: 8px; margin-bottom: 12px; background: rgba(233, 30, 99, 0.12);"> <div style="font-weight: bold; color: #E91E63; margin-bottom: 8px;"> 外掛指南</div> <div style="margin-bottom: 4px;">個別頁面的上方有更細部的解說指南</div> <div style="margin-bottom: 4px;">• <b>啟用設置：</b>設定個別卡片的外掛模式。</div> <div style="margin-bottom: 4px;">• <b>前導模型設定：</b>設定主要模型、輔助模型、嵌入模型。與 RisuAI 本體使用的模型無關。</div> <div style="margin-bottom: 4px;">• <b>快取倉庫：</b>存放 卡片分類 & 向量搜尋 & 角色核心 的資料。</div> <div style="margin-bottom: 4px;">• <b>資訊萃取：</b>進階使用者使用。可自定義萃取 & 導演模式的細節。</div> <div>• <b>向量搜尋：</b>進階使用者使用。可自定義向量搜尋的細節。</div> </div> <div style="padding: 12px; border-radius: 8px; margin-bottom: 12px; background: rgba(255, 179, 0, 0.12);"> <div style="font-weight: bold; color: #FB8C00; margin-bottom: 8px;"> 預設提示詞修改指南</div> <div style="margin-bottom: 4px;">1. 刪除欄位：<b>角色敘述、Lorebook、全域備註、Supa/HypaMemory</b>。</div> <div style="margin-bottom: 4px;">2. <b>進階設定：</b>進入聊天 > 勾選「進階」，然後將「範圍開始」設定為 <b>-10</b>。</div> <div style="margin-bottom: 12px;">經過以上調整即可</div> <div>3. 如果要發揮本外掛 100% 的性能，則要進一步編輯系統提示詞，將 AI 的身分降格成演員。</div> </div> <div style="padding: 12px; border-radius: 8px; margin-bottom: 12px; background: rgba(76, 175, 80, 0.12);"> <div style="font-weight: bold; color: #2E7D32; margin-bottom: 8px;">相容性說明</div> <div style="margin-bottom: 8px;"> <div style="font-weight: bold; color: #43A047; margin-bottom: 4px;"> 可以相容</div> • 外掛模式下，可中途切換(已修改好的)預設提示詞。<br> • 外掛模式下，可中途切換卡片重組與向量搜尋功能。<br> • 可以直接接軌至無外掛模式。
- </div> <div> <div style="font-weight: bold; color: #E53935; margin-bottom: 4px;"> 注意事項</div> • 使用該外掛必須要修改預設提示詞。<br> • 無法接續無外掛的對話記錄。<br> • 請勿在對話中途反覆開關外掛。
- </div> </div> <div style="padding: 12px; border-radius: 8px; margin-bottom: 12px; background: rgba(156, 39, 176, 0.10);"> <div style="font-weight: bold; color: #9C27B0; margin-bottom: 8px;"> 資料儲存說明</div> • 資訊萃取的記錄存放於 <b>Lorebook > 聊天</b> 條目內，可隨時檢閱或調整。<br> • <b>卡片分類 & 向量搜尋 & 角色核心</b> 的索引資料則會放置於 <b>快取倉庫</b> 內。
- </div> <div style="padding: 12px; border-radius: 8px; background: rgba(33, 150, 243, 0.12);"> <div style="font-weight: bold; color:var(--pse-text); margin-bottom: 8px;">⁉ 答客問</div> <div style="margin-bottom: 8px;"> <div style="font-weight: bold; color:var(--pse-text); margin-bottom: 4px;"> 如果出現 <b style="color: var(--pse-accent-red); font-size: 13px;">ERROR 400：呼叫模型不支援</b></div> • 代表你可能使用的是Claude、DeepSeek、Mistral不支援預填充格式<br> • 進到資訊萃取 > 共同提示詞，將<b style="color: var(--pse-accent-red); font-size: 13px;"> 助理預填充 </b>清空。
+ help_html: `<div style="font-family: inherit; line-height: 1.5;"> <div style="padding: 12px; border-radius: 8px; margin-bottom: 12px; background: rgba(233, 30, 99, 0.22);"> <div style="font-weight: bold; color: #700E2F; margin-bottom: 8px;"> 外掛指南</div> <div style="margin-bottom: 4px;">個別頁面的上方有更細部的解說指南</div> <div style="margin-bottom: 4px;">• <b>啟用設置：</b>設定個別卡片的外掛模式。</div> <div style="margin-bottom: 4px;">• <b>前導模型設定：</b>設定主要模型、輔助模型、嵌入模型。與 RisuAI 本體使用的模型無關。</div> <div style="margin-bottom: 4px;">• <b>快取倉庫：</b>存放 卡片分類 & 向量搜尋 & 角色核心 的資料。</div> <div style="margin-bottom: 4px;">• <b>資訊萃取：</b>進階使用者使用。可自定義萃取 & 導演模式的細節。</div> <div>• <b>向量搜尋：</b>進階使用者使用。可自定義向量搜尋的細節。</div> </div> <div style="padding: 12px; border-radius: 8px; margin-bottom: 12px; background: rgba(255, 179, 0, 0.22);"> <div style="font-weight: bold; color: #7D4500; margin-bottom: 8px;"> 預設提示詞修改指南</div> <div style="margin-bottom: 4px;">1. 刪除欄位：<b>角色敘述、Lorebook、全域備註、Supa/HypaMemory</b>。</div> <div style="margin-bottom: 4px;">2. <b>進階設定：</b>進入聊天 > 勾選「進階」，然後將「範圍開始」設定為 <b>-10</b>。</div> <div style="margin-bottom: 12px;">經過以上調整即可</div> <div>3. 如果要發揮本外掛 100% 的性能，則要進一步編輯系統提示詞，將 AI 的身分降格成演員。</div> </div> <div style="padding: 12px; border-radius: 8px; margin-bottom: 12px; background: rgba(76, 175, 80, 0.22);"> <div style="font-weight: bold; color: #153D18; margin-bottom: 8px;">相容性說明</div> <div style="margin-bottom: 8px;"> <div style="font-weight: bold; color: #204F23; margin-bottom: 4px;"> 可以相容</div> • 外掛模式下，可中途切換(已修改好的)預設提示詞。<br> • 外掛模式下，可中途切換卡片重組與向量搜尋功能。<br> • 可以直接接軌至無外掛模式。
+ </div> <div> <div style="font-weight: bold; color: #701B1A; margin-bottom: 4px;"> 注意事項</div> • 使用該外掛必須要修改預設提示詞。<br> • 無法接續無外掛的對話記錄。<br> • 請勿在對話中途反覆開關外掛。
+ </div> </div> <div style="padding: 12px; border-radius: 8px; margin-bottom: 12px; background: rgba(156, 39, 176, 0.20);"> <div style="font-weight: bold; color: #4C1356; margin-bottom: 8px;"> 資料儲存說明</div> • 資訊萃取的記錄存放於 <b>Lorebook > 聊天</b> 條目內，可隨時檢閱或調整。<br> • <b>卡片分類 & 向量搜尋 & 角色核心</b> 的索引資料則會放置於 <b>快取倉庫</b> 內。
+ </div> <div style="padding: 12px; border-radius: 8px; background: rgba(33, 150, 243, 0.22);"> <div style="font-weight: bold; color:var(--pse-text); margin-bottom: 8px;">⁉ 答客問</div> <div style="margin-bottom: 8px;"> <div style="font-weight: bold; color:var(--pse-text); margin-bottom: 4px;"> 如果出現 <b style="color: var(--pse-accent-red); font-size: 13px;">ERROR 400：呼叫模型不支援</b></div> • 代表你可能使用的是Claude、DeepSeek、Mistral不支援預填充格式<br> • 進到資訊萃取 > 共同提示詞，將<b style="color: var(--pse-accent-red); font-size: 13px;"> 助理預填充 </b>清空。
  </div> <div> <div style="font-weight: bold; color:var(--pse-text); margin-bottom: 4px;"> 如果被審查空回覆、無法輸出怎麼辦</div> 因為資料量被切割成比較小塊，所以NSFW濃度比較高，進而增加被審查機率。<br> • 加強預填入提示詞。<br> • 換成審查力度較小的模型。
  </div> </div>
 </div>`,
@@ -1145,7 +1184,7 @@ Read upstream layers in this order. When layers conflict, higher layers win.
  lbl_custom_preset_guide: " 給自訂設定的使用者",
  auto_inject_title: " 系統已啟動自動注入",
  auto_inject_desc: "偵測到您維持預設的資訊萃取設定。發送對話時系統將 <b>自動</b> 套用 System Prompts，無須手動設定！",
- help_p1_html: `<div style=" background: rgba(255, 171, 0, 0.12); padding: 12px; border-radius: 8px;"> <b style="color:var(--pse-muted); font-size: 14px;"> 預設提示詞 調整指南</b> <div style="margin-top: 8px; font-size: 13px; line-height: 1.6; color: var(--pse-text);"> <div style="margin-bottom: 4px;">1. 刪除欄位：<b>角色敘述、Lorebook、全域備註、Supa/HypaMemory</b>。</div> <div style="margin-bottom: 12px;">2. <b>進階設定：</b>進入聊天 > 勾選「進階」，然後將「範圍開始」設定為 <b>-10</b>。</div> <b style="color:var(--pse-muted); font-size: 14px;"> 給自訂設定的使用者</b> <div style="margin-top: 8px;"> <div style="margin-bottom: 4px;">3. 參考以下系統提示詞，然後修改成屬於你的版本。</div> <div style="margin-bottom: 4px;">4. 進到聊天機器人 > 提示詞頁面，打開 <b>頂部的系統提示詞</b> 後，將提示詞插入。</div> <div>5. 如果要發揮本外掛 100% 的性能，則要進一步編輯系統提示詞，將 AI 的身分降格成演員。</div> </div> </div> <div style="margin-top:12px;"> <textarea class="pse-code-window" readonly># UPSTREAM MEMORY USAGE GUIDE
+ help_p1_html: `<div style=" background: rgba(255, 171, 0, 0.22); padding: 12px; border-radius: 8px;"> <b style="color:var(--pse-muted); font-size: 14px;"> 預設提示詞 調整指南</b> <div style="margin-top: 8px; font-size: 13px; line-height: 1.6; color: var(--pse-text);"> <div style="margin-bottom: 4px;">1. 刪除欄位：<b>角色敘述、Lorebook、全域備註、Supa/HypaMemory</b>。</div> <div style="margin-bottom: 12px;">2. <b>進階設定：</b>進入聊天 > 勾選「進階」，然後將「範圍開始」設定為 <b>-10</b>。</div> <b style="color:var(--pse-muted); font-size: 14px;"> 給自訂設定的使用者</b> <div style="margin-top: 8px;"> <div style="margin-bottom: 4px;">3. 參考以下系統提示詞，然後修改成屬於你的版本。</div> <div style="margin-bottom: 4px;">4. 進到聊天機器人 > 提示詞頁面，打開 <b>頂部的系統提示詞</b> 後，將提示詞插入。</div> <div>5. 如果要發揮本外掛 100% 的性能，則要進一步編輯系統提示詞，將 AI 的身分降格成演員。</div> </div> </div> <div style="margin-top:12px;"> <textarea class="pse-code-window" readonly># UPSTREAM MEMORY USAGE GUIDE
 
 ## Boundary Constraints
 - You are an actor and scene narrator. Do not direct plot twists, environmental changes unless explicitly triggered by ra_director or ra_logic_state.entrance_signal.
@@ -1172,9 +1211,9 @@ Read upstream layers in this order. When layers conflict, higher layers win.
 - ra_arc_memory / ra_turning_point_log: Must remain true. Contradictions are continuity errors.
 ### P5: Reference Archives
 - ra_world_encyclopedia / ra_world_log / ra_knowledge_archive / ra_strategy_archive: Consult only when necessary.</textarea> <button class="pse-btn pse-copy-sql-btn" type="button" style="width:100%;padding:6px;font-size:12px;background:var(--pse-accent-greyblue);"> 複製系統提示詞</button> </div> </div>`,
- help_p1_html_auto: `<div style=" background: rgba(255, 171, 0, 0.12); padding: 12px; border-radius: 8px;"> <b style="color:var(--pse-muted); font-size: 14px;"> 預設提示詞 調整指南</b> <div style="margin-top: 8px; font-size: 13px; line-height: 1.6; color: var(--pse-text);"> <div style="margin-bottom: 4px;">1. 刪除欄位：<b>角色敘述、Lorebook、全域備註、Supa/HypaMemory</b>。</div> <div style="margin-bottom: 4px;">2. <b>進階設定：</b>進入聊天 > 勾選「進階」，然後將「範圍開始」設定為 <b>-10</b>。</div> </div> <div style="margin-top:12px; padding: 12px; border-radius: 8px; background: rgba(0, 150, 136, 0.1);"> <b style="color: var(--pse-accent-teal); font-size: 14px;"> 系統已啟動自動注入</b> <div style="margin-top: 8px; font-size: 13px; line-height: 1.6; color: var(--pse-text);"> 偵測到您維持預設的資訊萃取設定。發送對話時系統將 <b>自動</b> 套用 System Prompts，無須手動設定！
+ help_p1_html_auto: `<div style=" background: rgba(255, 171, 0, 0.22); padding: 12px; border-radius: 8px;"> <b style="color:var(--pse-muted); font-size: 14px;"> 預設提示詞 調整指南</b> <div style="margin-top: 8px; font-size: 13px; line-height: 1.6; color: var(--pse-text);"> <div style="margin-bottom: 4px;">1. 刪除欄位：<b>角色敘述、Lorebook、全域備註、Supa/HypaMemory</b>。</div> <div style="margin-bottom: 4px;">2. <b>進階設定：</b>進入聊天 > 勾選「進階」，然後將「範圍開始」設定為 <b>-10</b>。</div> </div> <div style="margin-top:12px; padding: 12px; border-radius: 8px; background: rgba(0, 150, 136, 0.20);"> <b style="color: var(--pse-accent-teal); font-size: 14px;"> 系統已啟動自動注入</b> <div style="margin-top: 8px; font-size: 13px; line-height: 1.6; color: var(--pse-text);"> 偵測到您維持預設的資訊萃取設定。發送對話時系統將 <b>自動</b> 套用 System Prompts，無須手動設定！
  </div> </div> </div>`,
- help_p2_html: `<div style=" background: rgba(255, 23, 68, 0.10); padding: 12px; border-radius: 8px;"> <b style="color:var(--pse-muted); font-size: 14px;"> 預設提示詞 調整指南</b> <div style="margin-top: 8px; font-size: 13px; line-height: 1.6; color: var(--pse-text);"> <div style="margin-bottom: 4px;">1. 刪除欄位：<b>角色敘述、Lorebook、全域備註、Supa/HypaMemory</b>。</div> <div style="margin-bottom: 12px;">2. <b>進階設定：</b>進入聊天 > 勾選「進階」，然後將「範圍開始」設定為 <b>-10</b>。</div> <b style="color:var(--pse-muted); font-size: 14px;"> 給自訂設定的使用者</b> <div style="margin-top: 8px;"> <div style="margin-bottom: 4px;">3. 參考以下系統提示詞，然後修改成屬於你的版本。</div> <div style="margin-bottom: 4px;">4. 進到聊天機器人 > 提示詞頁面，打開 <b>頂部的系統提示詞</b> 後，將提示詞插入。</div> <div>5. 如果要發揮本外掛 100% 的性能，則要進一步編輯系統提示詞，將 AI 的身分降格成演員。</div> </div> </div> <div style="margin-top:12px;"> <textarea class="pse-code-window" readonly># UPSTREAM MEMORY USAGE GUIDE
+ help_p2_html: `<div style=" background: rgba(255, 23, 68, 0.20); padding: 12px; border-radius: 8px;"> <b style="color:var(--pse-muted); font-size: 14px;"> 預設提示詞 調整指南</b> <div style="margin-top: 8px; font-size: 13px; line-height: 1.6; color: var(--pse-text);"> <div style="margin-bottom: 4px;">1. 刪除欄位：<b>角色敘述、Lorebook、全域備註、Supa/HypaMemory</b>。</div> <div style="margin-bottom: 12px;">2. <b>進階設定：</b>進入聊天 > 勾選「進階」，然後將「範圍開始」設定為 <b>-10</b>。</div> <b style="color:var(--pse-muted); font-size: 14px;"> 給自訂設定的使用者</b> <div style="margin-top: 8px;"> <div style="margin-bottom: 4px;">3. 參考以下系統提示詞，然後修改成屬於你的版本。</div> <div style="margin-bottom: 4px;">4. 進到聊天機器人 > 提示詞頁面，打開 <b>頂部的系統提示詞</b> 後，將提示詞插入。</div> <div>5. 如果要發揮本外掛 100% 的性能，則要進一步編輯系統提示詞，將 AI 的身分降格成演員。</div> </div> </div> <div style="margin-top:12px;"> <textarea class="pse-code-window" readonly># UPSTREAM MEMORY USAGE GUIDE
 
 ## Boundary Constraints
 - You are an actor and scene narrator, not a director. Do not invent plot twists, scene changes without authorization from ra_logic_state.entrance_signal.
@@ -1206,14 +1245,14 @@ Read upstream layers in this order. When layers conflict, higher layers win.
 5. Verify ra_knowledge_matrix facts and secrets.
 6. Check ra_pattern_guard for forbidden tokens.
 7. Write output. Express only one dominant facet per character.</textarea> <button class="pse-btn pse-copy-sql-btn" type="button" style="width:100%;padding:6px;font-size:12px;background:var(--pse-accent-greyblue);"> 複製系統提示詞</button> </div> </div>`,
- help_p2_html_auto: `<div style=" background: rgba(255, 23, 68, 0.10); padding: 12px; border-radius: 8px;"> <b style="color:var(--pse-muted); font-size: 14px;"> 預設提示詞 調整指南</b> <div style="margin-top: 8px; font-size: 13px; line-height: 1.6; color: var(--pse-text);"> <div style="margin-bottom: 4px;">1. 刪除欄位：<b>角色敘述、Lorebook、全域備註、Supa/HypaMemory</b>。</div> <div style="margin-bottom: 4px;">2. <b>進階設定：</b>進入聊天 > 勾選「進階」，然後將「範圍開始」設定為 <b>-10</b>。</div> </div> <div style="margin-top:12px; padding: 12px; border-radius: 8px; background: rgba(0, 150, 136, 0.1);"> <b style="color: var(--pse-accent-teal); font-size: 14px;"> 系統已啟動自動注入</b> <div style="margin-top: 8px; font-size: 13px; line-height: 1.6; color: var(--pse-text);"> 偵測到您維持預設的資訊萃取設定。發送對話時系統將 <b>自動</b> 套用 System Prompts，無須手動設定！
+ help_p2_html_auto: `<div style=" background: rgba(255, 23, 68, 0.20); padding: 12px; border-radius: 8px;"> <b style="color:var(--pse-muted); font-size: 14px;"> 預設提示詞 調整指南</b> <div style="margin-top: 8px; font-size: 13px; line-height: 1.6; color: var(--pse-text);"> <div style="margin-bottom: 4px;">1. 刪除欄位：<b>角色敘述、Lorebook、全域備註、Supa/HypaMemory</b>。</div> <div style="margin-bottom: 4px;">2. <b>進階設定：</b>進入聊天 > 勾選「進階」，然後將「範圍開始」設定為 <b>-10</b>。</div> </div> <div style="margin-top:12px; padding: 12px; border-radius: 8px; background: rgba(0, 150, 136, 0.20);"> <b style="color: var(--pse-accent-teal); font-size: 14px;"> 系統已啟動自動注入</b> <div style="margin-top: 8px; font-size: 13px; line-height: 1.6; color: var(--pse-text);"> 偵測到您維持預設的資訊萃取設定。發送對話時系統將 <b>自動</b> 套用 System Prompts，無須手動設定！
  </div> </div> </div>`,
  },
  };
  let _T = _I18N.en;
  let _langInitialized = false;
  const PLUGIN_NAME = "👤 RisuAI Agent";
- const PLUGIN_VER = "5.0";
+ const PLUGIN_VER = "5.0.5";
  const LOG = "[RisuAIAgent]";
  const SYSTEM_INJECT_TAG = "PLUGIN_PARALLEL_STATUS";
  const SYSTEM_REWRITE_TAG = "PLUGIN_PARALLEL_REWRITE";
@@ -2847,8 +2886,8 @@ OUTPUT (STRICT):
  s.id = "pse-pp-styles";
  s.textContent = ` /* ── Progress Panel — Liquid Glass ── */
  :root {
- --pp-overlay:       rgba(0,0,0,0.55);
- --pp-bg:            #3a3a3f;
+ --pp-overlay:       rgba(0,0,0,0.65);
+ --pp-bg:            #2e2e34;
  --pp-text:          #f0f0f5;
  --pp-muted:         #aaaab5;
  --pp-border:        rgba(255,255,255,0.12);
@@ -5899,6 +5938,7 @@ OUTPUT (STRICT):
  functions: Object.create(null),
  tempVars: Object.create(null),
  startTime: Date.now(),
+ isExtractorContext: false, // set to true when rendering for extractor/aux models only
  };
  }
  function evalStandaloneCbsCalc(expression) {
@@ -5910,7 +5950,12 @@ OUTPUT (STRICT):
  if (src.includes("{{") || src.includes("}}") || src.includes("[CBS_")) {
  return looksConditional ? "0" : src;
  }
- // BUGFIX: Removed $word variable replacement - it may interfere with CBS syntax
+ // Normalize CBS sentinel values so numeric comparisons work correctly.
+ // "null" / "true" / "false" returned by getvar/getglobalvar must be treated as numbers.
+ src = src
+ .replace(/\bnull\b/g, "0")
+ .replace(/\btrue\b/g, "1")
+ .replace(/\bfalse\b/g, "0");
  // Replace CBS single-= equality (not part of ==, !=, <=, >=) with JS ==
  src = src.replace(/([^=!<>])=([^=])/g, "$1==$2");
  if (!/^[\d\s()+\-*/%<>=!&|.,'"_[\]A-Za-z]+$/.test(src)) {
@@ -5986,7 +6031,8 @@ OUTPUT (STRICT):
  }
  return "";
  }
- if (lowerExpr === "bkspc" || lowerExpr === "erase" || lowerExpr === "hiddenkey") return "";
+ if (lowerExpr === "bkspc" || lowerExpr === "erase") return "";
+ // hiddenkey without args: pass through intact (handled below with passthrough logic)
  if (lowerExpr === "jbtoggled") return "1";
  // {{? expression}} — space-separated form per CBS guide (e.g. {{? 1+1}})
  // Must be checked BEFORE the :: split because "? 1+1" has no :: separator.
@@ -6363,7 +6409,19 @@ OUTPUT (STRICT):
  const hex = await renderStandaloneCbsText(parts[1] || "0", runtime, args);
  return String(parseInt(hex, 16));
  }
- if (["asset", "image", "bg", "emotion", "audio", "video", "button", "tex", "ruby", "codeblock", "hiddenkey"].includes(headLower)) return "";
+ if (["asset", "image", "bg", "emotion", "audio", "video", "button", "tex", "ruby", "codeblock", "hiddenkey"].includes(headLower)) {
+ // In extractor context: silently drop pure-UI / non-informational tags.
+ // asset/image/bg/emotion carry narrative meaning — pass them through intact so
+ // the main (actor) model can still read image-output instructions.
+ if (runtime.isExtractorContext) {
+ // Only drop tags that are purely UI chrome with no narrative content.
+ if (["audio", "video", "button", "tex", "ruby", "codeblock", "hiddenkey"].includes(headLower)) return "";
+ // asset / image / bg / emotion: pass through as-is for extractor too,
+ // so classification/extraction can still read visual cues.
+ }
+ // In actor (main model) context: always pass through intact.
+ return `{{${expr}}}`;
+ }
  if (headLower === "assetlist" || headLower === "emotionlist") return "[]";
  if (headLower === "moduleenabled") return "0";
  if (headLower === "prefillsupported") return "1";
@@ -6394,7 +6452,16 @@ OUTPUT (STRICT):
  if (Object.prototype.hasOwnProperty.call(runtime.globalVars, expr)) {
  return runtime.globalVars[expr];
  }
- return expr;
+ // Fix 1: Unknown CBS tag — restore original {{...}} markup only when the expression
+ // looks like an unresolved CBS identifier (contains :: separator, or is a plain word
+ // that is not already a resolved value like "0", "1", "null", "true", "false", or a number).
+ // Pure resolved values must be returned as-is so callers like evalStandaloneCbsCalc
+ // and isStandaloneCbsTruthy can process them correctly.
+ const isResolvedValue = expr === "" ||
+ !isNaN(Number(expr)) ||
+ expr === "null" || expr === "true" || expr === "false";
+ if (isResolvedValue) return expr;
+ return `{{${expr}}}`;
  }
  async function renderStandaloneCbsText(text, runtime, args = []) {
  const src = String(text ?? "");
@@ -6510,9 +6577,12 @@ OUTPUT (STRICT):
  async function normalizeAgentCbsText(text) {
  const src = String(text ?? "");
  if (!src || !src.includes("{{")) return src;
- // Add debug logging
+ // This function is used during Step 0 (chunk classification) and extractor prompt builds.
+ // Set isExtractorContext=true so UI-only tags (audio/video/button/tex/ruby/codeblock/hiddenkey)
+ // are silently dropped, while narrative tags (asset/image/bg/emotion) pass through intact.
  try {
  const runtime = await getStandaloneCbsRuntime();
+ runtime.isExtractorContext = true;
  const rendered = await renderStandaloneCbsText(src, runtime, []);
  if (typeof rendered === "string") return rendered;
  if (rendered != null) return String(rendered);
@@ -6522,11 +6592,30 @@ OUTPUT (STRICT):
  `${LOG} standalone CBS render failed: ${e?.message || String(e)}`,
  );
  } catch { }
- // BUGFIX: Return original text instead of CBS markers when rendering fails
- // CBS markers like [CBS_IF:...] are not meant to be sent to LLM
  return src;
  }
- // This line should never be reached, but kept for safety
+ return src;
+ }
+ async function normalizeActorPromptCbsText(text) {
+ // Used when pre-processing messages destined for the main (actor) model.
+ // isExtractorContext=false: all CBS tags that resolve to a value are rendered,
+ // unknown/passthrough tags (image output instructions, etc.) are kept intact as {{...}}.
+ const src = String(text ?? "");
+ if (!src || !src.includes("{{")) return src;
+ try {
+ const runtime = await getStandaloneCbsRuntime();
+ runtime.isExtractorContext = false;
+ const rendered = await renderStandaloneCbsText(src, runtime, []);
+ if (typeof rendered === "string") return rendered;
+ if (rendered != null) return String(rendered);
+ } catch (e) {
+ try {
+ await Risuai.log(
+ `${LOG} standalone CBS actor render failed: ${e?.message || String(e)}`,
+ );
+ } catch { }
+ return src;
+ }
  return src;
  }
  async function normalizeLorebookEntryForAgent(entry) {
@@ -6545,13 +6634,15 @@ OUTPUT (STRICT):
  };
  }
  async function normalizePromptMessagesForAgent(messages) {
+ // Renders CBS tags in messages destined for the main (actor) model.
+ // Uses actor context: known CBS tags are evaluated, unknown/visual tags are preserved intact.
  const list = Array.isArray(messages) ? messages : [];
  return await Promise.all(list.map(async (m) => {
  if (!m || typeof m !== "object") return m;
  if (typeof m.content !== "string" || !m.content.includes("{{")) return m;
  return {
  ...m,
- content: await normalizeAgentCbsText(m.content),
+ content: await normalizeActorPromptCbsText(m.content),
  };
  }));
  }
@@ -11803,32 +11894,33 @@ OUTPUT (STRICT):
  s.textContent = ` /* ── Base Tokens ───────────────────────────────────────────────── */
  :root {
  /* Grey-anchored glass palette — readable in both light & dark host UIs */
- --pse-overlay:        rgba(0, 0, 0, 0.35);
- --pse-card-bg:        rgba(108, 108, 118, 0.97);
+ --pse-overlay:        rgba(0, 0, 0, 0.55);
+ --pse-card-bg:        rgba(90, 90, 102, 0.99);
  --pse-card-text:      #0d0d10;
  --pse-text:           #0d0d10;
- --pse-muted:          #3a3a44;
- --pse-section-bg:     rgba(245, 245, 250, 0.75);
- --pse-section-border: rgba(90, 90, 110, 0.28);
- --pse-input-bg:       rgba(255, 255, 255, 0.85);
- --pse-input-border:   rgba(80, 80, 105, 0.32);
- --pse-tab-bg:         rgba(150, 150, 168, 0.25);
- --pse-tab-active-bg:  rgba(255, 255, 255, 0.95);
+ --pse-muted:          #1e1e28;
+ --pse-section-bg:     rgba(246, 246, 252, 0.97);
+ --pse-section-border: rgba(80, 80, 105, 0.45);
+ --pse-input-bg:       rgba(255, 255, 255, 0.97);
+ --pse-input-border:   rgba(70, 70, 98, 0.55);
+ --pse-tab-bg:         rgba(88, 88, 104, 0.72);
+ --pse-tab-active-bg:  rgba(255, 255, 255, 0.99);
  --pse-tab-active-text:#0d0d10;
- --pse-card-shadow:    rgba(0, 0, 0, 0.28);
- --pse-divider:        rgba(80, 80, 105, 0.25);
+ --pse-card-shadow:    rgba(0, 0, 0, 0.45);
+ --pse-divider:        rgba(60, 60, 88, 0.50);
  /* iOS / macOS system colours */
  --pse-accent-blue:    #007aff;
  --pse-accent-rose:    #ff2d55;
- --pse-accent-amber:   #c07800;
+ --pse-accent-amber:   #b07000;
  --pse-accent-green:   #28a745;
  --pse-accent-indigo:  #4845c7;
  --pse-accent-red:     #d93025;
  --pse-accent-violet:  #8e44ad;
  --pse-accent-cyan:    #0a84ff;
  --pse-accent-orange:  #e07500;
- --pse-accent-yellow:  #b89000;
- --pse-accent-greyblue:#3a8fbf;
+ --pse-accent-yellow:  #a07e00;
+ --pse-accent-greyblue:#2d7fad;
+ --pse-accent-teal:    #007a70;
  /* Typography scale */
  --pse-font-size-title:    20px;
  --pse-font-size-subtitle: 12px;
@@ -11875,7 +11967,7 @@ OUTPUT (STRICT):
  overflow-y: auto;
  overflow-x: hidden;
  margin: 0 auto;
- background: rgba(110, 110, 120, 0.98);
+ background: rgba(90, 90, 102, 0.99);
  color: var(--pse-card-text);
  border-radius: var(--pse-radius-card);
  padding: 24px 22px 20px;
@@ -11884,9 +11976,9 @@ OUTPUT (STRICT):
  contain: paint;
  transform: translateZ(0);
  -webkit-transform: translateZ(0);
- border: 1px solid rgba(255,255,255,0.50);
+ border: 1px solid rgba(255,255,255,0.65);
  box-shadow:
- 0 2px 0 0 rgba(255,255,255,0.70) inset,
+ 0 2px 0 0 rgba(255,255,255,0.80) inset,
  0 -1px 0 0 rgba(0,0,0,0.06) inset,
  0 28px 56px var(--pse-card-shadow),
  0 8px 20px rgba(0,0,0,0.12);
@@ -11894,14 +11986,14 @@ OUTPUT (STRICT):
  /* ── Header ────────────────────────────────────────────────────── */
  .pse-title {
  margin: 0 0 6px;
- color: var(--pse-card-text);
+ color: rgba(255,255,255,0.96);
  font-size: var(--pse-font-size-title);
  font-weight: 800;
  text-align: center;
  letter-spacing: -0.6px;
  }
  .pse-subtitle {
- color: var(--pse-muted);
+ color: rgba(255,255,255,0.65);
  margin: 0;
  text-align: center;
  font-size: var(--pse-font-size-subtitle);
@@ -11925,19 +12017,19 @@ OUTPUT (STRICT):
  overflow: hidden;
  }
  /* ── Section Color Accents ─────────────────────────────────────── */
- .pse-section.amber { background: rgba(192,120,0,0.10); border-color: rgba(192,120,0,0.28); border-top-color: rgba(255,200,80,0.35); border-left: 3px solid rgba(192,120,0,0.55); }
- .pse-section.amber .pse-section-title { color: #7a4800; border-bottom-color: rgba(192,120,0,0.20); }
- .pse-section.amber summary { color: #7a4800 !important; font-weight: 700; }
- .pse-section.indigo { background: rgba(72,69,199,0.09); border-color: rgba(72,69,199,0.25); border-top-color: rgba(130,128,255,0.30); border-left: 3px solid rgba(72,69,199,0.50); }
- .pse-section.indigo .pse-section-title { color: #2e2ca0; border-bottom-color: rgba(72,69,199,0.18); }
- .pse-section.blue { background: rgba(0,122,255,0.08); border-color: rgba(0,122,255,0.22); border-top-color: rgba(80,160,255,0.28); border-left: 3px solid rgba(0,122,255,0.50); }
- .pse-section.blue .pse-section-title { color: #004db3; border-bottom-color: rgba(0,122,255,0.18); }
- .pse-section.green { background: rgba(0,170,90,0.09); border-color: rgba(0,170,90,0.24); border-top-color: rgba(60,210,120,0.28); border-left: 3px solid rgba(0,170,90,0.50); }
- .pse-section.green .pse-section-title { color: #005c30; border-bottom-color: rgba(0,170,90,0.18); }
- .pse-section.violet { background: rgba(142,68,173,0.08); border-color: rgba(142,68,173,0.22); border-top-color: rgba(180,110,220,0.28); border-left: 3px solid rgba(142,68,173,0.50); }
- .pse-section.violet .pse-section-title { color: #5c1e80; border-bottom-color: rgba(142,68,173,0.18); }
- .pse-section.teal { background: rgba(0,150,136,0.09); border-color: rgba(0,150,136,0.24); border-top-color: rgba(60,200,180,0.28); border-left: 3px solid rgba(0,150,136,0.50); }
- .pse-section.teal .pse-section-title { color: #005048; border-bottom-color: rgba(0,150,136,0.18); }
+ .pse-section.amber { background: rgba(192,120,0,0.16); border-color: rgba(192,120,0,0.40); border-top-color: rgba(255,200,80,0.45); border-left: 3px solid rgba(192,120,0,0.70); }
+ .pse-section.amber .pse-section-title { color: #331C00; border-bottom-color: rgba(192,120,0,0.28); }
+ .pse-section.amber summary { color: #331C00 !important; font-weight: 700; }
+ .pse-section.indigo { background: rgba(72,69,199,0.13); border-color: rgba(72,69,199,0.38); border-top-color: rgba(130,128,255,0.42); border-left: 3px solid rgba(72,69,199,0.65); }
+ .pse-section.indigo .pse-section-title { color: #100F42; border-bottom-color: rgba(72,69,199,0.28); }
+ .pse-section.blue { background: rgba(0,122,255,0.12); border-color: rgba(0,122,255,0.34); border-top-color: rgba(80,160,255,0.40); border-left: 3px solid rgba(0,122,255,0.65); }
+ .pse-section.blue .pse-section-title { color: #001E4D; border-bottom-color: rgba(0,122,255,0.28); }
+ .pse-section.green { background: rgba(0,170,90,0.13); border-color: rgba(0,170,90,0.36); border-top-color: rgba(60,210,120,0.40); border-left: 3px solid rgba(0,170,90,0.65); }
+ .pse-section.green .pse-section-title { color: #002412; border-bottom-color: rgba(0,170,90,0.28); }
+ .pse-section.violet { background: rgba(142,68,173,0.12); border-color: rgba(142,68,173,0.35); border-top-color: rgba(180,110,220,0.40); border-left: 3px solid rgba(142,68,173,0.65); }
+ .pse-section.violet .pse-section-title { color: #240A32; border-bottom-color: rgba(142,68,173,0.28); }
+ .pse-section.teal { background: rgba(0,150,136,0.13); border-color: rgba(0,150,136,0.36); border-top-color: rgba(60,200,180,0.40); border-left: 3px solid rgba(0,150,136,0.65); }
+ .pse-section.teal .pse-section-title { color: #001E1B; border-bottom-color: rgba(0,150,136,0.28); }
  .pse-section-title {
  margin: 0 0 11px;
  font-size: var(--pse-font-size-header);
@@ -11960,9 +12052,9 @@ OUTPUT (STRICT):
  display: none;
  letter-spacing: 0.01em;
  }
- .pse-status.info { display:block; background:rgba(0,90,200,0.10); color:#003e8a; border:1px solid rgba(0,90,200,0.28); font-weight:700; }
- .pse-status.ok   { display:block; background:rgba(40,167,69,0.15);   color:#0f5c22; border:1px solid rgba(40,167,69,0.35); font-weight:700; }
- .pse-status.err  { display:block; background:rgba(217,48,37,0.15);   color:#8c1610; border:1px solid rgba(217,48,37,0.40); font-weight:700; }
+ .pse-status.info { display:block; background:rgba(0,90,200,0.14); color:#00163C; border:1px solid rgba(0,90,200,0.40); font-weight:700; }
+ .pse-status.ok   { display:block; background:rgba(40,167,69,0.20);   color:#05240E; border:1px solid rgba(40,167,69,0.45); font-weight:700; }
+ .pse-status.err  { display:block; background:rgba(217,48,37,0.20);   color:#3C0704; border:1px solid rgba(217,48,37,0.50); font-weight:700; }
  /* ── Tab Bar ────────────────────────────────────────────────────── */
  .pse-tabs {
  display: flex;
@@ -11972,15 +12064,15 @@ OUTPUT (STRICT):
  border-radius: 12px;
  padding: 3px;
  /* backdrop-filter removed: causes GPU compositing tearing inside overflow scroll container */
- border: 1px solid rgba(255,255,255,0.22);
- box-shadow: inset 0 1px 0 rgba(0,0,0,0.06);
+ border: 1px solid rgba(255,255,255,0.38);
+ box-shadow: inset 0 1px 0 rgba(0,0,0,0.10);
  }
  .pse-tabs-secondary { margin-top: 4px; }
  .pse-tab {
  flex: 1;
  border: none;
  background: transparent;
- color: var(--pse-muted);
+ color: rgba(255,255,255,0.82);
  border-radius: 9px;
  padding: 7px 8px;
  font-size: var(--pse-font-size-body);
@@ -11992,7 +12084,7 @@ OUTPUT (STRICT):
  overflow: hidden;
  text-overflow: ellipsis;
  }
- .pse-tab:hover:not(.active) { color: var(--pse-text); background: rgba(255,255,255,0.55); }
+ .pse-tab:hover:not(.active) { color: var(--pse-text); background: rgba(255,255,255,0.70); }
  .pse-tab.active {
  background: var(--pse-tab-active-bg);
  color: var(--pse-tab-active-text);
@@ -12047,7 +12139,7 @@ OUTPUT (STRICT):
  .pse-btn-outline {
         padding: 8px 13px;
         border: none;
-        background: rgba(190, 190, 205, 0.55);
+        background: rgba(168, 168, 185, 0.88);
         color: var(--pse-text);
         border-radius: var(--pse-radius-btn);
         font-size: var(--pse-font-size-body);
@@ -12099,18 +12191,18 @@ OUTPUT (STRICT):
  border: 1px solid var(--pse-section-border);
  border-top-color: rgba(255,255,255,0.50);
  border-left: 3px solid rgba(120,120,140,0.35);
- background: rgba(225, 225, 235, 0.65);
+ background: rgba(228, 228, 238, 0.88);
  border-radius: var(--pse-radius-section);
  padding: 14px;
  /* backdrop-filter removed: causes GPU compositing tearing inside overflow scroll container */
  box-shadow: 0 4px 12px rgba(0,0,0,0.06), inset 0 1px 0 rgba(255,255,255,0.55);
  }
- .pse-call-card[data-call-parity="even"] { background: linear-gradient(160deg, rgba(41,121,255,0.10) 0%, rgba(225,225,235,0.65) 100%); border-color: rgba(41,121,255,0.20); border-left: 3px solid rgba(41,121,255,0.55); }
- .pse-call-card[data-call-parity="even"] .pse-entry-block:nth-child(odd)  { border-left: 3px solid rgba(41,121,255,0.35); }
- .pse-call-card[data-call-parity="even"] .pse-entry-block:nth-child(even) { border-left: 3px solid rgba(0,180,90,0.35); }
- .pse-call-card[data-call-parity="odd"]  { background: linear-gradient(160deg, rgba(0,200,100,0.09) 0%, rgba(225,225,235,0.65) 100%); border-color: rgba(0,180,90,0.18); border-left: 3px solid rgba(0,180,90,0.50); }
- .pse-call-card[data-call-parity="odd"]  .pse-entry-block:nth-child(odd)  { border-left: 3px solid rgba(0,180,90,0.35); }
- .pse-call-card[data-call-parity="odd"]  .pse-entry-block:nth-child(even) { border-left: 3px solid rgba(41,121,255,0.35); }
+ .pse-call-card[data-call-parity="even"] { background: linear-gradient(160deg, rgba(41,121,255,0.14) 0%, rgba(228,228,238,0.88) 100%); border-color: rgba(41,121,255,0.28); border-left: 3px solid rgba(41,121,255,0.65); }
+ .pse-call-card[data-call-parity="even"] .pse-entry-block:nth-child(odd)  { border-left: 3px solid rgba(41,121,255,0.45); }
+ .pse-call-card[data-call-parity="even"] .pse-entry-block:nth-child(even) { border-left: 3px solid rgba(0,180,90,0.45); }
+ .pse-call-card[data-call-parity="odd"]  { background: linear-gradient(160deg, rgba(0,200,100,0.12) 0%, rgba(228,228,238,0.88) 100%); border-color: rgba(0,180,90,0.26); border-left: 3px solid rgba(0,180,90,0.65); }
+ .pse-call-card[data-call-parity="odd"]  .pse-entry-block:nth-child(odd)  { border-left: 3px solid rgba(0,180,90,0.45); }
+ .pse-call-card[data-call-parity="odd"]  .pse-entry-block:nth-child(even) { border-left: 3px solid rgba(41,121,255,0.45); }
  .pse-call-head { display:grid; grid-template-columns: 1fr minmax(110px, auto) minmax(90px, auto) auto; gap:9px; align-items:end; }
  .pse-call-head.no-freq { grid-template-columns: 1fr minmax(110px, auto) auto; }
  .pse-call-row2 { margin-top:9px; display:grid; grid-template-columns: minmax(180px, auto) 1fr; gap:9px; align-items:end; }
@@ -12118,7 +12210,7 @@ OUTPUT (STRICT):
  /* ── Assembly / Dashed Info Block ───────────────────────────────── */
  .pse-assembly {
  border: 1px dashed rgba(100,100,118,0.30);
- background: rgba(200,200,215,0.28);
+ background: rgba(200,200,215,0.55);
  border-radius: var(--pse-radius-input);
  padding: 11px 13px;
  font-size: 13px; line-height: 1.55;
@@ -12131,7 +12223,7 @@ OUTPUT (STRICT):
  border-top-color: rgba(255,255,255,0.40);
  border-left: 3px solid rgba(120,120,140,0.28);
  border-radius: var(--pse-radius-input);
- background: rgba(210,210,222,0.40);
+ background: rgba(210,210,222,0.68);
  padding: 11px;
  /* backdrop-filter removed: causes GPU compositing tearing inside overflow scroll container */
  box-shadow: 0 3px 10px rgba(0,0,0,0.05), inset 0 1px 0 rgba(255,255,255,0.40);
@@ -12148,7 +12240,7 @@ OUTPUT (STRICT):
         flex: 0 0 auto; height: 32px; padding: 0 14px;
         border-radius: var(--pse-radius-pill);
         border: none;
-        background: rgba(200, 200, 215, 0.70);
+        background: rgba(168, 168, 185, 0.88);
         color: var(--pse-text);
         font-size: 12px; font-weight: 600; cursor: pointer;
         transition: all 0.18s var(--pse-ease);
@@ -12198,7 +12290,7 @@ OUTPUT (STRICT):
  .pse-picker-option.active { border-color:var(--pse-text); background: rgba(0,122,255,0.10); box-shadow: 0 0 0 2px var(--pse-accent-blue); }
  .pse-picker-chat-name { font-weight: 600; font-size: 14px; display: flex; align-items: center; justify-content: space-between; gap: 8px; }
  .pse-picker-chat-meta { font-size: 11px; color: var(--pse-muted); display: flex; align-items: center; gap: 10px; }
- .pse-picker-tag { font-size: 10px; padding: 3px 9px; border-radius: var(--pse-radius-pill); font-weight: 600; background: rgba(0,122,255,0.16); color:#004db3; border: 1px solid rgba(0,122,255,0.28); }
+ .pse-picker-tag { font-size: 10px; padding: 3px 9px; border-radius: var(--pse-radius-pill); font-weight: 600; background: rgba(0,122,255,0.22); color:#001E4D; border: 1px solid rgba(0,122,255,0.38); }
  /* ── Entry Grid ─────────────────────────────────────────────────── */
  .pse-entry-grid { display:grid; grid-template-columns: 1fr minmax(110px, auto) minmax(90px, auto) auto; gap:9px; align-items:end; }
  .pse-entry-grid-row2 { margin-top:9px; display:grid; grid-template-columns: 1fr; gap:9px; }
@@ -12217,7 +12309,7 @@ OUTPUT (STRICT):
  margin-top: 4px;
  border: 1px solid var(--pse-section-border);
  border-radius: var(--pse-radius-input);
- background: rgba(220,220,232,0.90);
+ background: rgba(220,220,232,0.99);
  backdrop-filter: blur(16px);
  -webkit-backdrop-filter: blur(16px);
  max-height: 175px; overflow: auto; padding: 4px;
@@ -12233,7 +12325,7 @@ OUTPUT (STRICT):
  /* ── Remove Button ──────────────────────────────────────────────── */
  .pse-entry-remove {
         border: none;
-        background: rgba(200, 200, 215, 0.70);
+        background: rgba(168, 168, 185, 0.88);
         color: var(--pse-text);
         border-radius: var(--pse-radius-input);
         height: 32px; min-width: 34px; cursor: pointer;
@@ -12247,9 +12339,9 @@ OUTPUT (STRICT):
  /* ── Add Entry Button ───────────────────────────────────────────── */
  .pse-add-entry {
  margin-top: 9px;
- border: 1.5px dashed rgba(100,100,118,0.38);
+ border: 1.5px dashed rgba(80,80,100,0.60);
  background: transparent;
- color: var(--pse-muted);
+ color: rgba(255,255,255,0.70);
  border-radius: var(--pse-radius-input);
  padding: 9px 13px; font-size: 13px; font-weight: 600; cursor: pointer;
  transition: all 0.18s; width: 100%;
@@ -12260,7 +12352,7 @@ OUTPUT (STRICT):
  .pse-frozen-badge {
  display: inline-block; margin-bottom: 7px; padding: 3px 9px;
  border-radius: var(--pse-radius-pill); font-size: 10.5px; font-weight: 700;
- background: rgba(192,120,0,0.13); color:var(--pse-muted);
+ background: rgba(192,120,0,0.20); color:var(--pse-muted);
  }
  .pse-frozen-fields { opacity: 0.55; pointer-events: none; user-select: none; }
  .pse-frozen-fields select, .pse-frozen-fields input, .pse-frozen-fields textarea, .pse-frozen-fields button { pointer-events: none; }
@@ -12274,7 +12366,7 @@ OUTPUT (STRICT):
  }
  .pse-editor-modal {
  width: 100vw; height: 100dvh;
- background: rgba(170,170,182,0.70);
+ background: rgba(85,85,98,0.98);
  color: var(--pse-card-text);
  padding: 24px; box-sizing: border-box;
  display: flex; flex-direction: column; gap: 11px;
@@ -12285,7 +12377,7 @@ OUTPUT (STRICT):
  .pse-editor-title { font-size: 16px; font-weight: 700; color: var(--pse-card-text); letter-spacing: -0.3px; }
  .pse-editor-close {
         width: 34px; height: 34px; border: none;
-        background: rgba(190, 190, 205, 0.55);
+        background: rgba(168, 168, 185, 0.88);
         color: var(--pse-card-text);
         border-radius: 17px; cursor: pointer; font-size: 15px; line-height: 1;
         transition: all 0.18s; display: flex; align-items: center; justify-content: center;
@@ -12342,17 +12434,17 @@ OUTPUT (STRICT):
  .pse-btn.cache:hover  { filter: brightness(1.07); transform: translateY(-1px); }
  .pse-btn.cache:active { transform: scale(0.97) translateY(0); }
  .pse-btn.close {
-        background: rgba(200, 200, 215, 0.70);
+        background: rgba(168, 168, 185, 0.88);
         color: var(--pse-text);
         box-shadow: 0 1px 0 rgba(255,255,255,0.55) inset;
         border: none;
         /* backdrop-filter removed: tearing fix inside scroll container */
       }
- .pse-btn.close:hover  { background: rgba(160,160,175,0.70); transform: translateY(-1px); }
+ .pse-btn.close:hover  { background: rgba(130,130,148,0.95); transform: translateY(-1px); }
  .pse-btn.close:active { transform: scale(0.97) translateY(0); }
  /* ── Language Buttons ───────────────────────────────────────────── */
  .pse-lang-btn {
-        background: rgba(200, 200, 215, 0.70) !important;
+        background: rgba(168, 168, 185, 0.88) !important;
         color: var(--pse-text) !important;
         border: none !important;
         border-radius: var(--pse-radius-btn);
@@ -12366,7 +12458,7 @@ OUTPUT (STRICT):
  .pse-preset-btn {
         flex: 1; padding: 9px 10px;
         border: none;
-        background: rgba(200, 200, 215, 0.70);
+        background: rgba(168, 168, 185, 0.88);
         color: var(--pse-text);
         border-radius: var(--pse-radius-btn);
         cursor: pointer; font-size: 12.5px; font-weight: 600;
@@ -12389,7 +12481,7 @@ OUTPUT (STRICT):
  /* ── Responsive ─────────────────────────────────────────────────── */
  @media (max-width: 600px) {
  .pse-body { padding: 0; align-items: flex-start; }
- .pse-card { width: 100%; max-width: 100%; min-height: 100dvh; max-height: none; border-radius: 0; padding: 18px 14px 22px; box-shadow: none; border: none; border-bottom: 1px solid rgba(85,85,98,0.60); background: rgba(110,110,120,0.99); }
+ .pse-card { width: 100%; max-width: 100%; min-height: 100dvh; max-height: none; border-radius: 0; padding: 18px 14px 22px; box-shadow: none; border: none; border-bottom: 1px solid rgba(60,60,75,0.75); background: rgba(90,90,102,0.99); }
  .pse-call-head { grid-template-columns: 1fr; }
  .pse-call-row2 { grid-template-columns: 1fr; }
  .pse-entry-grid { grid-template-columns: 1fr; }
@@ -12575,10 +12667,10 @@ OUTPUT (STRICT):
  overlayRoot.id = "pse-overlay-root";
  overlayRoot.style.cssText =
  "position:fixed;inset:0;z-index:9999;overflow:auto;opacity:0;transition:opacity 0.15s ease;";
- overlayRoot.innerHTML = ` <div class="pse-body"> <div class="pse-card"> <h1 class="pse-title">👤 RisuAI Agent v5.0</h1> <div id="pse-status" class="pse-status"></div> ${renderModelDatalists()}
+ overlayRoot.innerHTML = ` <div class="pse-body"> <div class="pse-card"> <h1 class="pse-title">👤 RisuAI Agent v5.0.5</h1> <div id="pse-status" class="pse-status"></div> ${renderModelDatalists()}
  <div class="pse-tabs"> ${`<button class="pse-tab active" data-page="7">${_T.tab_help}</button> <button class="pse-tab" data-page="8">${_T.tab_enable}</button> <button class="pse-tab" data-page="1">${_T.tab_model}</button>`}
  </div> <div class="pse-tabs pse-tabs-secondary"> ${`<button class="pse-tab" data-page="6">${_T.tab_cache_open || _T.sec_cache}</button> <button class="pse-tab" data-page="2">${_T.tab_entry}</button> <button class="pse-tab" data-page="5">${_T.tab_vector_open || _T.sec_vec}</button>`}
- </div> <div class="pse-page active" data-page="7"> <div style="margin-bottom:14px;padding:10px 14px;border-radius:8px;background:rgba(192,120,0,0.14);border:1.5px solid rgba(192,120,0,0.40);font-size:12px;font-weight:700;color:#7a4800;display:flex;align-items:center;gap:8px;"> ⚠️ ${escapeHtml(_T.lore_warn)}</div> <!-- Language (Standalone) --> <div style="margin-bottom:16px;"> <label class="pse-label" style="margin-bottom:6px; color:var(--pse-text);"> Language / 語言 / 언어</label> <div style="display:flex;gap:8px;"> ${["en", "tc", "ko"]
+ </div> <div class="pse-page active" data-page="7"> <div style="margin-bottom:14px;padding:10px 14px;border-radius:8px;background:rgba(192,120,0,0.14);border:1.5px solid rgba(192,120,0,0.40);font-size:12px;font-weight:700;color:#3D2300;display:flex;align-items:center;gap:8px;"> ⚠️ ${escapeHtml(_T.lore_warn)}</div> <!-- Language (Standalone) --> <div style="margin-bottom:16px;"> <label class="pse-label" style="margin-bottom:6px; color:var(--pse-text);"> Language / 語言 / 언어</label> <div style="display:flex;gap:8px;"> ${["en", "tc", "ko"]
  .map((code) => {
  const labels = {
  en: "English",
@@ -12715,15 +12807,23 @@ OUTPUT (STRICT):
  charName || "Character",
  c,
  );
+ const _clsVecBlock = vecByCardKey.get(embedCardKey) || null;
+ const _clsCardData = _clsVecBlock && store.cards?.[embedCardKey];
+ const _clsHasChunkVec = _clsCardData
+ ? Object.keys(_clsCardData.entries || {}).some(
+ (k) => String(k).startsWith("chunk|") || _clsCardData.entries[k]?.sourceType === "chunk"
+ )
+ : false;
  classifyBlocks.push({
  type: "classify",
  charIndex: idx,
  cardKey: embedCardKey,
  cardName: charName || "(unknown)",
+ charId: String(c?.chaId || c?.id || c?._id || "-1"),
  chunkCount: chunks.length,
  scopeId,
  sizeBytes: getUtf8BytesLength(chunksRaw),
- vec: vecByCardKey.get(embedCardKey) || null,
+ vec: _clsHasChunkVec ? _clsVecBlock : null,
  });
  }
  for (let idx = 0; idx < characters.length; idx++) {
@@ -12799,7 +12899,17 @@ OUTPUT (STRICT):
  charPairStatus,
  expectedPrefixes,
  sizeBytes: getUtf8BytesLength(raw),
- vec: vecByCardKey.get(cardKey) || null,
+ vec: (() => {
+ const _pVecBlock = vecByCardKey.get(cardKey) || null;
+ if (!_pVecBlock) return null;
+ const _pCardData = store.cards?.[cardKey];
+ const _pHasPersonaVec = _pCardData
+ ? Object.keys(_pCardData.entries || {}).some(
+ (k) => String(k).startsWith("persona|") || _pCardData.entries[k]?.sourceType === "persona"
+ )
+ : false;
+ return _pHasPersonaVec ? _pVecBlock : null;
+ })(),
  });
  }
  } catch { }
@@ -12820,16 +12930,16 @@ OUTPUT (STRICT):
  const combinedHtml = allBlocks
  .map((b, idx) => {
  if (b.type === "classify") {
- return ` <div class="pse-entry-block" data-classify-scope-id="${escapeHtml(b.scopeId)}" data-cache-card-key="${escapeHtml(b.cardKey)}" data-cache-parity="${(vecBlocks.length + idx) % 2 === 0 ? "even" : "odd"}"> <div class="pse-entry-grid" style="grid-template-columns:1fr auto;"> <div> <div style="display:flex;align-items:center;flex-wrap:wrap;gap:4px;"> <b style="font-size:14px;">${escapeHtml(b.cardName)}</b> <span style="display:inline-block;padding:2px 9px;border-radius:999px;font-size:10px;font-weight:700;background:rgba(180,110,0,0.18);color:#7a4800;border:1px solid rgba(180,110,0,0.38);margin-left:4px;box-shadow:0 1px 0 rgba(255,255,255,0.5) inset;"> ${_T.tag_classify}
+ return ` <div class="pse-entry-block" data-classify-scope-id="${escapeHtml(b.scopeId)}" data-classify-char-id="${escapeHtml(b.charId || "-1")}" data-classify-char-name="${escapeHtml(b.cardName)}" data-cache-card-key="${escapeHtml(b.cardKey)}" data-cache-parity="${(vecBlocks.length + idx) % 2 === 0 ? "even" : "odd"}"> <div class="pse-entry-grid" style="grid-template-columns:1fr auto;"> <div> <div style="display:flex;align-items:center;flex-wrap:wrap;gap:4px;"> <b style="font-size:14px;">${escapeHtml(b.cardName)}</b> <span style="display:inline-block;padding:2px 9px;border-radius:999px;font-size:10px;font-weight:700;background:rgba(180,110,0,0.18);color:#3D2300;border:1px solid rgba(180,110,0,0.38);margin-left:4px;box-shadow:0 1px 0 rgba(255,255,255,0.5) inset;"> ${_T.tag_classify}
  </span> ${b.vec?.modelName
- ? ` <span style="display:inline-block;padding:2px 9px;border-radius:999px;font-size:10px;font-weight:700;background:rgba(0,120,90,0.14);color:#005c44;border:1px solid rgba(0,120,90,0.30);box-shadow:0 1px 0 rgba(255,255,255,0.5) inset;"> ${escapeHtml(b.vec.modelName)}
+ ? ` <span style="display:inline-block;padding:2px 9px;border-radius:999px;font-size:10px;font-weight:700;background:rgba(0,120,90,0.14);color:#002D21;border:1px solid rgba(0,120,90,0.30);box-shadow:0 1px 0 rgba(255,255,255,0.5) inset;"> ${escapeHtml(b.vec.modelName)}
  </span>` : "" }
- </div> <div style="margin-top:4px;"><b>${_T.lbl_chunks}</b>: ${escapeHtml(String(b.chunkCount))}</div> <div style="margin-top:4px;"><b>${_T.lbl_filesize}</b>: ${escapeHtml(formatBytes(b.sizeBytes))}</div> </div> <div style="display:flex;flex-direction:row;gap:6px;align-items:center;"> ${b.vec ? `<button class="pse-entry-remove" type="button" data-delete-cache-card="1">${_T.btn_delete_vector}</button>` : ""}
+ </div> <div style="margin-top:4px;"><b>${_T.lbl_chunks}</b>: ${escapeHtml(String(b.chunkCount))}</div> <div style="margin-top:4px;"><b>${_T.lbl_filesize}</b>: ${escapeHtml(formatBytes(b.sizeBytes))}</div> </div> <div style="display:flex;flex-direction:row;gap:6px;align-items:center;"> <button class="pse-entry-remove" type="button" data-manual-persona-from-classify="1" style="border-color:rgba(0,100,200,0.35);background:rgba(0,100,200,0.12);color:#002453;">${_T.btn_manual_append_persona}</button> ${b.vec ? `<button class="pse-entry-remove" type="button" data-delete-cache-card="1">${_T.btn_delete_vector}</button>` : ""}
  <button class="pse-entry-remove" type="button" data-delete-classify-card="1">${_T.btn_delete}</button> </div> </div> </div> `;
  } else {
  return ` <div class="pse-entry-block" data-persona-card-key="${escapeHtml(b.cardKey)}" data-persona-scope-id="${escapeHtml(b.scopeId || "")}" data-persona-char-id="${escapeHtml(String(b.charId || ""))}" data-persona-char-name="${escapeHtml(String(b.cardName || ""))}" data-cache-card-key="${escapeHtml(b.cardKey)}" data-cache-parity="${(vecBlocks.length + idx) % 2 === 0 ? "even" : "odd"}"> <div class="pse-entry-grid" style="grid-template-columns:1fr auto;"> <div> <div style="display:flex;align-items:center;flex-wrap:wrap;gap:4px;"> <b style="font-size:14px;">${escapeHtml(b.cardName)}</b> <span style="display:inline-block;padding:2px 9px;border-radius:999px;font-size:10px;font-weight:700;background:rgba(140,0,120,0.14);color:#7a0068;border:1px solid rgba(140,0,120,0.32);margin-left:4px;box-shadow:0 1px 0 rgba(255,255,255,0.5) inset;"> ${_T.tag_persona}
  </span> ${b.vec?.modelName
- ? ` <span style="display:inline-block;padding:2px 9px;border-radius:999px;font-size:10px;font-weight:700;background:rgba(0,120,90,0.14);color:#005c44;border:1px solid rgba(0,120,90,0.30);box-shadow:0 1px 0 rgba(255,255,255,0.5) inset;"> ${escapeHtml(b.vec.modelName)}
+ ? ` <span style="display:inline-block;padding:2px 9px;border-radius:999px;font-size:10px;font-weight:700;background:rgba(0,120,90,0.14);color:#002D21;border:1px solid rgba(0,120,90,0.30);box-shadow:0 1px 0 rgba(255,255,255,0.5) inset;"> ${escapeHtml(b.vec.modelName)}
  </span>` : "" }
  </div> <div style="margin-top:4px;"><b>${_T.lbl_persona_entries_count}</b>: ${escapeHtml(String(b.personaEntryCount))}</div> <div style="margin-top:4px;"><b>${_T.lbl_filesize}</b>: ${escapeHtml(formatBytes(b.sizeBytes))}</div> </div> <div style="display:flex;flex-direction:row;gap:6px;align-items:center;"> ${(() => {
  const status = b.charPairStatus || {};
@@ -13005,7 +13115,7 @@ OUTPUT (STRICT):
  const borderColor = isEven
  ? "var(--pse-accent-blue)" : "var(--pse-accent-green)";
  const gradientColor = isEven
- ? "rgba(41, 121, 255, 0.11)" : "rgba(0, 200, 100, 0.11)";
+ ? "rgba(41, 121, 255, 0.18)" : "rgba(0, 200, 100, 0.18)";
  const isDisabled = !(
  cs.card_disabled === 0 ||
  cs.card_disabled === false ||
@@ -13207,6 +13317,158 @@ OUTPUT (STRICT):
  updateTag();
  }
  });
+ const openManualAppendOverlay = (charId, charName, cardKey, onSuccess) => {
+ const anchorPrompt = safeTrim(configCache.advanced_model_anchor_prompt || DEFAULTS.advanced_model_anchor_prompt || "");
+ const personaCalls = parsePersonaCalls(configCache.persona_calls);
+ const formatSections = personaCalls.flatMap((call) =>
+ (call.entries || []).map((entry) => safeTrim(entry.output_format || "")).filter(Boolean)
+ );
+ const combinedPrompt = [anchorPrompt, ...formatSections].filter(Boolean).join("\n\n---\n\n");
+ const manualOverlay = document.createElement("div");
+ manualOverlay.style.cssText = "position:fixed;inset:0;z-index:10002;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,0.60);";
+ manualOverlay.innerHTML = `
+ <div style="background:rgba(200,200,210,0.98);color:#0d0d10;border-radius:16px;padding:20px;width:min(560px,96vw);max-height:88vh;display:flex;flex-direction:column;gap:12px;box-shadow:0 28px 70px rgba(0,0,0,0.60);border:1px solid rgba(255,255,255,0.55);">
+ <div style="display:flex;align-items:center;justify-content:space-between;">
+ <div style="font-size:14px;font-weight:700;">${_T.manual_append_title}</div>
+ <button id="pse-manual-close" style="border:1px solid rgba(0,0,0,0.22);background:rgba(180,180,195,0.85);color:#0d0d10;border-radius:6px;width:28px;height:28px;cursor:pointer;font-size:15px;line-height:1;display:flex;align-items:center;justify-content:center;">×</button>
+ </div>
+ <div style="font-size:12px;color:#1C1C29;line-height:1.6;background:rgba(0,80,200,0.07);border:1px solid rgba(0,80,200,0.18);border-radius:8px;padding:10px 12px;">${escapeHtml(_T.manual_append_guide)}</div>
+ <div style="display:flex;flex-direction:column;gap:4px;flex:1;min-height:0;">
+ <textarea id="pse-manual-prompt-ta" readonly style="flex:1;min-height:120px;max-height:220px;resize:vertical;font-size:11px;font-family:monospace;background:rgba(220,220,230,0.97);border:1px solid rgba(0,0,0,0.20);border-radius:8px;padding:8px 10px;color:#0d0d10;outline:none;">${escapeHtml(combinedPrompt)}</textarea>
+ <button id="pse-manual-copy-btn" style="align-self:flex-start;border:1px solid rgba(0,100,200,0.35);background:rgba(0,100,200,0.12);color:#002453;border-radius:6px;padding:0 14px;height:30px;cursor:pointer;font-size:12px;white-space:nowrap;">${_T.btn_copy_prompt}</button>
+ </div>
+ <div style="border-top:1px solid rgba(0,0,0,0.10);padding-top:12px;display:flex;flex-direction:column;gap:8px;">
+ <textarea id="pse-manual-input-ta" placeholder="Paste LLM output JSON here…" style="min-height:100px;max-height:200px;resize:vertical;font-size:11px;font-family:monospace;background:rgba(220,220,230,0.97);border:1px solid rgba(0,0,0,0.20);border-radius:8px;padding:8px 10px;color:#0d0d10;outline:none;width:100%;box-sizing:border-box;"></textarea>
+ <div style="display:flex;gap:8px;justify-content:flex-end;">
+ <div id="pse-manual-status" style="flex:1;font-size:11px;line-height:1.4;color:#1C1C29;align-self:center;"></div>
+ <button id="pse-manual-submit-btn" style="border:1px solid rgba(0,150,80,0.35);background:rgba(0,150,80,0.14);color:#002D17;border-radius:6px;padding:0 16px;height:32px;cursor:pointer;font-size:12px;font-weight:600;white-space:nowrap;">${_T.btn_input_data}</button>
+ </div>
+ </div>
+ </div>`;
+ document.body.appendChild(manualOverlay);
+ manualOverlay.querySelector("#pse-manual-copy-btn")?.addEventListener("click", async () => {
+ const ta = manualOverlay.querySelector("#pse-manual-prompt-ta");
+ if (ta) {
+ await copyTextWithFallback(ta.value);
+ const btn = manualOverlay.querySelector("#pse-manual-copy-btn");
+ const orig = btn.textContent;
+ btn.textContent = _T.st_copied_prompt || " Copied";
+ setTimeout(() => { btn.textContent = orig; }, 2000);
+ }
+ });
+ manualOverlay.querySelector("#pse-manual-close")?.addEventListener("click", () => manualOverlay.remove());
+ manualOverlay.addEventListener("click", (ev) => { if (ev.target === manualOverlay) manualOverlay.remove(); });
+ manualOverlay.querySelector("#pse-manual-submit-btn")?.addEventListener("click", async () => {
+ const inputTa = manualOverlay.querySelector("#pse-manual-input-ta");
+ const statusEl = manualOverlay.querySelector("#pse-manual-status");
+ const rawInput = safeTrim(inputTa?.value || "");
+ if (!rawInput) { if (statusEl) statusEl.textContent = _T.st_manual_append_invalid_json; return; }
+ let parsed = null;
+ try { parsed = parsePossiblyWrappedJson(rawInput); } catch { }
+ if (!parsed || typeof parsed !== "object") {
+ if (statusEl) statusEl.textContent = _T.st_manual_append_invalid_json;
+ return;
+ }
+ const submitBtn = manualOverlay.querySelector("#pse-manual-submit-btn");
+ if (submitBtn) { submitBtn.disabled = true; submitBtn.style.opacity = "0.6"; }
+ if (statusEl) statusEl.textContent = "…";
+ try {
+ const calls = parsePersonaCalls(configCache.persona_calls);
+ const allEntryDefs = calls.flatMap((c) => c.entries || []);
+ const seenNames = new Set();
+ const uniqueEntryDefs = allEntryDefs.filter((e) => {
+ const k = safeTrim(e?.lorebook_name);
+ if (!k || seenNames.has(k)) return false;
+ seenNames.add(k); return true;
+ });
+ if (uniqueEntryDefs.length === 0) {
+ if (statusEl) statusEl.textContent = _T.st_manual_append_failed + "No persona call entry definitions found.";
+ if (submitBtn) { submitBtn.disabled = false; submitBtn.style.opacity = ""; }
+ return;
+ }
+ const alignedParsed = alignParsedObjectToEntries("", parsed, uniqueEntryDefs);
+ const personaEntries = extractPersonaEntries(alignedParsed, uniqueEntryDefs, charName);
+ const hasInventoryDef = uniqueEntryDefs.some((e) => safeTrim(e?.lorebook_name) === "rp_persona_inventory");
+ const hasCoredef = uniqueEntryDefs.some((e) => safeTrim(e?.lorebook_name) === "rp_character_core");
+ const requiredPair = hasInventoryDef && hasCoredef;
+ const charInventorySet = new Set(personaEntries.filter((e) => safeTrim(e.entryKey) === "rp_persona_inventory").map((e) => safeTrim(e.charName)));
+ const charCoreSet = new Set(personaEntries.filter((e) => safeTrim(e.entryKey) === "rp_character_core").map((e) => safeTrim(e.charName)));
+ const pairedCharNames = new Set([...charInventorySet].filter((n) => charCoreSet.has(n)));
+ let wroteCharNames = new Set();
+ let skippedCount = 0;
+ const cache = await loadPersonaCache(cardKey);
+ for (const e of personaEntries) {
+ const cn = safeTrim(e.charName);
+ if (requiredPair && !pairedCharNames.has(cn)) { skippedCount++; continue; }
+ const existing = cache.entries[e.cacheName];
+ const existingValue = existing ? getPersonaValueFromCacheEntry(existing, e.entryKey, e.charName) : null;
+ const mergedValue = mergePersonaValues(existingValue, e.value);
+ if (!mergedValue || typeof mergedValue !== "object") { skippedCount++; continue; }
+ const payloadObj = { [e.entryKey]: { [e.charName]: mergedValue } };
+ const text = JSON.stringify(payloadObj, null, 2);
+ const textHash = simpleHash(text);
+ cache.entries[e.cacheName] = { name: e.cacheName, text, textHash, updatedAt: Date.now() };
+ wroteCharNames.add(cn);
+ }
+ const wroteCount = wroteCharNames.size;
+ if (wroteCount === 0) {
+ if (statusEl) statusEl.textContent = skippedCount > 0
+ ? (typeof _T.st_manual_append_partial === "function" ? _T.st_manual_append_partial(0, skippedCount) : `Skipped: ${skippedCount}`)
+ : (_T.st_manual_append_failed + "No valid character data found in the JSON.");
+ if (submitBtn) { submitBtn.disabled = false; submitBtn.style.opacity = ""; }
+ return;
+ }
+ await savePersonaCache(cardKey, cache);
+ try {
+ const entries = Object.values(cache.entries || {});
+ const store = await loadEmbeddingCacheStore();
+ const cfg = resolveEmbeddingRuntimeConfig();
+ const missingEntries = entries.filter((entry) => {
+ const cKey = `persona|${entry.textHash}`;
+ const hit = store.cards?.[cardKey]?.entries?.[cKey];
+ return !hit || !hit.vector || !hit.vector.length;
+ });
+ if (missingEntries.length > 0) {
+ if (statusEl) statusEl.textContent = "Embedding…";
+ const embedBatchSize = getEmbeddingBatchSize(cfg.requestModel);
+ for (let i = 0; i < missingEntries.length; i += embedBatchSize) {
+ const batch = missingEntries.slice(i, i + embedBatchSize);
+ let vecs = null;
+ try { vecs = await fetchEmbeddingVectorsRemote(batch.map((x) => x.text), cfg, false); } catch { }
+ if (!vecs) continue;
+ let newlyAdded = false;
+ vecs.forEach((vec, vi) => {
+ if (vec && vec.length) {
+ const entry = batch[vi];
+ upsertEmbeddingCacheEntry(store, cardKey, charName, `persona|${entry.textHash}`,
+ { sourceType: "persona", name: entry.name, textHash: entry.textHash, dims: vec.length, vector: vec, text: entry.text },
+ cfg.requestModel);
+ newlyAdded = true;
+ }
+ });
+ if (newlyAdded) await saveEmbeddingCacheStore(store);
+ }
+ }
+ } catch (_embedErr) {
+ try { await Risuai.log(`${LOG} Manual append: embed step failed: ${_embedErr?.message || String(_embedErr)}`); } catch { }
+ }
+ await renderEmbeddingCacheList();
+ if (typeof onSuccess === "function") { try { await onSuccess(cardKey, cache); } catch { } }
+ const skippedChars = skippedCount > 0 ? Math.ceil(skippedCount / Math.max(uniqueEntryDefs.length, 1)) : 0;
+ const msg = skippedChars > 0
+ ? (typeof _T.st_manual_append_partial === "function" ? _T.st_manual_append_partial(wroteCount, skippedChars) : `Written: ${wroteCount}, Skipped: ${skippedChars}`)
+ : (typeof _T.st_manual_append_ok === "function" ? _T.st_manual_append_ok(wroteCount) : `Written: ${wroteCount}`);
+ if (statusEl) { statusEl.style.color = "#006630"; statusEl.textContent = msg; }
+ showStatus(msg, "ok");
+ if (submitBtn) { submitBtn.disabled = false; submitBtn.style.opacity = ""; }
+ } catch (err) {
+ const errMsg = _T.st_manual_append_failed + (err?.message || String(err));
+ if (statusEl) { statusEl.style.color = "#cc0020"; statusEl.textContent = errMsg; }
+ showStatus(errMsg, "err");
+ if (submitBtn) { submitBtn.disabled = false; submitBtn.style.opacity = ""; }
+ }
+ });
+ };
  document
  .getElementById("pse-embed-cache-list")
  ?.addEventListener("click", async (e) => {
@@ -13235,15 +13497,15 @@ OUTPUT (STRICT):
  .map((n) => {
  const s = currentStatusObj[n] || {};
  const complete = expectedPrefixes.every(p => s[p] || (p === "ra_persona_inventory" && s.inv) || (p === "ra_character_core" && s.core));
- const rowBg = complete ? "rgba(0,230,118,0.07)" : "rgba(255,23,68,0.07)";
- const borderColor = complete ? "rgba(0,230,118,0.25)" : "rgba(255,23,68,0.25)";
+ const rowBg = complete ? "rgba(0,230,118,0.14)" : "rgba(255,23,68,0.14)";
+ const borderColor = complete ? "rgba(0,230,118,0.35)" : "rgba(255,23,68,0.35)";
  const tagsHtml = expectedPrefixes.map((p, index) => {
  const hasIt = s[p] || (p === "ra_persona_inventory" && s.inv) || (p === "ra_character_core" && s.core);
  const icon = hasIt ? "" : "";
  const color = hasIt ? "var(--pse-accent-green)" : "var(--pse-accent-rose)";
  return `<span style="font-size:11px;color:${color};font-weight:700;white-space:nowrap;" title="${escapeHtml(p)}">${index + 1} ${icon}</span>`;
  }).join("");
- return `<div style="display:flex;align-items:center;gap:8px;padding:7px 10px;border-radius:6px;background:${rowBg};border:1px solid ${borderColor};margin-bottom:5px;"> <span style="font-size:12px;font-weight:600;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${escapeHtml(n)}</span> ${tagsHtml}
+ return `<div style="display:flex;align-items:center;gap:8px;padding:7px 10px;border-radius:6px;background:${rowBg};border:1px solid ${borderColor};margin-bottom:5px;"> <span data-edit-persona-char="${escapeHtml(n)}" data-expected-prefixes="${escapeHtml(JSON.stringify(expectedPrefixes))}" style="font-size:12px;font-weight:600;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;cursor:pointer;text-decoration:underline;text-underline-offset:2px;" title="${_T.lbl_char_editor || "Edit"}">${escapeHtml(n)}</span> ${tagsHtml}
  <button data-delete-persona-char="${escapeHtml(n)}" data-expected-prefixes="${escapeHtml(JSON.stringify(expectedPrefixes))}" style="border:1px solid rgba(0,0,0,0.22);background:rgba(200,200,215,0.80);color:#0d0d10;border-radius:5px;width:24px;height:24px;cursor:pointer;font-size:13px;line-height:1;flex-shrink:0;display:flex;align-items:center;justify-content:center;" title="${_T.lbl_delete_char_cache || "Delete"}">×</button> </div>`;
  })
  .join("");
@@ -13252,7 +13514,7 @@ OUTPUT (STRICT):
  const rowsEl = overlay.querySelector("#pse-persona-note-rows");
  if (rowsEl) rowsEl.innerHTML = buildRows(currentStatusObj);
  };
- overlay.innerHTML = ` <div style="background:rgba(225,225,232,0.96);color:#0d0d10;border-radius:16px;padding:18px;width:min(380px,92vw);max-height:80vh;display:flex;flex-direction:column;box-shadow:0 24px 60px rgba(0,0,0,0.55);border:1px solid rgba(255,255,255,0.60);"> <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;"> <div style="font-size:14px;font-weight:700;color:#0d0d10;">${_T.lbl_persona_entries}</div> <div style="display:flex;align-items:center;gap:6px;"> <button id="pse-persona-note-refresh" style="border:1px solid rgba(0,0,0,0.18);background:rgba(200,200,215,0.80);color:#0d0d10;border-radius:6px;padding:0 10px;height:28px;cursor:pointer;font-size:11px;white-space:nowrap;">${_T.btn_refresh_persona}</button> <button id="pse-persona-note-close" style="border:1px solid rgba(0,0,0,0.18);background:rgba(200,200,215,0.80);color:#0d0d10;border-radius:6px;width:28px;height:28px;cursor:pointer;font-size:15px;line-height:1;display:flex;align-items:center;justify-content:center;">×</button> </div> </div> <div style="font-size:11px;color:#3a3a44;margin-bottom:10px;word-break:break-all;">Tags: ${expectedPrefixes.map((p, index) => (index + 1) + '=' + escapeHtml(p)).join(' | ')}</div> <div id="pse-persona-note-rows" style="overflow-y:auto;">${buildRows(status)}</div> </div>`;
+ overlay.innerHTML = ` <div style="background:rgba(225,225,232,0.96);color:#0d0d10;border-radius:16px;padding:18px;width:min(380px,92vw);max-height:80vh;display:flex;flex-direction:column;box-shadow:0 24px 60px rgba(0,0,0,0.55);border:1px solid rgba(255,255,255,0.60);"> <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;"> <div style="font-size:14px;font-weight:700;color:#0d0d10;">${_T.lbl_persona_entries}</div> <div style="display:flex;align-items:center;gap:6px;"> <button id="pse-persona-note-manual" style="border:1px solid rgba(0,100,200,0.35);background:rgba(0,100,200,0.12);color:#002453;border-radius:6px;padding:0 10px;height:28px;cursor:pointer;font-size:11px;white-space:nowrap;">${_T.btn_manual_append_persona}</button> <button id="pse-persona-note-refresh" style="border:1px solid rgba(0,0,0,0.18);background:rgba(200,200,215,0.80);color:#0d0d10;border-radius:6px;padding:0 10px;height:28px;cursor:pointer;font-size:11px;white-space:nowrap;">${_T.btn_refresh_persona}</button> <button id="pse-persona-note-close" style="border:1px solid rgba(0,0,0,0.18);background:rgba(200,200,215,0.80);color:#0d0d10;border-radius:6px;width:28px;height:28px;cursor:pointer;font-size:15px;line-height:1;display:flex;align-items:center;justify-content:center;">×</button> </div> </div> <div style="font-size:11px;color:#3a3a44;margin-bottom:10px;word-break:break-all;">Tags: ${expectedPrefixes.map((p, index) => (index + 1) + '=' + escapeHtml(p)).join(' | ')}</div> <div id="pse-persona-note-rows" style="overflow-y:auto;">${buildRows(status)}</div> </div>`;
  document.body.appendChild(overlay);
  overlay
  .querySelector("#pse-persona-note-close")
@@ -13263,12 +13525,200 @@ OUTPUT (STRICT):
  overlay.remove();
  await refreshPersonaCacheForBlock(block);
  });
+ overlay
+ .querySelector("#pse-persona-note-manual")
+ ?.addEventListener("click", () => {
+ const _charId = safeTrim(block?.getAttribute("data-persona-char-id") || "") || "-1";
+ const _charName = safeTrim(block?.getAttribute("data-persona-char-name") || "") || "Character";
+ const _persistedKey = safeTrim(block?.getAttribute("data-persona-card-key") || "");
+ const _cardKey = _persistedKey || makeCardCacheKey(_charId, _charName);
+ openManualAppendOverlay(_charId, _charName, _cardKey, async (_ck, updatedCache) => {
+ // Rebuild status from the freshly saved cache and re-render the rows
+ const newEntries = updatedCache?.entries || {};
+ const newStatus = {};
+ for (const entryKey of Object.keys(newEntries)) {
+ for (const p of expectedPrefixes) {
+ const escapedP = p.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+ const match = entryKey.match(new RegExp(`^${escapedP}_\\((.+)\\)$`));
+ if (match) {
+ const cName = match[1];
+ if (!newStatus[cName]) newStatus[cName] = {};
+ newStatus[cName][p] = true;
+ }
+ }
+ }
+ // Merge into live status object so delete still works
+ Object.assign(status, newStatus);
+ renderPopup(status);
+ // Also update the icon button colour in the parent block
+ if (block) {
+ const iconBtn = block.querySelector("[data-persona-note-btn]");
+ if (iconBtn) {
+ const hasIncomplete = Object.keys(status).some(
+ (n) => !expectedPrefixes.every((p) => status[n]?.[p])
+ );
+ const iconColor = Object.keys(status).length === 0 ? "var(--pse-muted)"
+ : hasIncomplete ? "#b87000" : "#007a40";
+ iconBtn.style.borderColor = iconColor;
+ iconBtn.style.color = iconColor;
+ iconBtn.setAttribute("data-persona-pair-status", JSON.stringify({ status, expectedPrefixes }));
+ }
+ }
+ });
+ });
  overlay.addEventListener("click", (ev) => {
  if (ev.target === overlay) overlay.remove();
  });
  overlay
  .querySelector("#pse-persona-note-rows")
  ?.addEventListener("click", async (ev) => {
+ // ── Edit character cache ──────────────────────────────────────────────
+ const editSpan = ev.target?.closest?.("[data-edit-persona-char]");
+ if (editSpan) {
+ const charNameToEdit = safeTrim(editSpan.getAttribute("data-edit-persona-char") || "");
+ if (!charNameToEdit || !cardKey) return;
+ let editExpectedPrefixes = expectedPrefixes;
+ try {
+ const raw = editSpan.getAttribute("data-expected-prefixes");
+ if (raw) editExpectedPrefixes = JSON.parse(raw);
+ } catch { }
+ // Load cache and build merged JSON for this character
+ const cache = await loadPersonaCache(cardKey);
+ const charEntryKeys = editExpectedPrefixes.map(p => `${p}_(${charNameToEdit})`);
+ // Assemble combined view: { prefix: value, prefix2: value2, ... }
+ const combined = {};
+ for (const entryKey of charEntryKeys) {
+ const entry = cache.entries?.[entryKey];
+ if (!entry) continue;
+ const prefix = editExpectedPrefixes.find(p => entryKey === `${p}_(${charNameToEdit})`);
+ if (!prefix) continue;
+ try {
+ const parsed = JSON.parse(entry.text);
+ const val = parsed?.[prefix]?.[charNameToEdit];
+ if (val && typeof val === "object") combined[prefix] = val;
+ } catch { }
+ }
+ const editJson = JSON.stringify(combined, null, 2);
+ // Build editor overlay
+ const editorOverlay = document.createElement("div");
+ editorOverlay.style.cssText = "position:fixed;inset:0;z-index:10002;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,0.60);";
+ editorOverlay.innerHTML = `
+ <div style="background:rgba(200,200,210,0.98);color:#0d0d10;border-radius:16px;padding:20px;width:min(600px,96vw);max-height:90vh;display:flex;flex-direction:column;gap:12px;box-shadow:0 28px 70px rgba(0,0,0,0.60);border:1px solid rgba(255,255,255,0.55);">
+ <div style="display:flex;align-items:center;justify-content:space-between;">
+ <div>
+ <div style="font-size:14px;font-weight:700;">${escapeHtml(_T.lbl_char_editor || "Edit Character Cache")}</div>
+ <div style="font-size:11px;color:#1C1C29;margin-top:2px;">${escapeHtml(charNameToEdit)}</div>
+ </div>
+ <button id="pse-char-edit-close" style="border:1px solid rgba(0,0,0,0.22);background:rgba(180,180,195,0.85);color:#0d0d10;border-radius:6px;width:28px;height:28px;cursor:pointer;font-size:15px;line-height:1;display:flex;align-items:center;justify-content:center;">×</button>
+ </div>
+ <textarea id="pse-char-edit-ta" spellcheck="false" style="flex:1;min-height:320px;max-height:52vh;resize:vertical;font-size:11px;font-family:monospace;background:rgba(220,220,230,0.97);border:1px solid rgba(0,0,0,0.20);border-radius:8px;padding:10px 12px;color:#0d0d10;outline:none;width:100%;box-sizing:border-box;line-height:1.5;">${escapeHtml(editJson)}</textarea>
+ <div style="display:flex;gap:8px;justify-content:flex-end;align-items:center;">
+ <div id="pse-char-edit-status" style="flex:1;font-size:11px;color:#1C1C29;line-height:1.4;"></div>
+ <button id="pse-char-edit-cancel" style="border:1px solid rgba(0,0,0,0.18);background:rgba(200,200,215,0.80);color:#0d0d10;border-radius:6px;padding:0 14px;height:30px;cursor:pointer;font-size:12px;">${escapeHtml(_T.editor_cancel || "Cancel")}</button>
+ <button id="pse-char-edit-save" style="border:1px solid rgba(0,150,80,0.35);background:rgba(0,150,80,0.14);color:#002D17;border-radius:6px;padding:0 16px;height:32px;cursor:pointer;font-size:12px;font-weight:600;">${escapeHtml(_T.editor_apply || "Apply")}</button>
+ </div>
+ </div>`;
+ document.body.appendChild(editorOverlay);
+ editorOverlay.querySelector("#pse-char-edit-close")?.addEventListener("click", () => editorOverlay.remove());
+ editorOverlay.querySelector("#pse-char-edit-cancel")?.addEventListener("click", () => editorOverlay.remove());
+ editorOverlay.addEventListener("click", (ev2) => { if (ev2.target === editorOverlay) editorOverlay.remove(); });
+ editorOverlay.querySelector("#pse-char-edit-save")?.addEventListener("click", async () => {
+ const ta = editorOverlay.querySelector("#pse-char-edit-ta");
+ const statusEl = editorOverlay.querySelector("#pse-char-edit-status");
+ const rawInput = safeTrim(ta?.value || "");
+ let editedObj = null;
+ try { editedObj = parsePossiblyWrappedJson(rawInput); } catch { }
+ if (!editedObj || typeof editedObj !== "object" || Array.isArray(editedObj)) {
+ if (statusEl) { statusEl.style.color = "#cc0020"; statusEl.textContent = _T.st_char_edit_invalid_json || "Invalid JSON"; }
+ return;
+ }
+ const saveBtn = editorOverlay.querySelector("#pse-char-edit-save");
+ if (saveBtn) { saveBtn.disabled = true; saveBtn.style.opacity = "0.6"; }
+ try {
+ const freshCache = await loadPersonaCache(cardKey);
+ const oldHashes = new Set();
+ for (const p of editExpectedPrefixes) {
+ const ek = `${p}_(${charNameToEdit})`;
+ const ex = freshCache.entries?.[ek];
+ if (ex?.textHash) oldHashes.add(ex.textHash);
+ }
+ // Write each prefix back
+ for (const p of editExpectedPrefixes) {
+ const val = editedObj[p];
+ if (val === undefined || val === null) continue;
+ if (typeof val !== "object" || Array.isArray(val)) continue;
+ const ek = `${p}_(${charNameToEdit})`;
+ const payloadObj = { [p]: { [charNameToEdit]: val } };
+ const text = JSON.stringify(payloadObj, null, 2);
+ const textHash = simpleHash(text);
+ freshCache.entries[ek] = { name: ek, text, textHash, updatedAt: Date.now() };
+ }
+ await savePersonaCache(cardKey, freshCache);
+ // Update vector cache: remove stale persona vectors, embed new ones
+ try {
+ const store = await loadEmbeddingCacheStore();
+ const cardVec = store.cards?.[cardKey];
+ if (cardVec?.entries) {
+ for (const vk of Object.keys(cardVec.entries)) {
+ if (String(vk).startsWith("persona|") && oldHashes.has(safeTrim(cardVec.entries[vk]?.textHash || "")))
+ delete cardVec.entries[vk];
+ }
+ }
+ const cfg = resolveEmbeddingRuntimeConfig();
+ const newEntries = editExpectedPrefixes
+ .map(p => freshCache.entries?.[`${p}_(${charNameToEdit})`])
+ .filter(Boolean);
+ const missingEntries = newEntries.filter(entry => {
+ const ck = `persona|${entry.textHash}`;
+ const hit = store.cards?.[cardKey]?.entries?.[ck];
+ return !hit || !hit.vector || !hit.vector.length;
+ });
+ if (missingEntries.length > 0) {
+ const embedBatchSize = getEmbeddingBatchSize(cfg.requestModel);
+ for (let i = 0; i < missingEntries.length; i += embedBatchSize) {
+ const batch = missingEntries.slice(i, i + embedBatchSize);
+ let vecs = null;
+ try { vecs = await fetchEmbeddingVectorsRemote(batch.map(x => x.text), cfg, false); } catch { }
+ if (!vecs) continue;
+ vecs.forEach((vec, vi) => {
+ if (vec && vec.length) {
+ const entry = batch[vi];
+ upsertEmbeddingCacheEntry(store, cardKey, charNameToEdit, `persona|${entry.textHash}`,
+ { sourceType: "persona", name: entry.name, textHash: entry.textHash, dims: vec.length, vector: vec, text: entry.text },
+ cfg.requestModel);
+ }
+ });
+ }
+ await saveEmbeddingCacheStore(store, { replaceCardKeys: [cardKey] });
+ } else if (cardVec) {
+ await saveEmbeddingCacheStore(store, { replaceCardKeys: [cardKey] });
+ }
+ } catch (_embedErr) {
+ try { await Risuai.log(`${LOG} Char edit: embed step failed: ${_embedErr?.message || String(_embedErr)}`); } catch { }
+ }
+ // Refresh UI
+ await renderEmbeddingCacheList();
+ // Rebuild status for this character and update popup rows
+ const newStatus = { ...status };
+ newStatus[charNameToEdit] = {};
+ for (const p of editExpectedPrefixes) {
+ if (freshCache.entries?.[`${p}_(${charNameToEdit})`]) newStatus[charNameToEdit][p] = true;
+ }
+ Object.assign(status, newStatus);
+ renderPopup(status);
+ if (statusEl) { statusEl.style.color = "#006630"; statusEl.textContent = _T.st_char_edit_saved || "Saved."; }
+ showStatus(_T.st_char_edit_saved || "Saved.", "ok");
+ if (saveBtn) { saveBtn.disabled = false; saveBtn.style.opacity = ""; }
+ } catch (err) {
+ const errMsg = (_T.st_char_edit_failed || "Save failed: ") + (err?.message || String(err));
+ if (statusEl) { statusEl.style.color = "#cc0020"; statusEl.textContent = errMsg; }
+ showStatus(errMsg, "err");
+ if (saveBtn) { saveBtn.disabled = false; saveBtn.style.opacity = ""; }
+ }
+ });
+ return;
+ }
+ // ── Delete character cache ───────────────────────────────────────────
  const delBtn = ev.target?.closest?.("[data-delete-persona-char]");
  if (!delBtn) return;
  const charName = safeTrim(
@@ -13339,6 +13789,16 @@ OUTPUT (STRICT):
  } catch { }
  }
  });
+ return;
+ }
+ const manualPersonaBtn = e.target?.closest?.("[data-manual-persona-from-classify]");
+ if (manualPersonaBtn) {
+ const block = manualPersonaBtn.closest?.("[data-classify-scope-id]");
+ const charId = safeTrim(block?.getAttribute?.("data-classify-char-id") || "") || "-1";
+ const charName = safeTrim(block?.getAttribute?.("data-classify-char-name") || "") || "Character";
+ const cardKey = safeTrim(block?.getAttribute?.("data-cache-card-key") || "");
+ if (!cardKey) return;
+ openManualAppendOverlay(charId, charName, cardKey);
  return;
  }
  const vecBtn = e.target?.closest?.("[data-delete-cache-card]");
