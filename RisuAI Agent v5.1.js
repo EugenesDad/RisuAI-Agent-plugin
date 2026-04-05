@@ -285,7 +285,10 @@
       lbl_suggest_s2_aux:
         "Auxiliary Model: Models with analytical capabilities (Gemini 3 Flash)",
       lbl_suggest_s2_embed:
-        "Embedding Model: Multilingual vector search model (gemini-embedding-2-preview)",
+        "嵌入模型：能跨語言向量搜尋 (gemini-embedding-2-preview)",
+      lbl_api_key_rotation: "API 金鑰輪替：可以在 API 金鑰欄位以逗號分隔輸入多組金鑰。當遇到「配額用盡/429」等錯誤時，系統會自動切換至下一組金鑰繼續嘗試。",
+      lbl_api_key_rotation: "API 키 로테이션: API 키 입력란에 쉼표로 구분하여 여러 개의 키를 입력할 수 있습니다. '할당량 초과/429' 오류 발생 시 시스템이 자동으로 다음 키로 전환합니다.",
+      lbl_api_key_rotation: "API Key Rotation: You can enter multiple keys in the API key field manually by separating them with commas. The system will automatically cycle through them upon receiving a 'Quota Exceeded/429' error.",
       lbl_mode_reorg_vec: "Bot Reorg & Vector Search Mode:",
       lbl_cbs_manual:
         "CBS syntax parsing is currently unavailable; manual adjustments required.",
@@ -387,71 +390,69 @@
       extraction_guide_title: " Extraction & Instruction Guide",
       extraction_guide_content: `<div style="display:grid; gap:12px;">
   <div style="background:rgba(156,39,176,0.18); padding:10px 12px; border-radius:8px;">
-    <b style="font-size:13px; color:var(--pse-text);"> Core State Layer — Updated Every Turn</b>
+    <b style="font-size:13px; color:var(--pse-text);"> 核心狀態層 — 每回合更新</b>
     <div style="margin-top:6px; display:grid; gap:4px; font-size:12px; color:var(--pse-text);">
-      <div>• <code>ra_turn_trace</code>: Records the current turn's real-time actions, time passing, and dynamic changes. The AI's short-term memory anchor.</div>
-      <div>• <code>ra_scene_state</code>: Defines scene type, location, and the real-time inner/outer state of all NPCs in the scene.</div>
-      <div>• <code>ra_inventory</code>: Strictly tracks items and clothing carried by the player and NPCs, preventing the AI from forgetting equipment or conjuring items out of thin air.</div>
+      <div>• <code>ra_turn_trace</code>: 紀錄當前回合的實時動作、時間流逝與動態變化。</div>
+      <div>• <code>ra_scene_state</code>: 場景類型、位置以及 NPC 狀態。</div>
+      <div>• <code>ra_inventory</code>: 嚴格追蹤物品與服裝。</div>
     </div>
   </div>
   <div style="background:rgba(63,81,181,0.18); padding:10px 12px; border-radius:8px;">
-    <b style="font-size:13px; color:var(--pse-text);"> Logic & Plot Layer</b>
+    <b style="font-size:13px; color:var(--pse-text);"> 邏輯與劇情層</b>
     <div style="margin-top:6px; display:grid; gap:4px; font-size:12px; color:var(--pse-text);">
-      <div>• <code>ra_logic_state</code>: Acts as the "referee." Checks whether player actions violate existing logic and issues mandatory directives to the execution model.</div>
-      <div>• <code>ra_quest_log</code>: Tracks long-term and short-term mission objectives, preventing the story from drifting into aimless small talk.</div>
-      <div>• <code>ra_turning_point_log</code>: Records major plot turning points, retained long-term to maintain narrative continuity.</div>
+      <div>• <code>ra_logic_state</code>: 作為「裁判」，防止邏輯崩壞並下達強制指令。</div>
+      <div>• <code>ra_quest_log</code>: 追蹤短中長期任務目標。</div>
     </div>
   </div>
   <div style="background:rgba(33,150,243,0.18); padding:10px 12px; border-radius:8px;">
-    <b style="font-size:13px; color:var(--pse-text);"> Strategy & Cognition Layer — Enhanced in Settings 2 & 4</b>
+    <b style="font-size:13px; color:var(--pse-text);"> 策略與認知層</b>
     <div style="margin-top:6px; display:grid; gap:4px; font-size:12px; color:var(--pse-text);">
-      <div>• <code>ra_knowledge_matrix</code>: Knowledge matrix. Records who knows what and who doesn't — the core tool for handling information asymmetry and intrigue.</div>
-      <div>• <code>ra_strategy_layer</code>: Analyzes current faction dynamics, NPC leverage, and action objectives.</div>
-      <div>• <code>ra_mask_state</code> <span style="opacity:0.7;">(Setting 4)</span>: Handles character "disguise," tracking the gap between a character's outward performance and their true inner intent.</div>
-      <div>• <code>ra_pattern_guard</code>: Detects when dialogue falls into repetitive patterns and provides "variation suggestions" to break repetition loops.</div>
+      <div>• <code>ra_knowledge_matrix</code>: 知識矩陣，紀錄誰知道什麼。</div>
+      <div>• <code>ra_strategy_layer</code>: 陣營動態與戰術壓力分析。</div>
+      <div>• <code>ra_mask_state</code>: 處理角色偽裝與真心話。</div>
+      <div>• <code>ra_pattern_guard</code>: 偵測重複對話並提供變更建議。</div>
     </div>
   </div>
   <div style="background:rgba(0,150,136,0.18); padding:10px 12px; border-radius:8px;">
-    <b style="font-size:13px; color:var(--pse-text);"> Director & Persona Navigation Layer — Settings 3 & 4 Only</b>
+    <b style="font-size:13px; color:var(--pse-text);"> 導演與人格導航層</b>
     <div style="margin-top:6px; display:grid; gap:4px; font-size:12px; color:var(--pse-text);">
-      <div>• <code>ra_persona_importance</code>: Determines which "facet" of a character should be expressed this turn (e.g., should the character show "warmth" or "authority" right now).</div>
-      <div>• <code>ra_turn_advice</code>: Provides the final action brief to the Actor model, including reply strategy, emotional weight, and behavioral guidelines.</div>
-      <div>• <code>ra_facet_audit</code>: Audits the AI's performance from the previous turn, checking for character breaks or persona collapse, and corrects in the next turn.</div>
+      <div>• <code>ra_persona_importance</code>: 決定本回合應該展現角色的哪個「面向」。</div>
+      <div>• <code>ra_turn_advice</code>: 給予演員模型的最終行動建議。</div>
+      <div>• <code>ra_facet_audit</code>: 審核前一回合表現並要求修正。</div>
     </div>
   </div>
   <div style="background:rgba(255,152,0,0.18); padding:10px 12px; border-radius:8px;">
-    <b style="font-size:13px; color:var(--pse-text);"> Long-Term Memory & Archive Layer — Low-Frequency Updates</b>
+    <b style="font-size:13px; color:var(--pse-text);"> 長期記憶與歸檔層 — 低頻率更新</b>
     <div style="margin-top:6px; display:grid; gap:4px; font-size:12px; color:var(--pse-text);">
-      <div>• <code>ra_world_log</code>: Temporarily stores newly established world facts.</div>
-      <div>• <code>ra_world_encyclopedia</code>: The final world encyclopedia, storing organized geography, history, and character data. Supports vector chunk indexing to retrieve relevant sections semantically, rather than loading the entire entry at once.</div>
-      <div>• <code>ra_arc_memory</code>: Condenses dozens of past turns into a narrative arc, maintaining long-term story coherence.</div>
-      <div>• <code>ra_persistent_memory</code>: Stores core character traits that must never be altered.</div>
+      <div>• <code>ra_turning_point_log</code>: 重大劇情轉折點。</div>
+      <div>• <code>ra_world_log</code> / <code>ra_world_encyclopedia</code>: 建立世界觀與百科。</div>
+      <div>• <code>ra_arc_memory</code>: 壓縮多個過去回合的敘事弧線。</div>
+      <div>• <code>ra_persistent_memory</code>: 不可變的核心人格特徵。</div>
+      <div>• <code>ra_persona_evolution</code>: 緩慢的角色演進與飄移。</div>
     </div>
   </div>
   <div style="border-top: 1px dashed rgba(255,171,0,0.3); padding-top: 10px; display:grid; gap:10px;">
     <div style="background:rgba(255,171,0,0.18); padding:10px 12px; border-radius:8px;">
-      <b style="font-size:13px; color:var(--pse-text);"> Recycling & Cleanup Mechanism</b>
+      <b style="font-size:13px; color:var(--pse-text);"> 回收與清理機制</b>
       <div style="margin-top:6px; display:grid; gap:4px; font-size:12px; color:var(--pse-text);">
-        <div>• <b>Overwrite:</b> Keeps only the latest data each time, for state-type entries (e.g., <code>ra_scene_state</code>), ensuring the AI only sees the "current" environment.</div>
-        <div>• <b>Append:</b> New data is added after existing data to form a historical record, for log-type entries (e.g., <code>ra_turn_trace</code>).</div>
-        <div>• <b>Retention (Auto-Pruning):</b> For Append mode, set <b>After (threshold)</b> (pruning begins after accumulating N turns) and <b>Keep (amount)</b> (retain only the most recent N turns) to prevent database bloat.</div>
+        <div>• <b>Overwrite:</b> 僅保留最新資料（狀態類使用）。</div>
+        <div>• <b>Append:</b> 新資料接在舊資料後面（日誌類使用）。</div>
+        <div>• <b>Retention (自動修剪):</b> 設定 After 與 Keep 來防止資料庫過於龐大。</div>
       </div>
     </div>
     <div style="background:rgba(233,30,99,0.18); padding:10px 12px; border-radius:8px;">
-      <b style="font-size:13px; color:var(--pse-text);"> Customization Notes</b>
+      <b style="font-size:13px; color:var(--pse-text);"> 自訂設定須知</b>
       <div style="margin-top:6px; display:grid; gap:4px; font-size:12px; color:var(--pse-text);">
-        <div>• The system enforces a locked JSON structure by default to ensure stable output from smaller models. It is recommended to customize by modifying the default format.</div>
-        <div>• Lorebook entry names must match the first JSON tag to be written correctly into the system.</div>
-        <div>• The system automatically appends turn numbers to written entries; in Append mode, each output is a separate entry block.</div>
-        <div>• If "Always Active" is set to "No," the system will use vector search to retrieve associated entries.</div>
-        <div>• When customizing, plan a cleanup strategy to avoid unnecessary database bloat.</div>
+        <div>• 系統強制作業為 JSON 結構以確保小模型輸出穩定。</div>
+        <div>• 條目名稱必須與 JSON 的第一層標籤 (Tag) 完全相同。</div>
+        <div>• <b>若「始終啟用=否」，並將 JSON Scheme 設計成陣列輸出的話，系統會將每個獨立輸出視為獨立的條目，並轉換成向量。</b></div>
+        <div>• 建議在修改設定時一併規劃清理策略。</div>
       </div>
     </div>
     <div style="background:rgba(0,150,136,0.18); padding:10px 12px; border-radius:8px;">
-      <b style="font-size:13px; color:var(--pse-text);"> Bot Persona Extraction (Settings 3 & 4)</b>
+      <b style="font-size:13px; color:var(--pse-text);"> 人格特徵萃取 (設定 3 & 4)</b>
       <div style="margin-top:6px; display:grid; gap:4px; font-size:12px; color:var(--pse-text);">
-        <div>• Persona extraction results are stored in the Cache Hub. During conversations, relevant characters are retrieved via vector search and passed to the "Extraction + Director" settings.</div>
-        <div>• Persona extraction content does <b>not</b> appear in System Prompts, to avoid conflicts with existing bot data.</div>
+        <div>• 結果儲存於 Cache Hub，由向量搜尋讀取。<b>不會</b>出現在標準的「系統提示詞」中，避免佔用字數。</div>
       </div>
     </div>
   </div>
@@ -1503,9 +1504,9 @@
         {
           "lorebook_name": "ra_world_log",
           "write_mode": "append",
-          "always_active": false,
+          "always_active": true,
           "output_format": "CALL ROLE: Record new world facts and canon-locking turning points from this batch of turns.\nTEMPORAL NOTE: You are writing entries for THIS batch of turns.\n{\n  \"ra_world_log\": {\n    \"entries\": [\"<Name. Key fact. <=20 words.\"]\n  }\n}\nFIELD RULES:\n- One string per entry: name first, then the key fact. <=20 words total per entry.\n- Recording anything that helps LLM for future immersive narrating.\n- entries: [] if nothing new.",
-          "retention_enabled": false,
+          "retention_enabled": true,
           "retention_after": 15,
           "retention_keep": 0
         },
@@ -1514,7 +1515,7 @@
           "write_mode": "append",
           "always_active": false,
           "output_format": "TEMPORAL NOTE: You are writing entries for THIS batch of turns.\n{\n  \"ra_turning_point_log\": {\n    \"entries\": [\n      {\n        \"turning_point_detected\": \"<true|false>\",\n        \"event\": \"<concise event or line | null>\",\n        \"affected_characters\": [\"<CharName or role>\"],\n        \"what_must_still_remain_true\": [\"<canon fact that must not be denied later>\"],\n        \"carry_forward_details\": [\"<concrete reminder for future scenes>\"],\n        \"inventory_updates\": [\"<description of clothing changes or important obtained items>\"],\n        \"reentry_hook\": \"<how this should reactivate on return | null>\"\n      }\n    ]\n  }\n}\nFIELD RULES:\n- entries: [] if nothing needs preserving.\n- Record only changes future scenes must restore: promises, losses, reveals, stance shifts, named objects, burdens, address changes, or other canon-locking details.\n- Keep carry_forward_details to 2-4 short items per entry.\n- inventory_updates: Log item acquisitions and explicit clothing changes that future scenes must remember.",
-          "retention_enabled": false,
+          "retention_enabled": true,
           "retention_after": 40,
           "retention_keep": 6
         },
@@ -1763,9 +1764,9 @@
         {
           "lorebook_name": "ra_world_log",
           "write_mode": "append",
-          "always_active": false,
+          "always_active": true,
           "output_format": "CALL ROLE: Record new world facts and canon-locking turning points from this batch of turns.\nTEMPORAL NOTE: You are writing entries for THIS batch of turns.\n{\n  \"ra_world_log\": {\n    \"entries\": [\"<Name. Key fact. <=20 words.\"]\n  }\n}\nFIELD RULES:\n- One string per entry: name first, then the key fact. <=20 words total per entry.\n- Recording anything that helps LLM for future immersive narrating.\n- entries: [] if nothing new.",
-          "retention_enabled": false,
+          "retention_enabled": true,
           "retention_after": 15,
           "retention_keep": 0
         },
@@ -1774,7 +1775,7 @@
           "write_mode": "append",
           "always_active": false,
           "output_format": "TEMPORAL NOTE: You are writing entries for THIS batch of turns.\n{\n  \"ra_turning_point_log\": {\n    \"entries\": [\n      {\n        \"turning_point_detected\": \"<true|false>\",\n        \"event\": \"<concise event or line | null>\",\n        \"affected_characters\": [\"<CharName or role>\"],\n        \"what_must_still_remain_true\": [\"<canon fact that must not be denied later>\"],\n        \"carry_forward_details\": [\"<concrete reminder for future scenes>\"],\n        \"inventory_updates\": [\"<description of clothing changes or important obtained items>\"],\n        \"reentry_hook\": \"<how this should reactivate on return | null>\"\n      }\n    ]\n  }\n}\nFIELD RULES:\n- entries: [] if nothing needs preserving.\n- Record only changes future scenes must restore: promises, losses, reveals, stance shifts, named objects, burdens, address changes, or other canon-locking details.\n- Keep carry_forward_details to 2-4 short items per entry.\n- inventory_updates: Log item acquisitions and explicit clothing changes that future scenes must remember.\nOUTPUT: Combine all schemas into one JSON object: {\"ra_world_log\": {...}, \"ra_turning_point_log\": {...}}. Single line, no markdown fences, no explanation.",
-          "retention_enabled": false,
+          "retention_enabled": true,
           "retention_after": 40,
           "retention_keep": 6
         }
@@ -1978,9 +1979,9 @@
         {
           "lorebook_name": "ra_world_log",
           "write_mode": "append",
-          "always_active": false,
+          "always_active": true,
           "output_format": "CALL ROLE: Record new world facts and canon-locking turning points from this batch of turns.\nTEMPORAL NOTE: You are writing entries for THIS batch of turns.\n{\n  \"ra_world_log\": {\n    \"entries\": [\"<Name. Key fact. <=20 words.\"]\n  }\n}\nFIELD RULES:\n- One string per entry: name first, then the key fact. <=20 words total per entry.\n- Recording anything that helps LLM for future immersive narrating.\n- entries: [] if nothing new.",
-          "retention_enabled": false,
+          "retention_enabled": true,
           "retention_after": 15,
           "retention_keep": 0
         },
@@ -1989,7 +1990,7 @@
           "write_mode": "append",
           "always_active": false,
           "output_format": "TEMPORAL NOTE: You are writing entries for THIS batch of turns.\n{\n  \"ra_turning_point_log\": {\n    \"entries\": [\n      {\n        \"turning_point_detected\": \"<true|false>\",\n        \"event\": \"<concise event or line | null>\",\n        \"affected_characters\": [\"<CharName or role>\"],\n        \"what_must_still_remain_true\": [\"<canon fact that must not be denied later>\"],\n        \"carry_forward_details\": [\"<concrete reminder for future scenes>\"],\n        \"inventory_updates\": [\"<description of clothing changes or important obtained items>\"],\n        \"reentry_hook\": \"<how this should reactivate on return | null>\"\n      }\n    ]\n  }\n}\nFIELD RULES:\n- entries: [] if nothing needs preserving.\n- Record only changes future scenes must restore: promises, losses, reveals, stance shifts, named objects, burdens, address changes, or other canon-locking details.\n- Keep carry_forward_details to 2-4 short items per entry.\n- inventory_updates: Log item acquisitions and explicit clothing changes that future scenes must remember.",
-          "retention_enabled": false,
+          "retention_enabled": true,
           "retention_after": 40,
           "retention_keep": 6
         },
@@ -2296,9 +2297,9 @@
         {
           "lorebook_name": "ra_world_log",
           "write_mode": "append",
-          "always_active": false,
+          "always_active": true,
           "output_format": "CALL ROLE: Record new world facts and canon-locking turning points from this batch of turns.\nTEMPORAL NOTE: You are writing entries for THIS batch of turns.\n{\n  \"ra_world_log\": {\n    \"entries\": [\"<Name. Key fact. <=20 words.\"]\n  }\n}\nFIELD RULES:\n- One string per entry: name first, then the key fact. <=20 words total per entry.\n- Recording anything that helps LLM for future immersive narrating.\n- entries: [] if nothing new.",
-          "retention_enabled": false,
+          "retention_enabled": true,
           "retention_after": 15,
           "retention_keep": 0
         },
@@ -2307,7 +2308,7 @@
           "write_mode": "append",
           "always_active": false,
           "output_format": "TEMPORAL NOTE: You are writing entries for THIS batch of turns.\n{\n  \"ra_turning_point_log\": {\n    \"entries\": [\n      {\n        \"turning_point_detected\": \"<true|false>\",\n        \"event\": \"<concise event or line | null>\",\n        \"affected_characters\": [\"<CharName or role>\"],\n        \"what_must_still_remain_true\": [\"<canon fact that must not be denied later>\"],\n        \"carry_forward_details\": [\"<concrete reminder for future scenes>\"],\n        \"inventory_updates\": [\"<description of clothing changes or important obtained items>\"],\n        \"reentry_hook\": \"<how this should reactivate on return | null>\"\n      }\n    ]\n  }\n}\nFIELD RULES:\n- entries: [] if nothing needs preserving.\n- Record only changes future scenes must restore: promises, losses, reveals, stance shifts, named objects, burdens, address changes, or other canon-locking details.\n- Keep carry_forward_details to 2-4 short items per entry.\n- inventory_updates: Log item acquisitions and explicit clothing changes that future scenes must remember.\nOUTPUT: Combine all schemas into one JSON object: {\"ra_world_log\": {...}, \"ra_turning_point_log\": {...}}. Single line, no markdown fences, no explanation.",
-          "retention_enabled": false,
+          "retention_enabled": true,
           "retention_after": 40,
           "retention_keep": 6
         }
