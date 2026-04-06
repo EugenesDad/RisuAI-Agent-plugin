@@ -1,9 +1,9 @@
 //@name 👤 RisuAI Agent
-//@display-name 👤 RisuAI Agent v5.1.1
+//@display-name 👤 RisuAI Agent v5.1.2
 //@author penguineugene@protonmail.com
 //@link https://github.com/EugenesDad/RisuAI-Agent-plugin
 //@api 3.0
-//@version 5.1.1
+//@version 5.1.2
 
 (async () => {
   function _mapLangCode(raw) {
@@ -1290,7 +1290,7 @@
   let _T = _I18N.en;
   let _langInitialized = false;
   const PLUGIN_NAME = "👤 RisuAI Agent";
-  const PLUGIN_VER = "5.1.1";
+  const PLUGIN_VER = "5.1.2";
   const LOG = "[RisuAIAgent]";
   const SYSTEM_INJECT_TAG = "PLUGIN_PARALLEL_STATUS";
   const SYSTEM_REWRITE_TAG = "PLUGIN_PARALLEL_REWRITE";
@@ -5294,7 +5294,20 @@ OUTPUT (STRICT):
 
   /** 解析多 key 字串（空格 / 換行分隔），回傳不重複的 key 陣列 */
   function _parseKeys(raw) {
-    return (raw || "").split(/[\n\r\s]+/).map(k => k.trim()).filter(k => k.length > 0);
+    const str = (raw || "").trim();
+    if (!str) return [];
+    // If the entire value is a JSON object (e.g. Vertex AI Service Account JSON),
+    // treat it as a single key — do NOT split on whitespace/newlines inside the JSON.
+    if (str.startsWith("{")) {
+      try {
+        JSON.parse(str);
+        return [str]; // valid JSON object → single key
+      } catch (_) {
+        // not valid JSON; fall through to normal splitting
+      }
+    }
+    // Normal multi-key splitting: comma or whitespace separated
+    return str.split(/[,\n\r]+/).map(k => k.trim()).filter(k => k.length > 0);
   }
 
   /** 確保池與當前 raw 字串同步，若 raw 改變則重新解析 */
@@ -5517,12 +5530,24 @@ OUTPUT (STRICT):
   function parseVertexServiceAccount(rawKey) {
     const raw = safeTrim(rawKey || "");
     if (!raw) throw new Error("Vertex AI Service Account JSON is missing.");
+    // Detect Windows file path (e.g. C:\path\to\key.json)
+    if (/^[A-Za-z]:\\/.test(raw) || /^\/[^{]/.test(raw)) {
+      throw new Error(
+        "Vertex AI key must be the full Service Account JSON body, not a file path.",
+      );
+    }
     let parsed = null;
     try {
       parsed = JSON.parse(raw);
     } catch (err) {
+      const msg = err?.message || String(err);
+      if (/bad unicode escape/i.test(msg) || /backslash/i.test(msg)) {
+        throw new Error(
+          "Vertex AI JSON parse error: backslash escape issue — paste the JSON body as-is, without extra escaping.",
+        );
+      }
       throw new Error(
-        `Vertex AI key must be the full Service Account JSON, not a bearer token or file path: ${err?.message || String(err)}`,
+        `Vertex AI key must be the full Service Account JSON, not a bearer token or file path: ${msg}`,
       );
     }
     if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) {
@@ -5531,6 +5556,15 @@ OUTPUT (STRICT):
     if (!safeTrim(parsed.client_email) || !safeTrim(parsed.private_key)) {
       throw new Error(
         "Vertex AI Service Account JSON is missing client_email or private_key.",
+      );
+    }
+    // Validate PEM format of private_key
+    if (
+      !String(parsed.private_key).includes("-----BEGIN") ||
+      !String(parsed.private_key).includes("PRIVATE KEY-----")
+    ) {
+      throw new Error(
+        "Vertex AI private_key is not a valid PEM format. Make sure you copied the full Service Account JSON.",
       );
     }
     return parsed;
@@ -13111,7 +13145,7 @@ OUTPUT (STRICT):
     overlayRoot.id = "pse-overlay-root";
     overlayRoot.style.cssText =
       "position:fixed;inset:0;z-index:9999;overflow:auto;opacity:0;transition:opacity 0.15s ease;";
-    overlayRoot.innerHTML = ` <div class="pse-body"> <div class="pse-card"> <h1 class="pse-title">👤 RisuAI Agent v5.1.1</h1> <div id="pse-status" class="pse-status"></div> ${renderModelDatalists()}
+    overlayRoot.innerHTML = ` <div class="pse-body"> <div class="pse-card"> <h1 class="pse-title">👤 RisuAI Agent v5.1.2</h1> <div id="pse-status" class="pse-status"></div> ${renderModelDatalists()}
  <div class="pse-tabs"> ${`<button class="pse-tab active" data-page="7">${_T.tab_help}</button> <button class="pse-tab" data-page="8">${_T.tab_enable}</button> <button class="pse-tab" data-page="1">${_T.tab_model}</button>`}
  </div> <div class="pse-tabs pse-tabs-secondary"> ${`<button class="pse-tab" data-page="6">${_T.tab_cache_open || _T.sec_cache}</button> <button class="pse-tab" data-page="2">${_T.tab_entry}</button> <button class="pse-tab" data-page="5">${_T.tab_vector_open || _T.sec_vec}</button>`}
  </div> <div class="pse-page active" data-page="7"> <div style="margin-bottom:14px;padding:10px 14px;border-radius:8px;background:rgba(192,120,0,0.14);border:1.5px solid rgba(192,120,0,0.40);font-size:12px;font-weight:700;color:#3D2300;display:flex;align-items:center;gap:8px;"> ⚠️ ${escapeHtml(_T.lore_warn)}</div> <!-- Language (Standalone) --> <div style="margin-bottom:16px;"> <label class="pse-label" style="margin-bottom:6px; color:var(--pse-text);"> Language / 語言 / 언어</label> <div style="display:flex;gap:8px;"> ${["en", "tc", "ko"]
