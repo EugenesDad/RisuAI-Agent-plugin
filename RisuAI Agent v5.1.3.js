@@ -1,9 +1,9 @@
 //@name 👤 RisuAI Agent
-//@display-name 👤 RisuAI Agent v5.1.2
+//@display-name 👤 RisuAI Agent v5.1.3
 //@author penguineugene@protonmail.com
 //@link https://github.com/EugenesDad/RisuAI-Agent-plugin
 //@api 3.0
-//@version 5.1.2
+//@version 5.1.3
 
 (async () => {
   function _mapLangCode(raw) {
@@ -1290,7 +1290,7 @@
   let _T = _I18N.en;
   let _langInitialized = false;
   const PLUGIN_NAME = "👤 RisuAI Agent";
-  const PLUGIN_VER = "5.1.2";
+  const PLUGIN_VER = "5.1.3";
   const LOG = "[RisuAIAgent]";
   const SYSTEM_INJECT_TAG = "PLUGIN_PARALLEL_STATUS";
   const SYSTEM_REWRITE_TAG = "PLUGIN_PARALLEL_REWRITE";
@@ -3469,7 +3469,7 @@ OUTPUT (STRICT):
     return maxTurn >= 0 ? maxTurn : null;
   }
   function calcRecencyDecay(entryTurn, currentTurn) {
-    if (entryTurn === null || !Number.isFinite(entryTurn) || !Number.isFinite(currentTurn)) return 0.5;
+    if (entryTurn === null || !Number.isFinite(entryTurn) || !Number.isFinite(currentTurn)) return 0;
     return Math.exp(-Math.max(0, currentTurn - entryTurn) / RECENCY_DECAY_HALF_LIFE);
   }
   const embeddingVectorCache = new Map();
@@ -7525,7 +7525,7 @@ OUTPUT (STRICT):
       (m) => m.role === "user" || m.role === "assistant" || m.role === "char",
     );
     // 最新 1 輪對話（高權重×2）＋上一輪 State 萃取（第一個 call 的 lorebook 條目）
-    const latestTurnMsgs = allMsgs.slice(-2);
+    const latestTurnMsgs = limitConversationByRounds(allMsgs, 1);
     const latestTurnText = latestTurnMsgs.map((m) => String(m.content || "")).join("\n");
     const stateRounds = Math.max(1, queryRounds - 1);
     const { char: _lbChar, chat: _lbChat } = await getCurrentChatContextSafe();
@@ -7579,7 +7579,7 @@ OUTPUT (STRICT):
     for (const [name, data] of localMap.entries()) {
       const candidates = splitIntoParagraphChunks(data.content).map(
         (chunk, idx) => ({
-          name: `lorebook:${name}#${idx + 1}`,
+          name: `lorebook:${name}#${simpleHash(chunk)}`,
           content: chunk,
           cacheType: "lorebook",
           isDynamic: data.isDynamic,
@@ -7604,7 +7604,11 @@ OUTPUT (STRICT):
         for (let i = 0; i < inactivePool.length; i++) {
           const item = inactivePool[i];
           const key = `${item.cacheType || "unknown"}|${simpleHash(`${item.name}\n${item.content}`)}`;
-          const hit = !item.isDynamic ? cardBlock?.entries?.[key] : null;
+          let hit = !item.isDynamic ? cardBlock?.entries?.[key] : null;
+          if (item.isDynamic) {
+            const memCacheKey = `${embedCfg.provider}|${embedCfg.format}|${embedCfg.url}|${embedCfg.requestModel}|${simpleHash(`${item.name}\n${item.content}`)}`;
+            if (embeddingVectorCache.has(memCacheKey)) hit = { vector: embeddingVectorCache.get(memCacheKey) };
+          }
           const vec = Array.isArray(hit?.vector)
             ? hit.vector.map((x) => Number(x)).filter((x) => Number.isFinite(x))
             : [];
@@ -7744,7 +7748,7 @@ OUTPUT (STRICT):
       (m) => m.role === "user" || m.role === "assistant" || m.role === "char",
     );
     // 最新 1 輪對話（高權重×2）＋上一輪 State 萃取（第一個 call 的 lorebook 條目）
-    const latestTurnMsgs = allMsgs.slice(-2);
+    const latestTurnMsgs = limitConversationByRounds(allMsgs, 1);
     const latestTurnText = latestTurnMsgs.map((m) => String(m.content || "")).join("\n");
     const stateRounds = Math.max(1, queryRounds - 1);
     const { chat: _pcChat } = await getCurrentChatContextSafe();
@@ -8952,6 +8956,82 @@ OUTPUT (STRICT):
           }
         }
         await Risuai.setChatToIndex(charIdx, chatIndex, chat);
+
+        // --- [Chat Lore Vector] 對 ra_ 前綴且 alwaysActive=false 的條目補跑向量標頭 ---
+        // inject 側 (getLorebookContextByVector) 對 isDynamic 條目查 in-memory embeddingVectorCache，
+        // cache miss 才打 API。我們在寫入後立即 embed，把向量存進同一個 Map，
+        // inject 側即可直接命中，避免每次注入都重跑 API。
+        // key 格式與 inject 側完全一致：
+        //   `${provider}|${format}|${url}|${model}|${simpleHash(`lorebook:${name}#${chunkIdx+1}\n${chunk}`)}`
+        if (configCache.vector_search_enabled === 1) {
+          try {
+            const raInactiveWrites = writes.filter(
+              ({ loreName, alwaysActive }) =>
+                !alwaysActive,
+            );
+            if (raInactiveWrites.length > 0) {
+              const embedCfg = resolveEmbeddingRuntimeConfig();
+              if (safeTrim(embedCfg.url) && safeTrim(embedCfg.requestModel)) {
+                // stripLoreHeaders 與 inject 側邏輯一致（去掉 ## name 與 <!-- written_at_turn -->）
+                const stripLoreHeaders = (raw) => String(raw || "")
+                  .replace(/^## [^\n]*\n/m, "")
+                  .replace(/^<!-- written_at_turn: \d+ -->\n?/m, "")
+                  .trim();
+
+                // 從 chat.localLore 讀最新寫入的 content（已含標頭）
+                const embedItems = [];
+                for (const { loreName } of raInactiveWrites) {
+                  const entry = chat.localLore.find((l) => l && l.comment === loreName);
+                  if (!entry) continue;
+                  const strippedContent = stripLoreHeaders(entry.content);
+                  if (!strippedContent) continue;
+                  // 與 inject 側一致：splitIntoParagraphChunks
+                  const chunks = splitIntoParagraphChunks(strippedContent);
+                  chunks.forEach((chunk, idx) => {
+                    const itemName = `lorebook:${loreName}#${simpleHash(chunk)}`;
+                    const memCacheKey = `${embedCfg.provider}|${embedCfg.format}|${embedCfg.url}|${embedCfg.requestModel}|${simpleHash(`${itemName}\n${chunk}`)}`;
+                    // 只 embed 尚未在 in-memory cache 中的
+                    if (!embeddingVectorCache.has(memCacheKey)) {
+                      embedItems.push({ itemName, chunk, memCacheKey });
+                    }
+                  });
+                }
+                if (embedItems.length > 0) {
+                  const embedBatchSize = getEmbeddingBatchSize(embedCfg.requestModel);
+                  for (let i = 0; i < embedItems.length; i += embedBatchSize) {
+                    const batch = embedItems.slice(i, i + embedBatchSize);
+                    try {
+                      const vecs = await fetchEmbeddingVectorsRemote(
+                        batch.map(({ itemName, chunk }) => `${itemName}\n${chunk}`),
+                        embedCfg,
+                        false,
+                      );
+                      vecs.forEach((vec, idx) => {
+                        if (vec && vec.length) {
+                          embeddingVectorCache.set(batch[idx].memCacheKey, vec);
+                          if (embeddingVectorCache.size > 1000) {
+                            embeddingVectorCache.delete(embeddingVectorCache.keys().next().value);
+                          }
+                        }
+                      });
+                    } catch (embedErr) {
+                      await Risuai.log(
+                        `${LOG} [ChatLoreVec] Embedding batch failed (non-fatal): ${embedErr?.message || String(embedErr)}`,
+                      );
+                    }
+                  }
+                }
+              }
+            }
+          } catch (chatLoreVecErr) {
+            // 非致命：向量標頭失敗不影響 lore 寫入結果
+            await Risuai.log(
+              `${LOG} [ChatLoreVec] Post-write embedding failed (non-fatal): ${chatLoreVecErr?.message || String(chatLoreVecErr)}`,
+            );
+          }
+        }
+        // --- [Chat Lore Vector] end ---
+
         return true;
       } catch (err) {
         await Risuai.log(
@@ -10244,9 +10324,11 @@ OUTPUT (STRICT):
           for (let i = 0; i < vectorEligibleInactiveChunks.length; i++) {
             const chunk = vectorEligibleInactiveChunks[i];
             const cacheKey = `chunk|${simpleHash(chunk.content)}`;
-            const hit = !chunk.isDynamic
-              ? cardBlock?.entries?.[cacheKey]
-              : null;
+            let hit = !chunk.isDynamic ? cardBlock?.entries?.[cacheKey] : null;
+            if (chunk.isDynamic) {
+              const memCacheKey = `${cfg.provider}|${cfg.format}|${cfg.url}|${cfg.requestModel}|${simpleHash(chunk.content)}`;
+              if (embeddingVectorCache.has(memCacheKey)) hit = { vector: embeddingVectorCache.get(memCacheKey) };
+            }
             if (hit && Array.isArray(hit.vector) && hit.vector.length)
               vectors[i] = hit.vector;
             else {
@@ -10325,17 +10407,18 @@ OUTPUT (STRICT):
           staticScored.sort((a, b) => b.score - a.score);
           const dynamicScored = scored.filter((x) => x.chunk.isDynamic);
           dynamicScored.sort((a, b) => b.weightedScore - a.weightedScore);
-          const pickGroupChunks = (group) => {
+          const dynamicTopK = Math.max(1, topK * 2);
+          const pickGroupChunks = (group, limit = topK) => {
             // [關鍵] 門檻過濾 (minScore) 絕對只能比對真實的 .score！
             // 排序 (slice) 才看 .weightedScore
             const valid = group.filter((x) => x.score >= minScore);
             return (valid.length ? valid : group)
-              .slice(0, topK)
+              .slice(0, limit)
               .map((x) => x.chunk);
           };
           topInactiveChunks = [
-            ...pickGroupChunks(staticScored),
-            ...pickGroupChunks(dynamicScored),
+            ...pickGroupChunks(staticScored, topK),
+            ...pickGroupChunks(dynamicScored, dynamicTopK),
           ];
         } catch (e) {
           const embedDetail = _lastEmbedErrorMsg ? ` (${_lastEmbedErrorMsg})` : "";
@@ -13145,7 +13228,7 @@ OUTPUT (STRICT):
     overlayRoot.id = "pse-overlay-root";
     overlayRoot.style.cssText =
       "position:fixed;inset:0;z-index:9999;overflow:auto;opacity:0;transition:opacity 0.15s ease;";
-    overlayRoot.innerHTML = ` <div class="pse-body"> <div class="pse-card"> <h1 class="pse-title">👤 RisuAI Agent v5.1.2</h1> <div id="pse-status" class="pse-status"></div> ${renderModelDatalists()}
+    overlayRoot.innerHTML = ` <div class="pse-body"> <div class="pse-card"> <h1 class="pse-title">👤 RisuAI Agent v5.1.3</h1> <div id="pse-status" class="pse-status"></div> ${renderModelDatalists()}
  <div class="pse-tabs"> ${`<button class="pse-tab active" data-page="7">${_T.tab_help}</button> <button class="pse-tab" data-page="8">${_T.tab_enable}</button> <button class="pse-tab" data-page="1">${_T.tab_model}</button>`}
  </div> <div class="pse-tabs pse-tabs-secondary"> ${`<button class="pse-tab" data-page="6">${_T.tab_cache_open || _T.sec_cache}</button> <button class="pse-tab" data-page="2">${_T.tab_entry}</button> <button class="pse-tab" data-page="5">${_T.tab_vector_open || _T.sec_vec}</button>`}
  </div> <div class="pse-page active" data-page="7"> <div style="margin-bottom:14px;padding:10px 14px;border-radius:8px;background:rgba(192,120,0,0.14);border:1.5px solid rgba(192,120,0,0.40);font-size:12px;font-weight:700;color:#3D2300;display:flex;align-items:center;gap:8px;"> ⚠️ ${escapeHtml(_T.lore_warn)}</div> <!-- Language (Standalone) --> <div style="margin-bottom:16px;"> <label class="pse-label" style="margin-bottom:6px; color:var(--pse-text);"> Language / 語言 / 언어</label> <div style="display:flex;gap:8px;"> ${["en", "tc", "ko"]
@@ -16498,28 +16581,18 @@ OUTPUT (STRICT):
         }
         if (needsStep0) {
           try {
-            // [新增] 當偵測到靜態資料改變時，自動清空此角色的分類、向量與人格快取
+            // 當偵測到靜態資料改變時，清空分類快取與人格快取。
+            // 注意：chunk 向量快取不在此全清——runStep0Classification 內部的
+            // orphan cleanup 會刪除已消失的條目，missingChunks 過濾會跳過未改變的條目，
+            // 達到真正的差異更新效果，避免全量重跑 embedding。
             if (step0Reason === "changed") {
-              await Risuai.log(`${LOG} Detected character data changes. Clearing old caches...`);
+              await Risuai.log(`${LOG} Detected character data changes. Clearing classification and persona caches (chunk vectors will be diffed)...`);
 
-              // 1. 清空靜態分類快取
+              // 1. 清空靜態分類快取（需重新分類）
               try { await Risuai.pluginStorage.removeItem(staticKeys.staticKnowledgeChunks); } catch { }
 
-              // 2. 清空向量快取 (包含 chunk 與 persona)
+              // 2. 清空角色人格快取（persona 由 runPersonaExtraction 重建）
               const cardKey = await getActiveCardKey(char);
-              const store = await loadEmbeddingCacheStore();
-              if (store.cards?.[cardKey]?.entries) {
-                const entries = store.cards[cardKey].entries;
-                for (const [k, v] of Object.entries(entries)) {
-                  if (String(k).startsWith("chunk|") || v?.sourceType === "chunk" ||
-                    String(k).startsWith("persona|") || v?.sourceType === "persona") {
-                    delete entries[k];
-                  }
-                }
-                await saveEmbeddingCacheStore(store, { replaceCardKeys: [cardKey] });
-              }
-
-              // 3. 清空角色人格快取
               try { await Risuai.pluginStorage.removeItem(PCACHE_CARD_PREFIX + cardKey); } catch { }
             }
 
