@@ -1,9 +1,9 @@
 //@name 👤 RisuAI Agent
-//@display-name 👤 RisuAI Agent v5.1
+//@display-name 👤 RisuAI Agent v5.1.1
 //@author penguineugene@protonmail.com
 //@link https://github.com/EugenesDad/RisuAI-Agent-plugin
 //@api 3.0
-//@version 5.1
+//@version 5.1.1
 
 (async () => {
   function _mapLangCode(raw) {
@@ -285,10 +285,9 @@
       lbl_suggest_s2_aux:
         "Auxiliary Model: Models with analytical capabilities (Gemini 3 Flash)",
       lbl_suggest_s2_embed:
-        "嵌入模型：能跨語言向量搜尋 (gemini-embedding-2-preview)",
-      lbl_api_key_rotation: "API 金鑰輪替：可以在 API 金鑰欄位以逗號分隔輸入多組金鑰。當遇到「配額用盡/429」等錯誤時，系統會自動切換至下一組金鑰繼續嘗試。",
-      lbl_api_key_rotation: "API 키 로테이션: API 키 입력란에 쉼표로 구분하여 여러 개의 키를 입력할 수 있습니다. '할당량 초과/429' 오류 발생 시 시스템이 자동으로 다음 키로 전환합니다.",
-      lbl_api_key_rotation: "API Key Rotation: You can enter multiple keys in the API key field manually by separating them with commas. The system will automatically cycle through them upon receiving a 'Quota Exceeded/429' error.",
+        "Embedding Model: Multilingual vector search model (gemini-embedding-2-preview)",
+      lbl_api_key_rotation:
+        "💡 <b>API Key Rotation:</b> Click the <b>+</b> button to add extra API key fields. When the first key's quota runs out, the system automatically switches to the next one.",
       lbl_mode_reorg_vec: "Bot Reorg & Vector Search Mode:",
       lbl_cbs_manual:
         "CBS syntax parsing is currently unavailable; manual adjustments required.",
@@ -390,69 +389,70 @@
       extraction_guide_title: " Extraction & Instruction Guide",
       extraction_guide_content: `<div style="display:grid; gap:12px;">
   <div style="background:rgba(156,39,176,0.18); padding:10px 12px; border-radius:8px;">
-    <b style="font-size:13px; color:var(--pse-text);"> 核心狀態層 — 每回合更新</b>
+    <b style="font-size:13px; color:var(--pse-text);"> Core State Layer — Updated Every Turn</b>
     <div style="margin-top:6px; display:grid; gap:4px; font-size:12px; color:var(--pse-text);">
-      <div>• <code>ra_turn_trace</code>: 紀錄當前回合的實時動作、時間流逝與動態變化。</div>
-      <div>• <code>ra_scene_state</code>: 場景類型、位置以及 NPC 狀態。</div>
-      <div>• <code>ra_inventory</code>: 嚴格追蹤物品與服裝。</div>
+      <div>• <code>ra_turn_trace</code>: Records actions and dynamic changes from the current round.</div>
+      <div>• <code>ra_scene_state</code>: Defines scene info and real-time character states.</div>
+      <div>• <code>ra_inventory</code>: Strictly tracks held items and clothing.</div>
+      <div>• <code>ra_director</code>: Environmental interventions and narrative micro-adjustments.</div>
     </div>
   </div>
   <div style="background:rgba(63,81,181,0.18); padding:10px 12px; border-radius:8px;">
-    <b style="font-size:13px; color:var(--pse-text);"> 邏輯與劇情層</b>
+    <b style="font-size:13px; color:var(--pse-text);"> Logic & Plot Layer</b>
     <div style="margin-top:6px; display:grid; gap:4px; font-size:12px; color:var(--pse-text);">
-      <div>• <code>ra_logic_state</code>: 作為「裁判」，防止邏輯崩壞並下達強制指令。</div>
-      <div>• <code>ra_quest_log</code>: 追蹤短中長期任務目標。</div>
+      <div>• <code>ra_logic_state</code>: Enforces logic rules and strict directives.</div>
+      <div>• <code>ra_quest_log</code>: Tracks long-term and short-term mission goals.</div>
+      <div>• <code>ra_response_guard</code>: Responsible for output format and safety guard.</div>
     </div>
   </div>
   <div style="background:rgba(33,150,243,0.18); padding:10px 12px; border-radius:8px;">
-    <b style="font-size:13px; color:var(--pse-text);"> 策略與認知層</b>
+    <b style="font-size:13px; color:var(--pse-text);"> Strategy & Cognition Layer</b>
     <div style="margin-top:6px; display:grid; gap:4px; font-size:12px; color:var(--pse-text);">
-      <div>• <code>ra_knowledge_matrix</code>: 知識矩陣，紀錄誰知道什麼。</div>
-      <div>• <code>ra_strategy_layer</code>: 陣營動態與戰術壓力分析。</div>
-      <div>• <code>ra_mask_state</code>: 處理角色偽裝與真心話。</div>
-      <div>• <code>ra_pattern_guard</code>: 偵測重複對話並提供變更建議。</div>
+      <div>• <code>ra_knowledge_matrix</code>: Records information gaps and secrets between characters.</div>
+      <div>• <code>ra_strategy_layer</code> / <code>ra_strategy_analysis</code>: Analyzes faction relations, targets, and tactics.</div>
+      <div>• <code>ra_relation_web</code>: Tracks deep interpersonal relationships and dynamics.</div>
+      <div>• <code>ra_pattern_guard</code>: Detects repetition and provides variation tips.</div>
     </div>
   </div>
   <div style="background:rgba(0,150,136,0.18); padding:10px 12px; border-radius:8px;">
-    <b style="font-size:13px; color:var(--pse-text);"> 導演與人格導航層</b>
+    <b style="font-size:13px; color:var(--pse-text);"> Director & Persona Navigation Layer</b>
     <div style="margin-top:6px; display:grid; gap:4px; font-size:12px; color:var(--pse-text);">
-      <div>• <code>ra_persona_importance</code>: 決定本回合應該展現角色的哪個「面向」。</div>
-      <div>• <code>ra_turn_advice</code>: 給予演員模型的最終行動建議。</div>
-      <div>• <code>ra_facet_audit</code>: 審核前一回合表現並要求修正。</div>
+      <div>• <code>ra_persona_importance</code>: Determines which character facet should be presented currently.</div>
+      <div>• <code>ra_turn_advice</code>: Final writing policy given to the Actor model.</div>
+      <div>• <code>ra_facet_audit</code>: Audits previous round performance for correction.</div>
     </div>
   </div>
   <div style="background:rgba(255,152,0,0.18); padding:10px 12px; border-radius:8px;">
-    <b style="font-size:13px; color:var(--pse-text);"> 長期記憶與歸檔層 — 低頻率更新</b>
+    <b style="font-size:13px; color:var(--pse-text);"> Memory & Archiving Layer — Low Frequency</b>
     <div style="margin-top:6px; display:grid; gap:4px; font-size:12px; color:var(--pse-text);">
-      <div>• <code>ra_turning_point_log</code>: 重大劇情轉折點。</div>
-      <div>• <code>ra_world_log</code> / <code>ra_world_encyclopedia</code>: 建立世界觀與百科。</div>
-      <div>• <code>ra_arc_memory</code>: 壓縮多個過去回合的敘事弧線。</div>
-      <div>• <code>ra_persistent_memory</code>: 不可變的核心人格特徵。</div>
-      <div>• <code>ra_persona_evolution</code>: 緩慢的角色演進與飄移。</div>
+      <div>• <code>ra_turning_point_log</code>: Records major plot turning points.</div>
+      <div>• <code>ra_world_log</code> / <code>ra_world_encyclopedia</code>: Worldview and factual encyclopedia.</div>
+      <div>• <code>ra_arc_memory</code>: Condenses past narrative arcs.</div>
+      <div>• <code>ra_persistent_memory</code>: Immutable core persona settings.</div>
+      <div>• <code>ra_reentry_guard</code>: Protection for character exit and re-entry states.</div>
     </div>
   </div>
   <div style="border-top: 1px dashed rgba(255,171,0,0.3); padding-top: 10px; display:grid; gap:10px;">
     <div style="background:rgba(255,171,0,0.18); padding:10px 12px; border-radius:8px;">
-      <b style="font-size:13px; color:var(--pse-text);"> 回收與清理機制</b>
+      <b style="font-size:13px; color:var(--pse-text);"> Recycling & Cleaning Mechanism</b>
       <div style="margin-top:6px; display:grid; gap:4px; font-size:12px; color:var(--pse-text);">
-        <div>• <b>Overwrite:</b> 僅保留最新資料（狀態類使用）。</div>
-        <div>• <b>Append:</b> 新資料接在舊資料後面（日誌類使用）。</div>
-        <div>• <b>Retention (自動修剪):</b> 設定 After 與 Keep 來防止資料庫過於龐大。</div>
+        <div>• <b>Overwrite:</b> Keeps only the latest data (used for state entries).</div>
+        <div>• <b>Append:</b> Appends new data to old data (used for log entries).</div>
+        <div>• <b>Retention (Auto Pruning):</b> Configure After (threshold) and Keep (amount) to prevent DB bloat.</div>
       </div>
     </div>
     <div style="background:rgba(233,30,99,0.18); padding:10px 12px; border-radius:8px;">
-      <b style="font-size:13px; color:var(--pse-text);"> 自訂設定須知</b>
+      <b style="font-size:13px; color:var(--pse-text);"> Custom Settings Notes</b>
       <div style="margin-top:6px; display:grid; gap:4px; font-size:12px; color:var(--pse-text);">
-        <div>• 系統強制作業為 JSON 結構以確保小模型輸出穩定。</div>
-        <div>• 條目名稱必須與 JSON 的第一層標籤 (Tag) 完全相同。</div>
-        <div>• <b>若「始終啟用=否」，並將 JSON Scheme 設計成陣列輸出的話，系統會將每個獨立輸出視為獨立的條目，並轉換成向量。</b></div>
-        <div>• 建議在修改設定時一併規劃清理策略。</div>
+        <div>• System enforces JSON structure to ensure stability.</div>
+        <div>• Entry names must match the first JSON tag exactly.</div>
+        <div>• <b>If 'Always Enable: No', and JSON scheme is designed as an array output, the system will treat each independent output as an individual entry and convert it to a vector.</b></div>
       </div>
     </div>
     <div style="background:rgba(0,150,136,0.18); padding:10px 12px; border-radius:8px;">
-      <b style="font-size:13px; color:var(--pse-text);"> 人格特徵萃取 (設定 3 & 4)</b>
+      <b style="font-size:13px; color:var(--pse-text);"> Character Persona Extraction (Setting 3 & 4)</b>
       <div style="margin-top:6px; display:grid; gap:4px; font-size:12px; color:var(--pse-text);">
-        <div>• 結果儲存於 Cache Hub，由向量搜尋讀取。<b>不會</b>出現在標準的「系統提示詞」中，避免佔用字數。</div>
+        <div>• Results are saved in Cache Hub and read via Vector Search. Will <b>NOT</b> appear in standard System Prompts avoiding token waste.</div>
       </div>
     </div>
   </div>
@@ -708,6 +708,8 @@
         "보조 모델: 일정 수준의 분석 능력을 갖춘 모델 (Gemini 3 Flash)",
       lbl_suggest_s2_embed:
         "임베딩 모델: 다국어 벡터 검색 모델 (gemini-embedding-2-preview)",
+      lbl_api_key_rotation:
+        "💡 <b>API 키 로테이션:</b> <b>+</b> 버튼을 눌러 API 키 입력란을 추가하세요. 첫 번째 키의 할당량이 소진되면 시스템이 자동으로 다음 키로 전환합니다.",
       lbl_mode_reorg_vec: "봇 재구성 및 벡터 검색 모드:",
       lbl_cbs_manual:
         "현재 CBS 구문을 파싱할 수 없으므로 수동 조정이 필요합니다.",
@@ -809,69 +811,68 @@
   <div style="background:rgba(156,39,176,0.18); padding:10px 12px; border-radius:8px;">
     <b style="font-size:13px; color:var(--pse-text);"> 핵심 상태 레이어 — 매 턴 업데이트</b>
     <div style="margin-top:6px; display:grid; gap:4px; font-size:12px; color:var(--pse-text);">
-      <div>• <code>ra_turn_trace</code>: 현재 턴의 즉각적인 행동, 시간 경과, 동적 변화를 기록합니다. AI의 단기 기억 앵커입니다.</div>
-      <div>• <code>ra_scene_state</code>: 장면 유형, 위치, 그리고 장면 내 모든 NPC의 즉각적인 내외면 상태를 정의합니다.</div>
-      <div>• <code>ra_inventory</code>: 플레이어와 NPC가 소지한 아이템과 복장을 엄격히 추적하여, AI가 장비를 잊거나 아이템을 없는 데서 만들어내는 것을 방지합니다.</div>
+      <div>• <code>ra_turn_trace</code>: 현재 라운드의 동작 및 동적 변화 기록.</div>
+      <div>• <code>ra_scene_state</code>: 씬 정보 및 실시간 캐릭터 상태 정의.</div>
+      <div>• <code>ra_inventory</code>: 소지품 및 의상 엄격한 추적.</div>
+      <div>• <code>ra_director</code>: 환경 개입 및 서사 미세 조정.</div>
     </div>
   </div>
   <div style="background:rgba(63,81,181,0.18); padding:10px 12px; border-radius:8px;">
-    <b style="font-size:13px; color:var(--pse-text);"> 로직 & 플롯 레이어</b>
+    <b style="font-size:13px; color:var(--pse-text);"> 로직 및 플롯 레이어</b>
     <div style="margin-top:6px; display:grid; gap:4px; font-size:12px; color:var(--pse-text);">
-      <div>• <code>ra_logic_state</code>: "심판" 역할을 합니다. 플레이어의 행동이 기존 로직에 위배되는지 확인하고, 실행 모델에 강제 지시를 내립니다.</div>
-      <div>• <code>ra_quest_log</code>: 장단기 퀘스트 목표를 추적하여 스토리가 목적 없는 잡담으로 흘러가는 것을 방지합니다.</div>
-      <div>• <code>ra_turning_point_log</code>: 주요 플롯 전환점을 기록하고 장기 보존하여 서사의 일관성을 유지합니다.</div>
+      <div>• <code>ra_logic_state</code>: 논리 오류 방지 및 강제 지시 발현.</div>
+      <div>• <code>ra_quest_log</code>: 장단기 퀘스트 및 목표 추적.</div>
+      <div>• <code>ra_response_guard</code>: 출력 형식 및 안전 보호 담당.</div>
     </div>
   </div>
   <div style="background:rgba(33,150,243,0.18); padding:10px 12px; border-radius:8px;">
-    <b style="font-size:13px; color:var(--pse-text);"> 전략 & 인지 레이어 — 설정 2 & 4 강화</b>
+    <b style="font-size:13px; color:var(--pse-text);"> 전략 및 인지 레이어</b>
     <div style="margin-top:6px; display:grid; gap:4px; font-size:12px; color:var(--pse-text);">
-      <div>• <code>ra_knowledge_matrix</code>: 지식 매트릭스. 누가 무엇을 알고 모르는지 기록하며, 정보 비대칭과 음모를 다루는 핵심 도구입니다.</div>
-      <div>• <code>ra_strategy_layer</code>: 현재 세력 역학, NPC의 레버리지, 행동 목표를 분석합니다.</div>
-      <div>• <code>ra_mask_state</code> <span style="opacity:0.7;">(설정 4)</span>: 캐릭터의 "위장"을 처리하며, 겉으로 드러나는 행동과 내면의 진짜 의도 사이의 간극을 기록합니다.</div>
-      <div>• <code>ra_pattern_guard</code>: 대화가 반복적인 패턴에 빠지는 것을 감지하고, 반복 루프를 깨기 위한 "변주 제안"을 제공합니다.</div>
+      <div>• <code>ra_knowledge_matrix</code>: 캐릭터 간 정보 격차 및 비밀 기록.</div>
+      <div>• <code>ra_strategy_layer</code> / <code>ra_strategy_analysis</code>: 세력 관계, 목표 및 전술 분석.</div>
+      <div>• <code>ra_relation_web</code>: 심층 대인 관계 및 동태 추적.</div>
+      <div>• <code>ra_pattern_guard</code>: 중복 패턴 감지 및 변형 제안 제공.</div>
     </div>
   </div>
   <div style="background:rgba(0,150,136,0.18); padding:10px 12px; border-radius:8px;">
-    <b style="font-size:13px; color:var(--pse-text);"> 디렉터 & 페르소나 내비게이션 레이어 — 설정 3 & 4 전용</b>
+    <b style="font-size:13px; color:var(--pse-text);"> 디렉터 및 페르소나 네비게이션</b>
     <div style="margin-top:6px; display:grid; gap:4px; font-size:12px; color:var(--pse-text);">
-      <div>• <code>ra_persona_importance</code>: 이번 턴에 캐릭터의 어떤 "측면"을 표현해야 할지 결정합니다 (예: 지금 "따뜻함"을 보여야 할지 "위엄"을 보여야 할지).</div>
-      <div>• <code>ra_turn_advice</code>: Actor 모델에게 최종 행동 지침을 제공합니다. 응답 전략, 감정 비중, 행동 준칙을 포함합니다.</div>
-      <div>• <code>ra_facet_audit</code>: 이전 턴 AI의 퍼포먼스를 감사하여 캐릭터 이탈이나 페르소나 붕괴를 점검하고 다음 턴에서 수정합니다.</div>
+      <div>• <code>ra_persona_importance</code>: 현재 드러내야 할 페르소나의 측면 결정.</div>
+      <div>• <code>ra_turn_advice</code>: Actor 모델에 대한 최종 행동 지침 제공.</div>
+      <div>• <code>ra_facet_audit</code>: 이전 라운드 성과 검토 및 다음 라운드 수정 반영.</div>
     </div>
   </div>
   <div style="background:rgba(255,152,0,0.18); padding:10px 12px; border-radius:8px;">
-    <b style="font-size:13px; color:var(--pse-text);"> 장기 기억 & 아카이브 레이어 — 저빈도 업데이트</b>
+    <b style="font-size:13px; color:var(--pse-text);"> 장기 기억 및 아카이브 — 저빈도 업데이트</b>
     <div style="margin-top:6px; display:grid; gap:4px; font-size:12px; color:var(--pse-text);">
-      <div>• <code>ra_world_log</code>: 새로 등장한 세계관 사실들을 임시 저장합니다.</div>
-      <div>• <code>ra_world_encyclopedia</code>: 최종 세계 백과사전. 정리된 지리, 역사, 인물 정보를 저장합니다. 벡터 청크 인덱싱을 지원하여 전체를 한 번에 불러오는 대신 의미론적으로 관련 섹션만 정밀하게 불러옵니다.</div>
-      <div>• <code>ra_arc_memory</code>: 수십 턴에 걸친 과거 스토리를 하나의 서사 아크로 압축하여 장기 스토리 일관성을 유지합니다.</div>
-      <div>• <code>ra_persistent_memory</code>: 절대 변경해서는 안 되는 핵심 캐릭터 특성을 저장합니다.</div>
+      <div>• <code>ra_turning_point_log</code>: 주요 시나리오 분기점 기록.</div>
+      <div>• <code>ra_world_log</code> / <code>ra_world_encyclopedia</code>: 세계관 및 사실 백과사전.</div>
+      <div>• <code>ra_arc_memory</code>: 과거의 서사 진행 상황 요약.</div>
+      <div>• <code>ra_persistent_memory</code>: 불변의 핵심 페르소나 설정.</div>
+      <div>• <code>ra_reentry_guard</code>: 캐릭터 퇴장 및 재등장 시 상태 보호.</div>
     </div>
   </div>
   <div style="border-top: 1px dashed rgba(255,171,0,0.3); padding-top: 10px; display:grid; gap:10px;">
     <div style="background:rgba(255,171,0,0.18); padding:10px 12px; border-radius:8px;">
-      <b style="font-size:13px; color:var(--pse-text);"> 회수 & 정리 메커니즘</b>
+      <b style="font-size:13px; color:var(--pse-text);"> 회수 및 정리 메커니즘</b>
       <div style="margin-top:6px; display:grid; gap:4px; font-size:12px; color:var(--pse-text);">
-        <div>• <b>Overwrite（덮어쓰기）:</b> 매번 최신 데이터만 보존합니다. 상태 유형 항목 (예: <code>ra_scene_state</code>)에 적합하며, AI가 "현재" 환경만 볼 수 있게 합니다.</div>
-        <div>• <b>Append（추가）:</b> 새 데이터를 기존 데이터 뒤에 추가하여 기록을 형성합니다. 로그 유형 항목 (예: <code>ra_turn_trace</code>)에 적합합니다.</div>
-        <div>• <b>Retention（자동 정리）:</b> Append 모드의 경우, <b>After（트리거 임계값）</b> (N 턴 누적 후 정리 시작)와 <b>Keep（보존 수량）</b> (최근 N 턴만 유지)을 설정하여 데이터베이스 불필요한 팽창을 방지합니다.</div>
+        <div>• <b>Overwrite:</b> 이전 데이터를 덮어씀 (상태 항목용).</div>
+        <div>• <b>Append:</b> 이전 데이터 뒤에 추가함 (로그 항목용).</div>
+        <div>• <b>Retention (자동 트리밍):</b> After (임계값)와 Keep (유지량)을 설정하여 데이터베이스 팽창을 방지.</div>
       </div>
     </div>
     <div style="background:rgba(233,30,99,0.18); padding:10px 12px; border-radius:8px;">
       <b style="font-size:13px; color:var(--pse-text);"> 커스텀 설정 주의사항</b>
       <div style="margin-top:6px; display:grid; gap:4px; font-size:12px; color:var(--pse-text);">
-        <div>• 소형 모델의 안정적인 출력을 위해 시스템은 기본적으로 JSON 구조를 고정합니다. 기본 포맷을 수정하는 방식으로 커스텀하는 것을 권장합니다.</div>
-        <div>• 로어북 항목 이름은 JSON의 첫 번째 태그(Tag)와 일치해야 시스템에 올바르게 기록됩니다.</div>
-        <div>• 시스템이 기록 항목에 자동으로 턴 번호를 추가합니다. Append 모드에서는 각 출력이 독립적인 항목 블록이 됩니다.</div>
-        <div>• "항상 활성화"를 "아니오"로 설정하면, 연관 항목을 벡터 검색으로 불러옵니다.</div>
-        <div>• 커스텀 시 불필요한 데이터베이스 팽창을 막기 위한 정리 전략을 계획하는 것을 권장합니다.</div>
+        <div>• 안정적인 출력을 위해 JSON 구조가 고정되어 있습니다.</div>
+        <div>• 로어북 항목 이름은 JSON의 첫 번째 태그(Tag)와 일치해야 합니다.</div>
+        <div>• <b>'항상 활성화: 아니오'이고 JSON 스키마를 배열 출력으로 설계할 경우, 시스템은 각 독립적인 출력을 개별 항목으로 간주하고 벡터로 변환합니다.</b></div>
       </div>
     </div>
     <div style="background:rgba(0,150,136,0.18); padding:10px 12px; border-radius:8px;">
-      <b style="font-size:13px; color:var(--pse-text);"> 봇 페르소나 추출 (설정 3 & 4)</b>
+      <b style="font-size:13px; color:var(--pse-text);"> 캐릭터 페르소나 추출 (설정 3 & 4)</b>
       <div style="margin-top:6px; display:grid; gap:4px; font-size:12px; color:var(--pse-text);">
-        <div>• 페르소나 추출 결과는 캐시 저장소에 보관됩니다. 대화 중 벡터 검색으로 관련 캐릭터를 불러와 "추출 + 디렉터" 설정에 전달합니다.</div>
-        <div>• 페르소나 추출 내용은 기존 봇 데이터와의 충돌을 피하기 위해 System Prompts에 <b>표시되지 않습니다</b>.</div>
+        <div>• 결과는 캐시 저장소에 보관되며 벡터 검색으로 읽힙니다. 토큰 낭비를 방지하기 위해 표준 '시스템 프롬프트'에는 <b>표시되지 않습니다</b>.</div>
       </div>
     </div>
   </div>
@@ -1103,69 +1104,68 @@
   <div style="background:rgba(156,39,176,0.18); padding:10px 12px; border-radius:8px;">
     <b style="font-size:13px; color:var(--pse-text);"> 核心狀態層 — 每回合更新</b>
     <div style="margin-top:6px; display:grid; gap:4px; font-size:12px; color:var(--pse-text);">
-      <div>• <code>ra_turn_trace</code>：記錄當前回合的即時動作、時間流逝與動態變化。AI 的短期記憶錨點。</div>
-      <div>• <code>ra_scene_state</code>：定義場景類型、位置，以及場景內所有 NPC 的即時內外在狀態。</div>
-      <div>• <code>ra_inventory</code>：嚴格追蹤玩家與 NPC 攜帶的物品與穿著，防止 AI 忘記裝備或憑空變出物品。</div>
+      <div>• <code>ra_turn_trace</code>：記錄當前回合動作與動態變化。</div>
+      <div>• <code>ra_scene_state</code>：定義場景位置及角色的即時狀態。</div>
+      <div>• <code>ra_inventory</code>：嚴格追蹤物品與服裝。</div>
+      <div>• <code>ra_director</code>：環境干預與敘事微調。</div>
     </div>
   </div>
   <div style="background:rgba(63,81,181,0.18); padding:10px 12px; border-radius:8px;">
     <b style="font-size:13px; color:var(--pse-text);"> 邏輯與劇情層</b>
     <div style="margin-top:6px; display:grid; gap:4px; font-size:12px; color:var(--pse-text);">
-      <div>• <code>ra_logic_state</code>：擔任「裁判」。檢查玩家動作是否違反邏輯，並對執行模型發出強制指令。</div>
-      <div>• <code>ra_quest_log</code>：追蹤長期與短期任務目標，防止劇情陷入漫無目的的閒聊。</div>
-      <div>• <code>ra_turning_point_log</code>：記錄重大劇情轉折點，長期保留以維持敘事連貫。</div>
+      <div>• <code>ra_logic_state</code>：防範邏輯錯誤並發出強制指令。</div>
+      <div>• <code>ra_quest_log</code>：追蹤長短期任務與目標。</div>
+      <div>• <code>ra_response_guard</code>：負責輸出格式與安全防護。</div>
     </div>
   </div>
   <div style="background:rgba(33,150,243,0.18); padding:10px 12px; border-radius:8px;">
-    <b style="font-size:13px; color:var(--pse-text);"> 策略與認知層 — 設定 2 & 4 強化</b>
+    <b style="font-size:13px; color:var(--pse-text);"> 策略與認知層</b>
     <div style="margin-top:6px; display:grid; gap:4px; font-size:12px; color:var(--pse-text);">
-      <div>• <code>ra_knowledge_matrix</code>：知識矩陣。記錄誰知道什麼、誰不知道什麼，是處理「資訊差」與「陰謀詭計」的核心。</div>
-      <div>• <code>ra_strategy_layer</code>：分析當前勢力關係、NPC 的槓桿籌碼與行動目標。</div>
-      <div>• <code>ra_mask_state</code> <span style="opacity:0.7;">(設定 4)</span>：處理角色「偽裝」，記錄表面演出與內心真實意圖的落差。</div>
-      <div>• <code>ra_pattern_guard</code>：偵測對話是否陷入重複套路，並提供「變化建議」以打破復讀機效應。</div>
+      <div>• <code>ra_knowledge_matrix</code>：記錄角色間的資訊差與秘密。</div>
+      <div>• <code>ra_strategy_layer</code> / <code>ra_strategy_analysis</code>：分析陣營關係、目標與戰術。</div>
+      <div>• <code>ra_relation_web</code>：追蹤深層人際關係與動態。</div>
+      <div>• <code>ra_pattern_guard</code>：偵測重複套路並提供變化建議。</div>
     </div>
   </div>
   <div style="background:rgba(0,150,136,0.18); padding:10px 12px; border-radius:8px;">
-    <b style="font-size:13px; color:var(--pse-text);"> 導演與人格導航層 — 設定 3 & 4 獨有</b>
+    <b style="font-size:13px; color:var(--pse-text);"> 導演與人格導航層</b>
     <div style="margin-top:6px; display:grid; gap:4px; font-size:12px; color:var(--pse-text);">
-      <div>• <code>ra_persona_importance</code>：決定當前回合角色應展現哪個「側面」（如：此時應表現「慈愛」還是「威嚴」）。</div>
-      <div>• <code>ra_turn_advice</code>：給予 Actor 模型的最終行動方針，包含回覆策略、情緒權重與行為準則。</div>
-      <div>• <code>ra_facet_audit</code>：審計上一輪 AI 的表現，檢查是否出戲或人格崩壞，並在下一輪修正。</div>
+      <div>• <code>ra_persona_importance</code>：決定當前應展現的角色側面。</div>
+      <div>• <code>ra_turn_advice</code>：給予 Actor 模型的最終寫作方針。</div>
+      <div>• <code>ra_facet_audit</code>：審計上一輪表現並於下輪修正。</div>
     </div>
   </div>
   <div style="background:rgba(255,152,0,0.18); padding:10px 12px; border-radius:8px;">
     <b style="font-size:13px; color:var(--pse-text);"> 長期記憶與存檔層 — 低頻率更新</b>
     <div style="margin-top:6px; display:grid; gap:4px; font-size:12px; color:var(--pse-text);">
-      <div>• <code>ra_world_log</code>：暫存新出現的世界事實。</div>
-      <div>• <code>ra_world_encyclopedia</code>：最終的世界百科全書，存放經整理的地理、歷史與人物資料。支援向量分塊索引，依語意精準拉取相關段落，而非一次讀取整份資料。</div>
-      <div>• <code>ra_arc_memory</code>：將過去數十輪劇情濃縮為一段敘事弧線，維持長線劇情連貫性。</div>
-      <div>• <code>ra_persistent_memory</code>：存放角色絕對不可更動的核心特質。</div>
+      <div>• <code>ra_turning_point_log</code>：記錄重大劇情轉折。</div>
+      <div>• <code>ra_world_log</code> / <code>ra_world_encyclopedia</code>：世界觀與事實百科。</div>
+      <div>• <code>ra_arc_memory</code>：濃縮過去的敘事弧線。</div>
+      <div>• <code>ra_persistent_memory</code>：不可變的核心人格設定。</div>
+      <div>• <code>ra_reentry_guard</code>：角色退場與重返時的狀態防護。</div>
     </div>
   </div>
   <div style="border-top: 1px dashed rgba(255,171,0,0.3); padding-top: 10px; display:grid; gap:10px;">
     <div style="background:rgba(255,171,0,0.18); padding:10px 12px; border-radius:8px;">
       <b style="font-size:13px; color:var(--pse-text);"> 回收與清理機制</b>
       <div style="margin-top:6px; display:grid; gap:4px; font-size:12px; color:var(--pse-text);">
-        <div>• <b>Overwrite（覆蓋）：</b>每次只保留最新一份資料，適用於狀態類條目（如 <code>ra_scene_state</code>），確保 AI 只看到「當下」的環境。</div>
-        <div>• <b>Append（添加）：</b>新資料接在舊資料後面，形成歷史紀錄，適用於日誌類條目（如 <code>ra_turn_trace</code>）。</div>
-        <div>• <b>Retention（自動修剪）：</b>針對 Append 模式，可設定 <b>After（觸發門檻）</b>（累積超過 N 輪後開始修剪）與 <b>Keep（保留數量）</b>（僅保留最近 N 輪），防止資料庫無效膨脹。</div>
+        <div>• <b>Overwrite（覆蓋）：</b>僅保留最新資料（狀態類使用）。</div>
+        <div>• <b>Append（添加）：</b>新資料接在舊資料後（日誌類使用）。</div>
+        <div>• <b>Retention（自動修剪）：</b>設定觸發門檻 (After) 與保留數量 (Keep) 防止資料庫膨脹。</div>
       </div>
     </div>
     <div style="background:rgba(233,30,99,0.18); padding:10px 12px; border-radius:8px;">
       <b style="font-size:13px; color:var(--pse-text);"> 自訂設定須知</b>
       <div style="margin-top:6px; display:grid; gap:4px; font-size:12px; color:var(--pse-text);">
-        <div>• 系統預設強制鎖死 JSON 結構，以確保小型模型能穩定輸出。建議以修改預設格式的方式進行自訂。</div>
-        <div>• Lorebook 條目名稱必須與 JSON 的第一個標籤（Tag）相同，才能順利寫入系統。</div>
-        <div>• 系統會自動為寫入條目加上回合數；若模式為「添加」，每次產出為獨立條目。</div>
-        <div>• 若「始終啟用」選「否」，則會以向量搜尋抽出關聯條目。</div>
-        <div>• 自行修改時建議規劃清理策略，避免資料庫無效膨脹。</div>
+        <div>• 系統強制作業為 JSON 結構以確保穩定。</div>
+        <div>• 條目名稱必須與 JSON 的第一層標籤 (Tag) 完全相同。</div>
+        <div>• <b>若「始終啟用=否」，並將 JSON Scheme 設計成陣列輸出的話，系統會將每個獨立輸出視為獨立的條目，並轉換成向量。</b></div>
       </div>
     </div>
     <div style="background:rgba(0,150,136,0.18); padding:10px 12px; border-radius:8px;">
       <b style="font-size:13px; color:var(--pse-text);"> 角色人格萃取（設定 3 & 4）</b>
       <div style="margin-top:6px; display:grid; gap:4px; font-size:12px; color:var(--pse-text);">
-        <div>• 人格萃取的結果儲存於快取倉庫。對話時以向量搜尋抽出相關角色，交由「萃取 + 導演」設定使用。</div>
-        <div>• 人格萃取的內容<b>不會</b>出現於系統提示詞（System Prompts）中，以避免與原有角色資料衝突。</div>
+        <div>• 結果儲存於快取倉庫，由向量搜尋讀取。<b>不會</b>出現在標準的「系統提示詞」中以避免佔用字數。</div>
       </div>
     </div>
   </div>
@@ -1190,6 +1190,8 @@
       lbl_suggest_s2_aux: "輔助模型：具一定分析能力 (Gemini 3 Flash)",
       lbl_suggest_s2_embed:
         "嵌入模型：能跨語言向量搜尋 (gemini-embedding-2-preview)",
+      lbl_api_key_rotation:
+        "💡 <b>API 金鑰輪替：</b>點擊 <b>+</b> 按鈕可新增 API 金鑰欄位。當第一個金鑰的額度用完時，系統會自動切換至下一個繼續使用。",
       lbl_mode_reorg_vec: "卡片重組、向量搜尋模式：",
       lbl_cbs_manual: "目前無法解析 CBS 語法，所以需要進行相對應調整。",
       lbl_adjustment_method: "調整方式：",
@@ -1288,7 +1290,7 @@
   let _T = _I18N.en;
   let _langInitialized = false;
   const PLUGIN_NAME = "👤 RisuAI Agent";
-  const PLUGIN_VER = "5.1";
+  const PLUGIN_VER = "5.1.1";
   const LOG = "[RisuAIAgent]";
   const SYSTEM_INJECT_TAG = "PLUGIN_PARALLEL_STATUS";
   const SYSTEM_REWRITE_TAG = "PLUGIN_PARALLEL_REWRITE";
@@ -2816,7 +2818,9 @@ OUTPUT (STRICT):
   let embeddingCacheStore = null;
   let configCache = {};
   let _currentIsCardReorgEnabled = false;
+  let _currentIsCardReorgOnly = false;   // [Bug 1 Fix] true = "僅啟用卡片重組" mode
   let _currentIsNewPreset = false;
+  function isCardReorgOnlyMode() { return _currentIsCardReorgOnly; }
   // ── Progress Panel ─────────────────────────────────────────────────────────
   // A lightweight overlay that shows inside the plugin iframe (shown via
   // Risuai.showContainer) during replacer execution.
@@ -3834,6 +3838,7 @@ OUTPUT (STRICT):
   const REGEN_SKIP_KEY = "regen_skip";
   const LAST_SYNC_ERROR_KEY = "last_lore_sync_error";
   const LAST_EXTRACTOR_MODE_KEY = "last_extractor_mode";
+  const LAST_VEC_SETTING_KEY = "last_vec_setting";
   function getScopeCharId(char) {
     const rawId = String(char?.chaId || char?.id || char?._id || "").replace(
       /[^0-9a-zA-Z_-]/g,
@@ -3880,6 +3885,7 @@ OUTPUT (STRICT):
       regenSkip: `${makeScopedStorageKey(REGEN_SKIP_KEY, scopeId)}${suffix}`,
       lastSyncError: `${makeScopedStorageKey(LAST_SYNC_ERROR_KEY, scopeId)}${suffix}`,
       lastExtractorMode: `${makeScopedStorageKey(LAST_EXTRACTOR_MODE_KEY, scopeId)}${suffix}`,
+      lastVecSetting: `${makeScopedStorageKey(LAST_VEC_SETTING_KEY, scopeId)}${suffix}`,
     };
   }
   function getChatScopedKey(chat, chatIndex) {
@@ -4291,6 +4297,9 @@ OUTPUT (STRICT):
       } catch { }
       try {
         await Risuai.safeLocalStorage.removeItem(requestKeys.lastExtractorMode);
+      } catch { }
+      try {
+        await Risuai.safeLocalStorage.removeItem(requestKeys.lastVecSetting);
       } catch { }
       try {
         await Risuai.safeLocalStorage.removeItem(firstMessageHandledKey);
@@ -8971,6 +8980,70 @@ OUTPUT (STRICT):
       }
     });
   }
+  /**
+   * [Bug 2 Fix] 當使用者切換向量搜尋設定時，修正 chat.localLore 中現有條目的 alwaysActive。
+   *
+   * - forceAll=true  (card_reorg 模式)：所有由本插件寫入的條目 → alwaysActive=true
+   * - forceAll=false (向量搜尋模式)    ：依照對應 model call entry 的 always_active 設定還原
+   *
+   * 只修改由本插件寫入的條目（content 開頭為 "## "，符合本插件的寫入格式）。
+   * 修改後呼叫 setChatToIndex 儲存。
+   */
+  async function patchChatLoreAlwaysActiveForMode(chat, chatIndex, charIdx, calls, forceAll) {
+    if (!Array.isArray(chat?.localLore) || chat.localLore.length === 0) return;
+    // 建立 lorebook_name → always_active 的對照表（從所有 model calls 的 entries 收集）
+    const entryConfigMap = new Map();
+    for (const call of (calls || [])) {
+      for (const entry of (call.entries || [])) {
+        const lName = safeTrim(entry?.lorebook_name);
+        if (!lName) continue;
+        const cfgAlways =
+          entry?.always_active === true ||
+          entry?.always_active === 1 ||
+          entry?.always_active === "1" ||
+          String(entry?.always_active) === "true";
+        // 先到先得：若同一 lorebook_name 出現多次，以第一個為準
+        if (!entryConfigMap.has(lName)) entryConfigMap.set(lName, cfgAlways);
+      }
+    }
+    if (entryConfigMap.size === 0 && !forceAll) return;
+
+    let modified = false;
+    for (let i = 0; i < chat.localLore.length; i++) {
+      const entry = chat.localLore[i];
+      const lName = safeTrim(entry?.comment || "");
+      if (!lName) continue;
+      // 只處理本插件寫入的條目（格式：開頭有 "## <name>"）
+      const content = String(entry?.content || "");
+      if (!content.startsWith("## ")) continue;
+
+      let targetAlwaysActive;
+      if (forceAll) {
+        targetAlwaysActive = true;
+      } else {
+        // 若 entry config 中有對應設定，用設定值；否則不修改（非本插件管理的條目）
+        if (!entryConfigMap.has(lName)) continue;
+        targetAlwaysActive = entryConfigMap.get(lName);
+      }
+
+      if (entry.alwaysActive !== targetAlwaysActive) {
+        chat.localLore[i] = { ...entry, alwaysActive: targetAlwaysActive };
+        modified = true;
+      }
+    }
+
+    if (modified) {
+      try {
+        await Risuai.setChatToIndex(charIdx, chatIndex, chat);
+        await Risuai.log(
+          `${LOG} [VecModeSwitch] Patched chat.localLore alwaysActive → ${forceAll ? "all true (card_reorg)" : "per-entry config (vector search)"}.`
+        );
+      } catch (e) {
+        await Risuai.log(`${LOG} [VecModeSwitch] patchChatLoreAlwaysActiveForMode failed: ${e?.message || String(e)}`);
+      }
+    }
+  }
+
   async function writeOutputsForCall(
     modelCall,
     raw,
@@ -8999,6 +9072,9 @@ OUTPUT (STRICT):
         entry?.always_active === 1 ||
         entry?.always_active === "1" ||
         String(entry?.always_active) === "true";
+      // [Bug 1 Fix] 僅啟用卡片重組時，所有寫入條目強制 alwaysActive=true，
+      // 因為向量搜尋被禁用，always_active=false 的條目將無法被注入到 context。
+      const effectiveAlwaysActive = isCardReorgOnlyMode() ? true : alwaysActive;
       const outputFormat = safeTrim(entry?.output_format) || "raw";
       let content = formatLoreOutput(
         raw,
@@ -9019,7 +9095,7 @@ OUTPUT (STRICT):
         outputIssues.push(`${loreName}: no extractable content`);
         continue;
       }
-      pendingWrites.push({ loreName, writeMode, alwaysActive, content });
+      pendingWrites.push({ loreName, writeMode, alwaysActive: effectiveAlwaysActive, content });
     }
     if (requiresPersonaPair) {
       const writtenNames = new Set(pendingWrites.map((w) => w.loreName));
@@ -13035,7 +13111,7 @@ OUTPUT (STRICT):
     overlayRoot.id = "pse-overlay-root";
     overlayRoot.style.cssText =
       "position:fixed;inset:0;z-index:9999;overflow:auto;opacity:0;transition:opacity 0.15s ease;";
-    overlayRoot.innerHTML = ` <div class="pse-body"> <div class="pse-card"> <h1 class="pse-title">👤 RisuAI Agent v5.1</h1> <div id="pse-status" class="pse-status"></div> ${renderModelDatalists()}
+    overlayRoot.innerHTML = ` <div class="pse-body"> <div class="pse-card"> <h1 class="pse-title">👤 RisuAI Agent v5.1.1</h1> <div id="pse-status" class="pse-status"></div> ${renderModelDatalists()}
  <div class="pse-tabs"> ${`<button class="pse-tab active" data-page="7">${_T.tab_help}</button> <button class="pse-tab" data-page="8">${_T.tab_enable}</button> <button class="pse-tab" data-page="1">${_T.tab_model}</button>`}
  </div> <div class="pse-tabs pse-tabs-secondary"> ${`<button class="pse-tab" data-page="6">${_T.tab_cache_open || _T.sec_cache}</button> <button class="pse-tab" data-page="2">${_T.tab_entry}</button> <button class="pse-tab" data-page="5">${_T.tab_vector_open || _T.sec_vec}</button>`}
  </div> <div class="pse-page active" data-page="7"> <div style="margin-bottom:14px;padding:10px 14px;border-radius:8px;background:rgba(192,120,0,0.14);border:1.5px solid rgba(192,120,0,0.40);font-size:12px;font-weight:700;color:#3D2300;display:flex;align-items:center;gap:8px;"> ⚠️ ${escapeHtml(_T.lore_warn)}</div> <!-- Language (Standalone) --> <div style="margin-bottom:16px;"> <label class="pse-label" style="margin-bottom:6px; color:var(--pse-text);"> Language / 語言 / 언어</label> <div style="display:flex;gap:8px;"> ${["en", "tc", "ko"]
@@ -13053,6 +13129,7 @@ OUTPUT (STRICT):
  </div> <div id="pse-help-content-p1" class="pse-help-content pse-section indigo" style="display:none; color:var(--pse-text);padding:14px 16px;">${_T.help_p1_html}</div> <div id="pse-help-content-p2" class="pse-help-content pse-section green" style="display:none; color:var(--pse-text);padding:14px 16px;">${_T.help_p2_html || _T.help_p2_html_auto || _T.help_p1_html}</div> </div> <div class="pse-page" data-page="8"> <!-- Reset (No block) --> <button id="pse-reset-agent-defaults" class="pse-btn" type="button" style="padding:9px 12px;font-size:12px;white-space:nowrap;width:100%;margin-bottom:12px;background:var(--pse-accent-rose);">${_T.btn_reset}</button> <!-- Mode Info (Amber) --> <div class="pse-section amber" style="padding: 0; overflow: hidden;"> <details id="pse-mode-details" ${modeDetailsOpen ? "open" : ""} style="width: 100%;"> <summary style="padding: 10px 12px; cursor: pointer; font-weight: bold; list-style: none; display: flex; align-items: center; justify-content: space-between; user-select: none;"> <span>${_T.mode_guide_title}</span> <span style="font-size: 10px; opacity: 0.6;">${_T.mode_guide_click}</span> </summary> <div style="padding: 0 12px 12px 12px; font-size: 13px; line-height: 1.6; color: var(--pse-text);"> ${_T.mode_guide_content}
  </div> </details> </div> <!-- Classify & Mod Lorebook --> <div class="pse-section indigo"> <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:10px;padding-bottom:10px;border-bottom:1px dashed rgba(128,128,128,0.2);"> <label class="pse-label" style="margin:0;white-space:nowrap; color:var(--pse-text);">${_T.lbl_classify_model}</label> <select id="init_bootstrap_target_model" class="pse-input" style="flex:1;width:auto;min-width:0;"> <option value="A" ${safeTrim(configCache.init_bootstrap_target_model) === "B" ? "" : "selected"}>${_T.opt_main_model}</option> <option value="B" ${safeTrim(configCache.init_bootstrap_target_model) === "B" ? "selected" : ""}>${_T.opt_aux_model}</option> </select> </div> <label class="pse-label" for="read_mod_lorebook" style="display:flex;align-items:center;gap:8px;margin:0;cursor:pointer;white-space:nowrap; color:var(--pse-text);"> <input type="checkbox" id="read_mod_lorebook" ${Number(configCache.read_mod_lorebook) === 1 ? "checked" : ""} style="margin:0;flex-shrink:0;" /> <span>${_T.lbl_enable_mod_lorebook}</span> </label> </div> <!-- Card List (Blue) --> <div id="pse-card-enable-list" class="pse-entry-list" style="margin-top:8px;"> <div class="pse-assembly blue" style="color:var(--pse-muted);font-size:12px;">${_T.lbl_loading}</div> </div> </div> <div class="pse-page" data-page="1"> <!-- Recommendation (Amber) --> <div class="pse-section amber" style="padding: 0; overflow: hidden;"> <details id="pse-suggest-details" ${suggestDetailsOpen ? "open" : ""} style="width: 100%;"> <summary style="padding: 10px 12px; cursor: pointer; font-weight: bold; list-style: none; display: flex; align-items: center; justify-content: space-between; user-select: none;"> <span>${_T.sec_suggest}</span> <span style="font-size: 10px; opacity: 0.6;">${_T.mode_guide_click}</span> </summary> <div style="padding: 0 12px 12px 12px; font-size: 13px; line-height: 1.6; color: var(--pse-text);"> <div style="margin-bottom: 8px;"> <b style="color: var(--pse-text);">${_T.lbl_suggest_s1}</b><br/> • ${_T.lbl_suggest_s1_main}<br/> • ${_T.lbl_suggest_s1_aux}<br/> • ${_T.lbl_suggest_s1_embed}
  </div> <div> <b style="color: var(--pse-text);">${_T.lbl_suggest_s2}</b><br/> • ${_T.lbl_suggest_s2_main}<br/> • ${_T.lbl_suggest_s2_aux}<br/> • ${_T.lbl_suggest_s2_embed}
+ </div> <div style="margin-top:12px;padding:8px 12px;border-radius:8px;background:rgba(0,150,136,0.15);border:1px solid rgba(0,150,136,0.30);font-size:12px;line-height:1.7;color:var(--pse-text);"> ${_T.lbl_api_key_rotation}
  </div> </div> </details> </div> <!-- Main Model (Indigo) --> <div class="pse-section indigo pse-model-section-a"> <div class="pse-section-title">${_T.sec_a}</div> <label class="pse-label" style="color:var(--pse-text);">${_T.lbl_provider}</label> <select id="extractor_a_provider" class="pse-input">${renderProviderOptions(configCache.extractor_a_provider)}</select> <label class="pse-label" style="color:var(--pse-text);">${_T.lbl_format}</label> <select id="extractor_a_format" class="pse-input">${renderFormatOptions(configCache.extractor_a_format)}</select> <label class="pse-label" style="color:var(--pse-text);">${_T.lbl_url}</label> <input id="extractor_a_url" class="pse-input" value="${String(configCache.extractor_a_url || "").replace(/"/g, "&quot;")}" /> <label class="pse-label" style="color:var(--pse-text);">${_T.lbl_key}</label> <div style="display:flex;align-items:flex-start;gap:10px;"> <div style="display:flex;flex-direction:column;gap:4px;flex-shrink:0;align-items:center;padding-top:2px;"> <button id="pse-key-add-a" type="button" title="Add another API key (keys rotate automatically)" class="pse-key-add-btn" style="--btn-color:var(--pse-accent,#5865f2);">+</button> <span id="pse-key-count-a" style="font-size:10px;color:var(--pse-muted);white-space:nowrap;">${(() => { const n = _parseKeys(configCache.extractor_a_key || "").length; return n > 1 ? "🔄 " + n : ""; })()}</span> </div> <div style="flex:1;min-width:0;"> <textarea id="extractor_a_key" class="pse-input" rows="1" style="display:none;white-space:pre;" spellcheck="false">${escapeHtml(String(configCache.extractor_a_key || ""))}</textarea> <div id="pse-key-list-a"></div> </div> </div> <label class="pse-label" style="color:var(--pse-text);">${_T.lbl_model}</label> <input id="extractor_a_model" class="pse-input" autocomplete="off" value="${String(configCache.extractor_a_model || "").replace(/"/g, "&quot;")}" /> <div id="extractor_a_model_suggestions" class="pse-model-suggestions"></div> <label class="pse-label" style="color:var(--pse-text);">${_T.lbl_temp}</label> <input id="extractor_a_temperature" class="pse-input" type="number" min="0" max="2" step="0.1" value="${escapeHtml(String(Number(configCache.extractor_a_temperature) || 0))}" /> <label class="pse-label" style="color:var(--pse-text);">${_T.lbl_concur}</label> <select id="extractor_a_concurrency" class="pse-input"> <option value="1" ${Number(configCache.extractor_a_concurrency) === 1 ? "selected" : ""}>${_T.opt_concurrent}</option> <option value="0" ${Number(configCache.extractor_a_concurrency) === 0 ? "selected" : ""}>${_T.opt_sequential}</option> </select> <div style="display:flex;align-items:center;gap:8px;margin-top:8px;flex-wrap:wrap;"> <input type="checkbox" id="extractor_a_thinking_enabled" ${Number(configCache.extractor_a_thinking_enabled) === 1 ? "checked" : ""} title="${_T.thinking_title}" style="margin:0;flex-shrink:0;" /> <label for="extractor_a_thinking_enabled" class="pse-label" style="margin:0;cursor:pointer;white-space:nowrap;color:var(--pse-text);">${_T.lbl_thinking}</label> <select id="extractor_a_thinking_level" class="pse-input" style="flex:1;min-width:120px;" ${Number(configCache.extractor_a_thinking_enabled) !== 1 ? "disabled" : ""}> <option value="low" ${configCache.extractor_a_thinking_level === "low" ? "selected" : ""}>${_T.opt_thinking_low}</option> <option value="medium" ${!configCache.extractor_a_thinking_level || configCache.extractor_a_thinking_level === "medium" ? "selected" : ""}>${_T.opt_thinking_medium}</option> <option value="high" ${configCache.extractor_a_thinking_level === "high" ? "selected" : ""}>${_T.opt_thinking_high}</option> </select> </div> <div id="extractor_a_thinking_hint" style="font-size:11px;color:var(--pse-muted);margin-top:4px;display:${Number(configCache.extractor_a_thinking_enabled) === 1 ? "block" : "none"};"></div> </div> <!-- Aux Model (Blue) --> <div class="pse-section blue pse-model-section-b"> <div class="pse-section-title">${_T.sec_b}</div> <label class="pse-label" style="color:var(--pse-text);">${_T.lbl_provider}</label> <select id="extractor_b_provider" class="pse-input">${renderProviderOptions(configCache.extractor_b_provider)}</select> <label class="pse-label" style="color:var(--pse-text);">${_T.lbl_format}</label> <select id="extractor_b_format" class="pse-input">${renderFormatOptions(configCache.extractor_b_format)}</select> <label class="pse-label" style="color:var(--pse-text);">${_T.lbl_url}</label> <input id="extractor_b_url" class="pse-input" value="${String(configCache.extractor_b_url || "").replace(/"/g, "&quot;")}" /> <label class="pse-label" style="color:var(--pse-text);">${_T.lbl_key}</label> <div style="display:flex;align-items:flex-start;gap:10px;"> <div style="display:flex;flex-direction:column;gap:4px;flex-shrink:0;align-items:center;padding-top:2px;"> <button id="pse-key-add-b" type="button" title="Add another API key (keys rotate automatically)" class="pse-key-add-btn" style="--btn-color:var(--pse-accent,#5865f2);">+</button> <span id="pse-key-count-b" style="font-size:10px;color:var(--pse-muted);white-space:nowrap;">${(() => { const n = _parseKeys(configCache.extractor_b_key || "").length; return n > 1 ? "🔄 " + n : ""; })()}</span> </div> <div style="flex:1;min-width:0;"> <textarea id="extractor_b_key" class="pse-input" rows="1" style="display:none;white-space:pre;" spellcheck="false">${escapeHtml(String(configCache.extractor_b_key || ""))}</textarea> <div id="pse-key-list-b"></div> </div> </div> <label class="pse-label" style="color:var(--pse-text);">${_T.lbl_model}</label> <input id="extractor_b_model" class="pse-input" autocomplete="off" value="${String(configCache.extractor_b_model || "").replace(/"/g, "&quot;")}" /> <div id="extractor_b_model_suggestions" class="pse-model-suggestions"></div> <label class="pse-label" style="color:var(--pse-text);">${_T.lbl_temp}</label> <input id="extractor_b_temperature" class="pse-input" type="number" min="0" max="2" step="0.1" value="${escapeHtml(String(Number(configCache.extractor_b_temperature) || 0))}" /> <label class="pse-label" style="color:var(--pse-text);">${_T.lbl_concur}</label> <select id="extractor_b_concurrency" class="pse-input"> <option value="1" ${Number(configCache.extractor_b_concurrency) === 1 ? "selected" : ""}>${_T.opt_concurrent}</option> <option value="0" ${Number(configCache.extractor_b_concurrency) === 0 ? "selected" : ""}>${_T.opt_sequential}</option> </select> <div style="display:flex;align-items:center;gap:8px;margin-top:8px;flex-wrap:wrap;"> <input type="checkbox" id="extractor_b_thinking_enabled" ${Number(configCache.extractor_b_thinking_enabled) === 1 ? "checked" : ""} title="${_T.thinking_title}" style="margin:0;flex-shrink:0;" /> <label for="extractor_b_thinking_enabled" class="pse-label" style="margin:0;cursor:pointer;white-space:nowrap;color:var(--pse-text);">${_T.lbl_thinking}</label> <select id="extractor_b_thinking_level" class="pse-input" style="flex:1;min-width:120px;" ${Number(configCache.extractor_b_thinking_enabled) !== 1 ? "disabled" : ""}> <option value="low" ${configCache.extractor_b_thinking_level === "low" ? "selected" : ""}>${_T.opt_thinking_low}</option> <option value="medium" ${!configCache.extractor_b_thinking_level || configCache.extractor_b_thinking_level === "medium" ? "selected" : ""}>${_T.opt_thinking_medium}</option> <option value="high" ${configCache.extractor_b_thinking_level === "high" ? "selected" : ""}>${_T.opt_thinking_high}</option> </select> </div> <div id="extractor_b_thinking_hint" style="font-size:11px;color:var(--pse-muted);margin-top:4px;display:${Number(configCache.extractor_b_thinking_enabled) === 1 ? "block" : "none"};"></div> </div> <!-- Embed Model (Green) --> <div class="pse-section green pse-model-section-embed"> <div class="pse-section-title"> ${_T.sec_embed_title}
  <span style="font-size:12px; color:var(--pse-muted); font-weight:normal; display:block; margin-top:4px;">${_T.embed_warn}</span> </div> <div> <label class="pse-label" style="color:var(--pse-text);">${_T.lbl_provider}</label> <select id="embedding_provider" class="pse-input">${renderEmbeddingProviderOptions(configCache.embedding_provider)}</select> <label class="pse-label" style="color:var(--pse-text);">${_T.lbl_format}</label> <select id="embedding_format" class="pse-input">${renderFormatOptions(configCache.embedding_format)}</select> <label class="pse-label" style="color:var(--pse-text);">${_T.lbl_url}</label> <input id="embedding_url" class="pse-input" value="${String(configCache.embedding_url || "").replace(/"/g, "&quot;")}" /> <label class="pse-label" style="color:var(--pse-text);">${_T.lbl_key}</label> <div style="display:flex;align-items:flex-start;gap:10px;"> <div style="display:flex;flex-direction:column;gap:4px;flex-shrink:0;align-items:center;padding-top:2px;"> <button id="pse-key-add-embed" type="button" title="Add another API key (keys rotate automatically)" class="pse-key-add-btn" style="--btn-color:rgba(0,170,90,1);">+</button> <span id="pse-key-count-embed" style="font-size:10px;color:var(--pse-muted);white-space:nowrap;">${(() => { const n = _parseKeys(configCache.embedding_key || "").length; return n > 1 ? "🔄 " + n : ""; })()}</span> </div> <div style="flex:1;min-width:0;"> <textarea id="embedding_key" class="pse-input" rows="1" style="display:none;white-space:pre;" spellcheck="false">${escapeHtml(String(configCache.embedding_key || ""))}</textarea> <div id="pse-key-list-embed"></div> </div> </div> <div id="embedding_model_row"> <label class="pse-label" style="color:var(--pse-text);">${_T.lbl_model}</label> <input id="embedding_model" class="pse-input" autocomplete="off" value="${escapeHtml(String(configCache.embedding_model || ""))}" /> <div id="embedding_model_suggestions" class="pse-model-suggestions"></div> </div> <input id="embedding_request_model" type="hidden" value="${String(configCache.embedding_request_model || "").replace(/"/g, "&quot;")}" /> </div> </div> </div> <div class="pse-page" data-page="2"> <!-- Extraction Guide (Amber) --> <div class="pse-section amber" style="padding: 0; overflow: hidden; margin-bottom: 12px;"> <details id="pse-extraction-details" ${extractionDetailsOpen ? "open" : ""} style="width: 100%;"> <summary style="padding: 10px 12px; cursor: pointer; font-weight: bold; list-style: none; display: flex; align-items: center; justify-content: space-between; user-select: none;"> <span>${_T.extraction_guide_title}</span> <span style="font-size: 10px; opacity: 0.6;">${_T.mode_guide_click}</span> </summary> <div style="padding: 0 12px 12px 12px; font-size: 13px; line-height: 1.6; color: var(--pse-text);"> ${_T.extraction_guide_content}
  </div> </details> </div> <div class="pse-section indigo" style=""> <div class="pse-row" style="margin-bottom:10px;"> <button id="pse-preset-common" class="pse-preset-btn" type="button">${_T.tab_common}</button> <button id="pse-preset-1" class="pse-preset-btn ${toInt(configCache.active_preset, 1) === 1 ? "active" : ""}" type="button">${_T.tab_preset1_old || _T.preset1}</button> <button id="pse-preset-2" class="pse-preset-btn ${toInt(configCache.active_preset, 1) === 2 ? "active" : ""}" type="button">${_T.tab_preset2_old || _T.preset2}</button> </div> <div class="pse-row" style="margin-bottom:10px;"> <button id="pse-preset-character" class="pse-preset-btn pse-subtab" type="button">${_T.tab_char_extract}</button> <button id="pse-preset-3" class="pse-preset-btn pse-subtab" type="button">${_T.tab_preset1_new || _T.tab_preset3}</button> <button id="pse-preset-4" class="pse-preset-btn pse-subtab" type="button">${_T.tab_preset2_new || _T.tab_preset4}</button> </div> <div id="pse-lore-presets-container"> <div class="pse-json-tools"> <div class="pse-json-tools-actions"> <button class="pse-btn cache pse-json-export-btn" type="button" style="flex:1;padding:7px 12px;font-size:12px;">${_T.btn_json_export}</button> <button class="pse-btn close pse-json-import-btn" type="button" style="flex:1;padding:7px 12px;font-size:12px;">${_T.btn_json_import}</button> <input class="pse-json-import-input" type="file" accept="${_T.json_file_accept}" style="display:none;" /> </div> </div> <div id="model_call_list" class="pse-entry-list"></div> <button id="add_model_call" class="pse-add-entry" type="button">${_T.btn_add_call}</button> </div> <div id="pse-common-prompts-container" style="display:none; flex-direction:column; border-top: 2px solid rgba(72,69,199,0.30); padding-top: 12px; margin-top: 12px;"> <label class="pse-label">${_T.lbl_anchor}</label> <div class="pse-textarea-wrap"> <textarea id="advanced_model_anchor_prompt" class="pse-textarea">${escapeHtml(configCache.advanced_model_anchor_prompt || "")}</textarea> <button id="advanced_model_anchor_prompt_expand" class="pse-expand-btn" type="button" aria-label="${_T.aria_expand}"> <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 4H5a1 1 0 0 0-1 1v3"/><path d="M16 4h3a1 1 0 0 1 1 1v3"/><path d="M20 16v3a1 1 0 0 1-1 1h-3"/><path d="M4 16v3a1 1 0 0 0 1 1h3"/></svg> </button> </div> <label class="pse-label">${_T.lbl_prefill}</label> <div class="pse-textarea-wrap"> <textarea id="advanced_prefill_prompt" class="pse-textarea">${escapeHtml(configCache.advanced_prefill_prompt || "")}</textarea> <button id="advanced_prefill_prompt_expand" class="pse-expand-btn" type="button" aria-label="${_T.aria_expand}"> <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 4H5a1 1 0 0 0-1 1v3"/><path d="M16 4h3a1 1 0 0 1 1 1v3"/><path d="M20 16v3a1 1 0 0 1-1 1h-3"/><path d="M4 16v3a1 1 0 0 0 1 1h3"/></svg> </button> </div> <label class="pse-label">${_T.lbl_prereply}</label> <div class="pse-textarea-wrap"> <textarea id="advanced_prereply_prompt" class="pse-textarea">${escapeHtml(configCache.advanced_prereply_prompt || "")}</textarea> <button id="advanced_prereply_prompt_expand" class="pse-expand-btn" type="button" aria-label="${_T.aria_expand}"> <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 4H5a1 1 0 0 0-1 1v3"/><path d="M16 4h3a1 1 0 0 1 1 1v3"/><path d="M20 16v3a1 1 0 0 1-1 1h-3"/><path d="M4 16v3a1 1 0 0 0 1 1h3"/></svg> </button> </div> </div> <div id="pse-persona-container" style="display:none; flex-direction:column; border-top: 2px solid rgba(0,160,80,0.28); padding-top: 12px; margin-top: 12px;"> <div class="pse-json-tools"> <div class="pse-json-tools-actions"> <button class="pse-btn cache pse-json-export-btn" type="button" style="flex:1;padding:7px 12px;font-size:12px;">${_T.btn_json_export}</button> <button class="pse-btn close pse-json-import-btn" type="button" style="flex:1;padding:7px 12px;font-size:12px;">${_T.btn_json_import}</button> <input class="pse-json-import-input" type="file" accept="${_T.json_file_accept}" style="display:none;" /> </div> </div> <div id="persona_call_list" class="pse-entry-list"></div> <button id="add_persona_call" class="pse-add-entry" type="button">${_T.btn_add_call}</button> </div> </div> </div> <div class="pse-page" data-page="5"> <!-- Vector Guide (Amber) --> <div class="pse-section amber" style="padding: 0; overflow: hidden; margin-bottom: 12px;"> <details id="pse-vector-details" ${vectorDetailsOpen ? "open" : ""} style="width: 100%;"> <summary style="padding: 10px 12px; cursor: pointer; font-weight: bold; list-style: none; display: flex; align-items: center; justify-content: space-between; user-select: none;"> <span>${_T.vector_guide_title}</span> <span style="font-size: 10px; opacity: 0.6;">${_T.mode_guide_click}</span> </summary> <div style="padding: 0 12px 12px 12px; font-size: 13px; line-height: 1.6; color: var(--pse-text);"> ${_T.vector_guide_content}
@@ -16193,7 +16270,26 @@ OUTPUT (STRICT):
       const _vecPresetNum =
         cardVecSetting === "2" ? 2 : cardVecSetting === "1" ? 1 : 0;
       _currentIsCardReorgEnabled = _cardReorgEnabled;
+      _currentIsCardReorgOnly = _cardReorgOnly;   // [Bug 1 Fix]
       _currentIsNewPreset = _newPreset;
+      // --- [Bug 2 Fix] 偵測向量搜尋設定變更，並修正 chat.localLore 的 alwaysActive ---
+      try {
+        const storedVecSetting = await Risuai.safeLocalStorage.getItem(requestKeys.lastVecSetting) || null;
+        if (storedVecSetting !== null && storedVecSetting !== cardVecSetting) {
+          // 模式發生切換，需要修正現有 chat.localLore 條目
+          const { charIdx: _patchCharIdx } = await getCurrentChatContextSafe();
+          const _allCallsForPatch = cardMemoryPreset !== "off" ? getModelCallsByPreset(cardMemoryPreset) : [];
+          await patchChatLoreAlwaysActiveForMode(
+            chat, chatIndex, _patchCharIdx,
+            _allCallsForPatch,
+            _cardReorgOnly  // true = card_reorg → force all active; false = vector search → restore per-config
+          );
+        }
+        await Risuai.safeLocalStorage.setItem(requestKeys.lastVecSetting, cardVecSetting);
+      } catch (_patchErr) {
+        await Risuai.log(`${LOG} [VecModeSwitch] mode-change detection error: ${_patchErr?.message || String(_patchErr)}`);
+      }
+      // --- [Bug 2 Fix 結束] ---
       // --- [修正開始] 將向量設定提前載入 ---
       const vectorPresetNum = _vecPresetNum;
       const effectiveVecConfig =
@@ -17068,6 +17164,7 @@ OUTPUT (STRICT):
       } finally {
         Object.assign(configCache, vecBackup);
         _currentIsCardReorgEnabled = false;
+        _currentIsCardReorgOnly = false;   // [Bug 1 Fix]
         _currentIsNewPreset = false;
         // Always clean up the progress panel on any exit path (guard: only if still visible)
         try { if (ProgressPanel.visible) await ProgressPanel.hide(); } catch (_ppErr) { }
