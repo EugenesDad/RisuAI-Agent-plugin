@@ -1,9 +1,9 @@
 //@name 👤 RisuAI Agent
-//@display-name 👤 RisuAI Agent v5.1.3
+//@display-name 👤 RisuAI Agent v5.2
 //@author penguineugene@protonmail.com
 //@link https://github.com/EugenesDad/RisuAI-Agent-plugin
 //@api 3.0
-//@version 5.1.3
+//@version 5.2
 
 (async () => {
   function _mapLangCode(raw) {
@@ -167,9 +167,8 @@
       model_suggest_s1: `<b>Setting 1: Single Character or Light Adventure Bot</b><br/>• Main Model: Models suited for summarizing large datasets (Gemini 3 Flash)<br/>• Auxiliary Model: Non-coding models for 1k~5k context (Gemini 3.1 Flash Lite)<br/>• Embedding Model: Multilingual vector search model (gemini-embedding-2-preview)`,
       model_suggest_s2: `<b>Setting 1 or 2: Complex or Multi-Character Bots</b><br/>• Main Model: Models for deep analysis of large datasets (Gemini 3.1 Pro, Claude 4.6 Sonnet)<br/>• Auxiliary Model: High-performance models for 1k~10k context (Gemini 3 Flash)<br/>• Embedding Model: Multilingual vector search model (gemini-embedding-2-preview)`,
       mode_guide_title: " Mode Guide & Model Call Instructions",
-      mode_guide_content: `<div style="border-top: 1px solid rgba(255, 152, 0, 0.1); padding-top: 12px;"> <!--  Initial Setup (Violet) --> <div style=" background: rgba(156, 39, 176, 0.20); padding: 8px 12px; border-radius: 8px; margin-bottom: 16px;"> <b style="color:var(--pse-text); font-size: 14px;"> Initial Setup</b> <div style="margin-top: 6px; display: grid; gap: 4px; font-size: 12px; color: var(--pse-text);"> <div>• <b>Classification:</b> Captures the first paragraph of Character Description, Lorebook characters, and Replace Global Note, sending them in groups of 25 to the model for tag classification.</div> <div>• <b>Persona Extraction (When Director mode is enabled):</b> Next, entries tagged as characters are sent to the LLM in groups of 20 for persona extraction.</div> <div>• <b>Vector (When Director mode or Vector Search is enabled):</b> Finally, the vector model sends data in batches according to each provider's default settings to obtain vector tags.</div> </div> </div> <!--  Default Mode Choice (Indigo) --> <div style=" background: rgba(63, 81, 181, 0.20); padding: 8px 12px; border-radius: 8px; margin-bottom: 16px;"> <b style="color:var(--pse-text); font-size: 14px;"> Default Mode Choice</b> <div style="margin-top: 6px; display: grid; gap: 4px; margin-bottom: 8px; font-size: 12px; color: var(--pse-text);"> <div>• <b>Settings Difference:</b> "Setting 1" is for general bots; "Setting 2" is designed for complex plots.</div> <div>• <b>Extraction:</b> Condenses chat logs, replacing traditional long-turn dialogue and Supa/Hypa Memory.</div> <div>• <b>Director:</b> Guides the plot and character reactions, enhancing depth and continuity.</div> <div>• <b>Bot Reorg Only:</b> Reclassifies bot entries into the most effective positions in the prompt structure.</div> <div>• <b>Enable Vector Search:</b> Replaces keyword matching with semantic search to increase info density.</div> <div>• <b>No Embedding Model:</b> Setting 1/2(Extraction) + Bot Reorg Only</div> </div> </div> <!--  Model Call Frequency (Blue) --> <div style=" background: rgba(33, 150, 243, 0.22); padding: 8px 12px; border-radius: 8px; margin-bottom: 16px;"> <b style="color:var(--pse-text); font-size: 14px;"> Model Call Frequency</b> <div style="margin-top: 8px;"> <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 8px;"> <span style="background: var(--pse-accent-blue); color: white; padding: 1px 6px; border-radius: 4px; font-size: 11px; font-weight: bold;">New Chat</span> <span style="color: var(--pse-muted); font-size: 12px;">More complex setups take longer to initialize</span> </div> <div style="display: grid; gap: 4px; padding-left: 4px; margin-bottom: 12px; font-size: 12px; color: var(--pse-text);"> <div>• <b>Director:</b> Calls Main model for persona extraction</div> <div>• <b>Bot Reorg:</b> Calls Aux model for data classification</div> <div>• <b>Vector Search:</b> Calls Embedding model to build index</div> </div> <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 8px;"> <span style="background: var(--pse-accent-blue); color: white; padding: 1px 6px; border-radius: 4px; font-size: 11px; font-weight: bold;">During Chat</span> </div> <div style="display:grid; gap:8px; padding-left:4px;"> <div style="background:rgba(33, 150, 243, 0.20); border:1px solid rgba(33, 150, 243, 0.38); padding:8px; border-radius:6px;"> <div style="color:var(--pse-text); font-weight:bold; font-size:12px; margin-bottom:4px; border-bottom:1px solid rgba(33, 150, 243, 0.25);"> Extraction Mode</div> <div style="font-size:12px; color:var(--pse-text);"> • <b>Setting 1:</b> Main (1 call/10, 15 turns), Aux (2/turn + 1 call/3 turns)<br/> • <b>Setting 2:</b> Main (1 call/3, 10, 15 turns), Aux (3/turn + 1 call/2, 3 turns)
- </div> </div> <div style="background:rgba(33, 150, 243, 0.20); border:1px solid rgba(33, 150, 243, 0.38); padding:8px; border-radius:6px;"> <div style="color:var(--pse-text); font-weight:bold; font-size:12px; margin-bottom:4px; border-bottom:1px solid rgba(33, 150, 243, 0.25);"> Extraction + Director</div> <div style="font-size:12px; color:var(--pse-text);"> • <b>Setting 1:</b> Main (1 call/10, 15 turns), Aux (4/turn + 1 call/3 turns)<br/> • <b>Setting 2:</b> Main (1 call/4, 10, 15 turns), Aux (4/turn + 1 call/2, 3 turns)
- </div> </div> <div style="background:rgba(33, 150, 243, 0.20); border:1px solid rgba(33, 150, 243, 0.38); padding:8px; border-radius:6px;"> <div style="color:var(--pse-text); font-weight:bold; font-size:12px; margin-bottom:4px; border-bottom:1px solid rgba(33, 150, 243, 0.25);"> Director & Vector Search</div> <div style="font-size:12px; color:var(--pse-text);"> • <b>Freq:</b> Embedding model 1 call/turn.
+      mode_guide_content: `<div style="border-top: 1px solid rgba(255, 152, 0, 0.1); padding-top: 12px;"> <!--  Initial Setup (Violet) --> <div style=" background: rgba(156, 39, 176, 0.20); padding: 8px 12px; border-radius: 8px; margin-bottom: 16px;"> <b style="color:var(--pse-text); font-size: 14px;"> Initial Setup</b> <div style="margin-top: 6px; display: grid; gap: 4px; font-size: 12px; color: var(--pse-text);"> <div>• <b>Classification:</b> Captures the first paragraph of Character Description, Lorebook characters, and Replace Global Note, sending them in groups of 25 to the model for tag classification.</div> <div>• <b>Persona Extraction (When Director mode is enabled):</b> Next, entries tagged as characters are sent to the LLM in groups of 20 for persona extraction.</div> <div>• <b>Vector (When Director mode or Vector Search is enabled):</b> Finally, the vector model sends data in batches according to each provider's default settings to obtain vector tags.</div> </div> </div> <!--  Default Mode Choice (Indigo) --> <div style=" background: rgba(63, 81, 181, 0.20); padding: 8px 12px; border-radius: 8px; margin-bottom: 16px;"> <b style="color:var(--pse-text); font-size: 14px;"> Default Mode Choice</b> <div style="margin-top: 6px; display: grid; gap: 4px; margin-bottom: 8px; font-size: 12px; color: var(--pse-text);"> <div>• <b>Settings Difference:</b> "Setting 1" is for general bots; "Setting 2" is designed for complex plots.</div> <div>• <b>Extraction:</b> Condenses chat logs, replacing traditional long-turn dialogue and Supa/Hypa Memory.</div> <div>• <b>Director:</b> Guides the plot and character reactions, enhancing depth and continuity.</div> <div>• <b>Bot Reorg Only:</b> Reclassifies bot entries into the most effective positions in the prompt structure.</div> <div>• <b>Enable Vector Search:</b> Replaces keyword matching with semantic search to increase info density.</div> <div>• <b>No Embedding Model:</b> Setting 1/2(Extraction) + Bot Reorg Only</div> </div> </div> <!--  Model Call Frequency (Blue) --> <div style=" background: rgba(33, 150, 243, 0.22); padding: 8px 12px; border-radius: 8px; margin-bottom: 16px;"> <b style="color:var(--pse-text); font-size: 14px;"> Model Call Frequency</b> <div style="margin-top: 8px;"> <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 8px;"> <span style="background: var(--pse-accent-blue); color: white; padding: 1px 6px; border-radius: 4px; font-size: 11px; font-weight: bold;">New Chat</span> <span style="color: var(--pse-muted); font-size: 12px;">More complex setups take longer to initialize</span> </div> <div style="display: grid; gap: 4px; padding-left: 4px; margin-bottom: 12px; font-size: 12px; color: var(--pse-text);"> <div>• <b>Director:</b> Calls Main model for persona extraction</div> <div>• <b>Bot Reorg:</b> Calls Aux model for data classification</div> <div>• <b>Vector Search:</b> Calls Embedding model to build index</div> </div> <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 8px;"> <span style="background: var(--pse-accent-blue); color: white; padding: 1px 6px; border-radius: 4px; font-size: 11px; font-weight: bold;">During Chat</span> </div> <div style="font-size:12px; color:var(--pse-muted); padding-left:4px; margin-bottom:8px;">• The items below are common trigger points, but some entries are condition-based and may not fire on a fixed schedule.</div> <div style="display:grid; gap:8px; padding-left:4px;"> <div style="background:rgba(33, 150, 243, 0.20); border:1px solid rgba(33, 150, 243, 0.38); padding:8px; border-radius:6px;"> <div style="color:var(--pse-text); font-weight:bold; font-size:12px; margin-bottom:4px; border-bottom:1px solid rgba(33, 150, 243, 0.25);"> Extraction Mode</div> <div style="font-size:12px; color:var(--pse-text);"> • <b>Setting 1:</b> Main usually triggers around turns 10 and 15; Aux has 2 regular calls per turn, with extra calls around turn 3 when matching conditions are met.<br/> • <b>Setting 2:</b> Main usually triggers around turns 2, 10, and 15; Aux has 3 regular calls per turn, with extra calls around turns 2 and 3 when matching conditions are met.
+ </div> </div> <div style="background:rgba(33, 150, 243, 0.20); border:1px solid rgba(33, 150, 243, 0.38); padding:8px; border-radius:6px;"> <div style="color:var(--pse-text); font-weight:bold; font-size:12px; margin-bottom:4px; border-bottom:1px solid rgba(33, 150, 243, 0.25);"> Extraction + Director</div> <div style="font-size:12px; color:var(--pse-text);"> • <b>Setting 1:</b> Main usually triggers around turns 10 and 15; Aux has 4 regular calls per turn, with extra calls around turn 3 when matching conditions are met.<br/> • <b>Setting 2:</b> Main usually triggers around turns 2, 4, 10, and 15; Aux has 4 regular calls per turn, with extra calls around turns 2 and 3 when matching conditions are met.</div> </div> <div style="background:rgba(33, 150, 243, 0.20); border:1px solid rgba(33, 150, 243, 0.38); padding:8px; border-radius:6px;"> <div style="color:var(--pse-text); font-weight:bold; font-size:12px; margin-bottom:4px; border-bottom:1px solid rgba(33, 150, 243, 0.25);"> Director & Vector Search</div> <div style="font-size:12px; color:var(--pse-text);"> • <b>Typical behavior:</b> The embedding model is commonly called once per turn while vector search is active, but it can be skipped when no eligible entry or query is produced.
  </div> </div> </div> </div> </div> <!--  Continue Chat (Teal) --> <div style=" background: rgba(0, 150, 136, 0.18); padding: 8px 12px; border-radius: 8px; margin-bottom: 16px;"> <b style="color: var(--pse-accent-teal, #003028); font-size: 14px;"> Continue Chat</b> <div style="margin-top: 6px; display: grid; gap: 4px; font-size: 12px; color: var(--pse-text);"> <div>• Only use when you experience lag.</div> <div>• After clicking "Continue Chat", a list of chats for that character will appear. Click the record you want to continue.</div> <div>• You can then continue by using the record suffixed with "(continue)".</div> </div> </div> <!--  Custom Preset Users (Rose) --> <div style=" background: rgba(255, 23, 68, 0.20); padding: 8px 12px; border-radius: 8px; margin-bottom: 16px;"> <b style="color:var(--pse-muted); font-size: 14px;"> Custom Preset Users</b> <div style="margin-top: 6px; display: grid; gap: 4px; font-size: 12px; color: var(--pse-text);"> <div>• "Preset Setting 1" or "Preset Setting 2" will appear on the bot card. Click and follow the instructions.</div> </div> </div> </div>`,
       btn_reset_factory: "Reset All to Factory Defaults",
       editor_cancel: "Cancel",
@@ -177,8 +176,15 @@
       aria_close: "Close",
       lbl_lore_entry: "Lorebook Entry",
       lbl_cache_entry: "Cache Entry",
-      lbl_write_mode: "Write Mode (Overwrite/Append)",
+      lbl_write_mode: "Write Mode",
       lbl_always_active: "Always Active",
+      lbl_vec_trigger_toggle: "Vector Trigger",
+      lbl_vec_basis: "Vector Match Basis",
+      lbl_vec_basis_round: "Turn Compare (current vs previous)",
+      lbl_vec_basis_semantic: "Semantic Input",
+      lbl_vec_threshold: "Threshold (0~1)",
+      lbl_vec_fallback_turns: "Fallback Turns",
+      lbl_vec_semantic_input: "Semantic Input Text",
       yes: "Yes",
       no: "No",
       lbl_output_format: "Output Format (JSON Schema)",
@@ -257,6 +263,9 @@
       log_step0_failed: (err) => ` Knowledge base initialization failed: ${err}`,
       log_step0_fail_fallback: (err) => ` Knowledge base classification failed, continuing in fallback mode: ${err}`,
       err_vec_kb_failed: (err) => `[RisuAI Agent] Vector knowledge base build failed/timed out. Progress has been saved.\nError: ${err}\nPlease wait a moment, then click "Regenerate/Send" to continue from where it left off.`,
+      warn_recovery_call_failed: (callName, reason) => `[TurnRecovery] Call "${callName}" failed during recovery: ${reason}`,
+      warn_embed_settings_failed: (reason) => `Warning: persona vector index failed to update — embeddings not built.\nCause: ${reason}\nVector search may be degraded until Step 0 re-runs on the next send.`,
+      warn_persona_step0_partial: (reason) => `Warning: persona extraction failed during Step 0 (will retry on next send).\nCause: ${reason}`,
       copilot_refresh: "Copilot token refresh",
       help_tab_main: "Home",
       help_tab_p1: "Preset 1",
@@ -267,7 +276,8 @@
  </div> <div> <div style="font-weight: bold; color: #701B1A; margin-bottom: 4px;"> Caution</div> • Default preset prompts must be modified to use this plugin.<br> • Cannot connect directly to non-plugin chat history.<br> • Do not repeatedly toggle the plugin on/off mid-conversation.
  </div> </div> <div style="padding: 12px; border-radius: 8px; background: rgba(76, 175, 80, 0.22); margin-bottom: 12px;"> <div style="font-weight: bold; color: #153D18; margin-bottom: 8px;"> Data Storage</div> • Information extraction records are stored in <b>Lorebook > Chat</b> entries and can be reviewed or adjusted at any time.<br> • Index data for Card Classification, Vector Search, and Character Core is stored in the <b>Cache Hub</b>.
  </div> <div style="padding: 12px; border-radius: 8px; background: rgba(33, 150, 243, 0.22);"> <div style="font-weight: bold; color:var(--pse-text); margin-bottom: 8px;">⁉ Q&A</div> <div style="margin-bottom: 8px;"> <div style="font-weight: bold; color:var(--pse-text); margin-bottom: 4px;"> If <b style="color: var(--pse-accent-red); font-size: 13px;">ERROR 400: Call model not supported</b> appears</div> • This means you may be using Claude, DeepSeek, Mistral, or a model that doesn't support prefill format.<br/> • Go to Information Extraction > Common Prompts, and clear <b style="color: var(--pse-accent-red); font-size: 13px;">Assistant Prefill</b>.
- </div> <div> <div style="font-weight: bold; color:var(--pse-text); margin-bottom: 4px;"> What to do if responses are censored or empty</div> Since data is split into smaller chunks, NSFW density is higher, which increases the likelihood of censorship.<br/> • Strengthen the prefill prompt.<br/> • Switch to a model with less restrictive safety filtering.
+ </div> <div style="margin-bottom: 8px;"> <div style="font-weight: bold; color:var(--pse-text); margin-bottom: 4px;"> What to do if responses are censored or empty</div> Since data is split into smaller chunks, NSFW density is higher, which increases the likelihood of censorship.<br/> • Strengthen the prefill prompt.<br/> • Switch to a model with less restrictive safety filtering.
+ </div> <div> <div style="font-weight: bold; color:var(--pse-text); margin-bottom: 4px;"> If Step 0 keeps failing and the system shows an empty response or ERROR 524</div> This means your character data is being moderated.<br/> • Open <b>Cache Hub &gt; Persona</b> and use <b>Manual Append</b>.
  </div> </div>
 </div>`,
       lbl_loading: "Loading...",
@@ -297,7 +307,8 @@
       lbl_param_type: "Parameter types:",
       lbl_param_desc: "Move the entire entry to Author's Note.",
       lbl_director_vec: "Director & Vector Search:",
-      lbl_embed_per_turn: "Embedding model 1 call/turn",
+      lbl_embed_per_turn:
+        "Embedding model usually 1 call/turn, but may skip when no eligible entry is produced",
       lbl_new_chat: "New Chat",
       lbl_during_chat: "During Chat",
       lbl_init_time: "More complex setups take longer to initialize",
@@ -309,13 +320,13 @@
       lbl_extraction_mode: " Extraction Mode",
       lbl_extraction_director: " Extraction + Director",
       lbl_s1_freq_ext:
-        "Setting 1: Main (every 10-15 turns), Aux (2/turn + every 3 turns)",
+        "Setting 1: Main usually around turns 10 and 15; Aux has 2 regular calls per turn plus conditional extras around turn 3",
       lbl_s2_freq_ext:
-        "Setting 2: Main (every 3-15 turns), Aux (3/turn + every 2-3 turns)",
+        "Setting 2: Main usually around turns 2, 10, and 15; Aux has 3 regular calls per turn plus conditional extras around turns 2 and 3",
       lbl_s1_freq_dir:
-        "Setting 1: Main (every 10, 15 turns), Aux (4/turn + every 3 turns)",
+        "Setting 1: Main usually around turns 10 and 15; Aux has 4 regular calls per turn plus conditional extras around turn 3",
       lbl_s2_freq_dir:
-        "Setting 2: Main (every 4, 10, 15 turns), Aux (4/turn + every 2 & 3 turns)",
+        "Setting 2: Main usually around turns 2, 4, 10, and 15; Aux has 4 regular calls per turn plus conditional extras around turns 2 and 3",
       lbl_custom_preset_guide: " For Custom Preset Users",
       auto_inject_title: " Auto-Injection Enabled",
       auto_inject_desc: "Default settings detected. The system will <b>automatically</b> inject the System Prompts. No manual setup required!",
@@ -382,10 +393,11 @@
 7. Write output. Express only one dominant facet per character.</textarea> <button class="pse-btn pse-copy-sql-btn" type="button" style="width:100%;padding:6px;font-size:12px;background:var(--pse-accent-greyblue);"> Copy System Prompt</button> </div> </div>`,
       help_p2_html_auto: `<div style=" background: rgba(255, 23, 68, 0.20); padding: 12px; border-radius: 8px;"> <b style="color:var(--pse-muted); font-size: 14px;"> Preset Adjustment Guide</b> <div style="margin-top: 8px; font-size: 13px; line-height: 1.6; color: var(--pse-text);"> <div style="margin-bottom: 4px;">1. <b>Delete fields:</b> Character Description, Lorebook, Global Note, Supa/HypaMemory.</div> <div style="margin-bottom: 4px;">2. <b>Advanced Settings:</b> Enter Chat > Check "Advanced", then set <b>Range Start</b> to <b>-10</b>.</div> </div> <div style="margin-top:12px; padding: 12px; border-radius: 8px; background: rgba(0, 150, 136, 0.20);"> <b style="color: var(--pse-accent-teal); font-size: 14px;"> Auto-Injection Enabled</b> <div style="margin-top: 8px; font-size: 13px; line-height: 1.6; color: var(--pse-text);"> Default settings detected. The system will <b>automatically</b> inject the System Prompts. No manual setup required!
  </div> </div> </div>`,
+      extraction_vec_trigger_note: `<div style="margin-top:8px;padding:8px 10px;border-radius:8px;background:rgba(255,152,0,0.16);font-size:12px;color:var(--pse-text);">• <b>Call Vector Trigger:</b> In each entry, click <b>⚙</b> (left of <b>×</b>) to enable vector-trigger settings. You can set match basis, threshold, and fallback turns. In <b>Bot Reorg only</b>, entries run by the call schedule (<code>every_n_turns</code>).</div>`,
       cache_guide_title: " Cache Hub Guide",
-      cache_guide_content: `<div style="display:grid; gap:8px;"> <div>• Each card forms 1-2 storage areas.</div> <div>• <b>Delete Vector Data:</b> Manual operation when changing embedding models if the system doesn't auto-switch or errors occur.</div> <div>• <b>Classification:</b> Categorized records of the card's entry segments.</div> <div>• <b>Persona:</b> Character persona records for the card.</div> <div>• <b> Character Extraction Entries:</b> Confirm how many characters are recorded. This only records characters listed in the card or mod lorebooks; characters met during gameplay are not automatically added. If you need to add or rewrite failed entries, click "Add Unregistered Characters" to re-run the process.</div> </div>`,
+      cache_guide_content: `<div style="display:grid; gap:8px;"> <div>• Each card forms 1-2 storage areas.</div> <div>• <b>Delete Vector Data:</b> Manual operation when changing embedding models if the system doesn't auto-switch or errors occur.</div> <div>• <b>Classification:</b> Categorized records of the card's entry segments.</div> <div>• <b>Persona:</b> Character persona records for the card.</div> <div>• <b>Character Extraction Entries:</b> Confirm how many characters are recorded. This only records characters listed in the card or mod lorebooks; characters met during gameplay are not automatically added. If you need to add or rewrite failed entries, click "Add Unregistered Characters" to re-run the process.</div> <div>• <b>Manual Append:</b> If Step 0 keeps failing, or a character is censored and never registers correctly, open <b>Cache Hub &gt; Persona</b> and use <b>Manual Append</b> to add that character manually.</div> </div>`,
       vector_guide_title: " Vector Search Guide",
-      vector_guide_content: `<div style="display:grid; gap:8px;"> <div>• <b>Hybrid Similarity & Freshness:</b> Weight of entries decreases as turns pass.</div> <div>• <b>Process:</b> Each turn, recent and previous dialogue data is sent to the embedding model for vector tagging.</div> <div>• <b>Matching:</b> Tags are compared by the system.</div> <div>• <b>Lorebook TopK:</b> TopK entries are extracted and placed in the context.</div> <div>• <b>Extraction Feed (Lorebook > Chat):</b> TopK*2 entries are fed to the information extraction model.</div> <div>• <b>Extraction Feed (Cache Hub > Persona):</b> TopK*2 entries are fed to the information extraction model.</div> </div>`,
+      vector_guide_content: `<div style="display:grid; gap:8px;"> <div>• <b>Hybrid Similarity & Freshness:</b> Weight of entries decreases as turns pass.</div> <div>• <b>Process:</b> Each turn, the latest full turn is weighted heavily, then recent cache summaries are appended before sending the query to the embedding model.</div> <div>• <b>New Query Rule:</b> Query context is built from <b>always_active=true</b> entries plus recent lorebook entries whose names match key terms such as state, scene, inventory, memory, knowledge, relation, mask, advice, strategy, or world.</div> <div>• <b>Matching:</b> Tags are compared by the system.</div> <div>• <b>Lorebook TopK:</b> TopK entries are extracted and placed in the context.</div> <div>• <b>Extraction Feed (Lorebook > Chat):</b> TopK*2 entries are fed to the information extraction model.</div> <div>• <b>Extraction Feed (Cache Hub > Persona):</b> TopK*2 entries are fed to the information extraction model.</div> </div>`,
       extraction_guide_title: " Extraction & Instruction Guide",
       extraction_guide_content: `<div style="display:grid; gap:12px;">
   <div style="background:rgba(156,39,176,0.18); padding:10px 12px; border-radius:8px;">
@@ -453,6 +465,8 @@
       <b style="font-size:13px; color:var(--pse-text);"> Character Persona Extraction (Setting 3 & 4)</b>
       <div style="margin-top:6px; display:grid; gap:4px; font-size:12px; color:var(--pse-text);">
         <div>• Results are saved in Cache Hub and read via Vector Search. Will <b>NOT</b> appear in standard System Prompts avoiding token waste.</div>
+        <div>• Vector query context now prioritizes <code>always_active=true</code> entries, then supplements them with recent keyword-matched entries from the last N rounds.</div>
+        <div>• If Step 0 keeps failing or a character never registers due to moderation, open <b>Cache Hub &gt; Persona</b> and use <b>Manual Append</b>.</div>
       </div>
     </div>
   </div>
@@ -590,9 +604,8 @@
       model_suggest_s1: `<b>설정 1: 단일 캐릭터 또는 가벼운 모험용 봇</b><br/>• 메인 모델: 대량의 정보를 요약하기에 적합 (Gemini 3 Flash)<br/>• 보조 모델: 가벼운 처리에 적합 (Gemini 3.1 Flash Lite)<br/>• 임베딩 모델: 다국어 벡터 검색용 (gemini-embedding-2-preview)`,
       model_suggest_s2: `<b>설정 1 또는 2: 복잡하거나 다중 캐릭터형 봇</b><br/>• 메인 모델: 깊이 있는 분석에 적합 (Gemini 3.1 Pro, Claude 4.6 Sonnet)<br/>• 보조 모델: 중량급 처리에 적합 (Gemini 3 Flash)<br/>• 임베딩 모델: 다국어 벡터 검색용 (gemini-embedding-2-preview)`,
       mode_guide_title: " 모드 및 호출 빈도 안내",
-      mode_guide_content: `<div style="border-top: 1px solid rgba(255, 152, 0, 0.1); padding-top: 12px;"> <!--  초기 설정 (Violet) --> <div style=" background: rgba(156, 39, 176, 0.20); padding: 8px 12px; border-radius: 8px; margin-bottom: 16px;"> <b style="color:var(--pse-text); font-size: 14px;"> 초기 설정</b> <div style="margin-top: 6px; display: grid; gap: 4px; font-size: 12px; color: var(--pse-text);"> <div>• <b>분류:</b> 캐릭터 설명, 로어북 캐릭터, 글로벌 노트 대체 기능의 첫 번째 단락을 캡처하여 25개 단위로 모델에 전송하여 태그 분류를 수행합니다.</div> <div>• <b>캐릭터 페르소나 추출(디렉터 모드 활성화 시):</b> 다음으로, 캐릭터로 태그된 항목을 20개씩 묶어 LLM에 전송하여 페르소나 추출을 진행합니다.</div> <div>• <b>벡터(디렉터 모드 또는 벡터 검색 활성화 시):</b> 마지막으로, 벡터 모델은 각 제공업체의 기본 설정에 따라 데이터를 배치로 전송하여 벡터 태그를 획득합니다.</div> </div> </div> <!--  기본 모드 선택 (Indigo) --> <div style=" background: rgba(63, 81, 181, 0.20); padding: 8px 12px; border-radius: 8px; margin-bottom: 16px;"> <b style="color:var(--pse-text); font-size: 14px;"> 기본 모드 선택</b> <div style="margin-top: 6px; display: grid; gap: 4px; margin-bottom: 8px; font-size: 12px; color: var(--pse-text);"> <div>• <b>설정 차이:</b> 「설정 1」은 일반 봇용이며, 「설정 2」는 복잡한 시나리오용입니다.</div> <div>• <b>추출:</b> 대화 내용을 압축하여 기존의 긴 기록을 대체하고 토큰을 절약합니다.</div> <div>• <b>디렉터:</b> 시나리오의 흐름과 캐릭터 반응을 가이드하여 깊이 있는 경험을 제공합니다.</div> <div>• <b>봇 재구성만 사용:</b> 봇 데이터를 분석하여 프롬프트 내 가장 효율적인 위치로 재배치합니다.</div> <div>• <b>벡터 검색 활성화:</b> 키워드 매칭 대신 의미 기반 검색을 통해 관련 정보의 밀도를 높입니다.</div> <div>• <b>임베딩 모델 미사용:</b> 설정 1/2(추출) + 봇 재구성만 사용</div> </div> </div> <!--  모델 호출 빈도 (Blue) --> <div style=" background: rgba(33, 150, 243, 0.22); padding: 8px 12px; border-radius: 8px; margin-bottom: 16px;"> <b style="color:var(--pse-text); font-size: 14px;"> 모델 호출 빈도</b> <div style="margin-top: 8px;"> <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 8px;"> <span style="background: var(--pse-accent-blue); color: white; padding: 1px 6px; border-radius: 4px; font-size: 11px; font-weight: bold;">대화 시작</span> <span style="color: var(--pse-muted); font-size: 12px;">봇이 복잡할수록 초기화에 더 많은 시간이 소요됩니다.</span> </div> <div style="display: grid; gap: 4px; padding-left: 4px; margin-bottom: 12px; font-size: 12px; color: var(--pse-text);"> <div>• <b>디렉터:</b> 페르소나 추출을 위해 메인 모델 호출</div> <div>• <b>봇 재구성:</b> 데이터 분류를 위해 보조 모델 호출</div> <div>• <b>벡터 검색:</b> 인덱스 구축을 위해 임베딩 모델 호출</div> </div> <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 8px;"> <span style="background: var(--pse-accent-blue); color: white; padding: 1px 6px; border-radius: 4px; font-size: 11px; font-weight: bold;">대화 중</span> </div> <div style="display:grid; gap:8px; padding-left:4px;"> <div style="background:rgba(33, 150, 243, 0.20); border:1px solid rgba(33, 150, 243, 0.38); padding:8px; border-radius:6px;"> <div style="color:var(--pse-text); font-weight:bold; font-size:12px; margin-bottom:4px; border-bottom:1px solid rgba(33, 150, 243, 0.25);"> 추출 모드</div> <div style="font-size:12px; color:var(--pse-text);"> • <b>설정 1:</b> 메인 (10, 15 턴마다 1회), 보조 (턴당 2회 + 3턴마다 1회)<br/> • <b>설정 2:</b> 메인 (3, 10, 15 턴마다 1회), 보조 (턴당 3회 + 2, 3턴마다 1회)
- </div> </div> <div style="background:rgba(33, 150, 243, 0.20); border:1px solid rgba(33, 150, 243, 0.38); padding:8px; border-radius:6px;"> <div style="color:var(--pse-text); font-weight:bold; font-size:12px; margin-bottom:4px; border-bottom:1px solid rgba(33, 150, 243, 0.25);"> 추출 + 디렉터</div> <div style="font-size:12px; color:var(--pse-text);"> • <b>설정 1:</b> 메인 (10, 15 턴마다 1회), 보조 (턴당 4회 + 3턴마다 1회)<br/> • <b>설정 2:</b> 메인 (4, 10, 15 턴마다 1회), 보조 (턴당 4회 + 2, 3턴마다 1회)
- </div> </div> <div style="background:rgba(33, 150, 243, 0.20); border:1px solid rgba(33, 150, 243, 0.38); padding:8px; border-radius:6px;"> <div style="color:var(--pse-text); font-weight:bold; font-size:12px; margin-bottom:4px; border-bottom:1px solid rgba(33, 150, 243, 0.25);"> 디렉터 & 벡터 검색</div> <div style="font-size:12px; color:var(--pse-text);"> • <b>주기:</b> 임베딩 모델 턴당 1회 호출.
+      mode_guide_content: `<div style="border-top: 1px solid rgba(255, 152, 0, 0.1); padding-top: 12px;"> <!--  초기 설정 (Violet) --> <div style=" background: rgba(156, 39, 176, 0.20); padding: 8px 12px; border-radius: 8px; margin-bottom: 16px;"> <b style="color:var(--pse-text); font-size: 14px;"> 초기 설정</b> <div style="margin-top: 6px; display: grid; gap: 4px; font-size: 12px; color: var(--pse-text);"> <div>• <b>분류:</b> 캐릭터 설명, 로어북 캐릭터, 글로벌 노트 대체 기능의 첫 번째 단락을 캡처하여 25개 단위로 모델에 전송하여 태그 분류를 수행합니다.</div> <div>• <b>캐릭터 페르소나 추출(디렉터 모드 활성화 시):</b> 다음으로, 캐릭터로 태그된 항목을 20개씩 묶어 LLM에 전송하여 페르소나 추출을 진행합니다.</div> <div>• <b>벡터(디렉터 모드 또는 벡터 검색 활성화 시):</b> 마지막으로, 벡터 모델은 각 제공업체의 기본 설정에 따라 데이터를 배치로 전송하여 벡터 태그를 획득합니다.</div> </div> </div> <!--  기본 모드 선택 (Indigo) --> <div style=" background: rgba(63, 81, 181, 0.20); padding: 8px 12px; border-radius: 8px; margin-bottom: 16px;"> <b style="color:var(--pse-text); font-size: 14px;"> 기본 모드 선택</b> <div style="margin-top: 6px; display: grid; gap: 4px; margin-bottom: 8px; font-size: 12px; color: var(--pse-text);"> <div>• <b>설정 차이:</b> 「설정 1」은 일반 봇용이며, 「설정 2」는 복잡한 시나리오용입니다.</div> <div>• <b>추출:</b> 대화 내용을 압축하여 기존의 긴 기록을 대체하고 토큰을 절약합니다.</div> <div>• <b>디렉터:</b> 시나리오의 흐름과 캐릭터 반응을 가이드하여 깊이 있는 경험을 제공합니다.</div> <div>• <b>봇 재구성만 사용:</b> 봇 데이터를 분석하여 프롬프트 내 가장 효율적인 위치로 재배치합니다.</div> <div>• <b>벡터 검색 활성화:</b> 키워드 매칭 대신 의미 기반 검색을 통해 관련 정보의 밀도를 높입니다.</div> <div>• <b>임베딩 모델 미사용:</b> 설정 1/2(추출) + 봇 재구성만 사용</div> </div> </div> <!--  모델 호출 빈도 (Blue) --> <div style=" background: rgba(33, 150, 243, 0.22); padding: 8px 12px; border-radius: 8px; margin-bottom: 16px;"> <b style="color:var(--pse-text); font-size: 14px;"> 모델 호출 빈도</b> <div style="margin-top: 8px;"> <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 8px;"> <span style="background: var(--pse-accent-blue); color: white; padding: 1px 6px; border-radius: 4px; font-size: 11px; font-weight: bold;">대화 시작</span> <span style="color: var(--pse-muted); font-size: 12px;">봇이 복잡할수록 초기화에 더 많은 시간이 소요됩니다.</span> </div> <div style="display: grid; gap: 4px; padding-left: 4px; margin-bottom: 12px; font-size: 12px; color: var(--pse-text);"> <div>• <b>디렉터:</b> 페르소나 추출을 위해 메인 모델 호출</div> <div>• <b>봇 재구성:</b> 데이터 분류를 위해 보조 모델 호출</div> <div>• <b>벡터 검색:</b> 인덱스 구축을 위해 임베딩 모델 호출</div> </div> <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 8px;"> <span style="background: var(--pse-accent-blue); color: white; padding: 1px 6px; border-radius: 4px; font-size: 11px; font-weight: bold;">대화 중</span> </div> <div style="font-size:12px; color:var(--pse-muted); padding-left:4px; margin-bottom:8px;">• 아래 내용은 자주 발생하는 트리거 시점이며, 일부 항목은 조건 충족 시에만 실행되어 고정 주기로 호출되지 않을 수 있습니다.</div> <div style="display:grid; gap:8px; padding-left:4px;"> <div style="background:rgba(33, 150, 243, 0.20); border:1px solid rgba(33, 150, 243, 0.38); padding:8px; border-radius:6px;"> <div style="color:var(--pse-text); font-weight:bold; font-size:12px; margin-bottom:4px; border-bottom:1px solid rgba(33, 150, 243, 0.25);"> 추출 모드</div> <div style="font-size:12px; color:var(--pse-text);"> • <b>설정 1:</b> 메인은 보통 10, 15턴 전후에 호출되고, 보조는 턴당 기본 2회에 더해 조건이 맞으면 3턴 전후에서 추가 호출됩니다.<br/> • <b>설정 2:</b> 메인은 보통 2, 10, 15턴 전후에 호출되고, 보조는 턴당 기본 3회에 더해 조건이 맞으면 2, 3턴 전후에서 추가 호출됩니다.
+ </div> </div> <div style="background:rgba(33, 150, 243, 0.20); border:1px solid rgba(33, 150, 243, 0.38); padding:8px; border-radius:6px;"> <div style="color:var(--pse-text); font-weight:bold; font-size:12px; margin-bottom:4px; border-bottom:1px solid rgba(33, 150, 243, 0.25);"> 추출 + 디렉터</div> <div style="font-size:12px; color:var(--pse-text);"> • <b>설정 1:</b> 메인은 보통 10, 15턴 전후에 호출되고, 보조는 턴당 기본 4회에 더해 조건이 맞으면 3턴 전후에서 추가 호출됩니다.<br/> • <b>설정 2:</b> 메인은 보통 2, 4, 10, 15턴 전후에 호출되고, 보조는 턴당 기본 4회에 더해 조건이 맞으면 2, 3턴 전후에서 추가 호출됩니다.<br/></div> </div> <div style="background:rgba(33, 150, 243, 0.20); border:1px solid rgba(33, 150, 243, 0.38); padding:8px; border-radius:6px;"> <div style="color:var(--pse-text); font-weight:bold; font-size:12px; margin-bottom:4px; border-bottom:1px solid rgba(33, 150, 243, 0.25);"> 디렉터 & 벡터 검색</div> <div style="font-size:12px; color:var(--pse-text);"> • <b>일반적인 동작:</b> 벡터 검색이 활성화된 동안 임베딩 모델은 보통 턴당 1회 호출되지만, 유효한 항목이나 쿼리가 없으면 건너뛸 수 있습니다.
  </div> </div> </div> </div> </div> <!--  채팅 이어가기 (Teal) --> <div style=" background: rgba(0, 150, 136, 0.18); padding: 8px 12px; border-radius: 8px; margin-bottom: 16px;"> <b style="color: var(--pse-accent-teal, #003028); font-size: 14px;"> 채팅 이어가기</b> <div style="margin-top: 6px; display: grid; gap: 4px; font-size: 12px; color: var(--pse-text);"> <div>• 렉이 느껴질 때 이 기능을 사용하세요.</div> <div>• 「채팅 이어가기」를 클릭하면 해당 캐릭터의 채팅 목록이 나타납니다. 이어가고 싶은 기록을 선택하세요.</div> <div>• 이후 접미사 (continue)가 붙은 기록을 사용하여 대화를 이어갈 수 있습니다.</div> </div> </div> <!--  커스텀 프리셋 사용자 (Rose) --> <div style=" background: rgba(255, 23, 68, 0.20); padding: 8px 12px; border-radius: 8px; margin-bottom: 16px;"> <b style="color:var(--pse-muted); font-size: 14px;"> 커스텀 프리셋 사용자</b> <div style="margin-top: 6px; display: grid; gap: 4px; font-size: 12px; color: var(--pse-text);"> <div>• 봇 카드에 "기본 설정 1" 또는 "기본 설정 2"가 나타납니다. 클릭 후 안내에 따라 조작하세요.</div> </div> </div> </div>`,
       btn_reset_factory: "모든 설정을 기본값으로 초기화",
       editor_cancel: "취소",
@@ -600,8 +613,15 @@
       aria_close: "닫기",
       lbl_lore_entry: "로어북 항목",
       lbl_cache_entry: "캐시 항목",
-      lbl_write_mode: "쓰기 모드 (덮어쓰기/추가)",
+      lbl_write_mode: "쓰기 모드",
       lbl_always_active: "항상 활성화",
+      lbl_vec_trigger_toggle: "벡터 트리거",
+      lbl_vec_basis: "벡터 매칭 기준",
+      lbl_vec_basis_round: "턴 비교 (현재 vs 이전)",
+      lbl_vec_basis_semantic: "의미 입력",
+      lbl_vec_threshold: "임계값 (0~1)",
+      lbl_vec_fallback_turns: "보장 실행 턴",
+      lbl_vec_semantic_input: "의미 입력 텍스트",
       yes: "예",
       no: "아니요",
       lbl_output_format: "출력 형식 (JSON Schema)",
@@ -679,6 +699,9 @@
       log_step0_failed: (err) => ` 지식 베이스 초기화 실패: ${err}`,
       log_step0_fail_fallback: (err) => ` 지식 베이스 분류 실패, 폴백 모드로 계속 진행: ${err}`,
       err_vec_kb_failed: (err) => `[RisuAI Agent] 벡터 지식 베이스 구축 실패/타임아웃. 진행 상황이 저장되었습니다.\n오류: ${err}\n잠시 후 "재생성/전송"을 클릭하여 이어서 진행하십시오.`,
+      warn_recovery_call_failed: (callName, reason) => `[TurnRecovery] "${callName}" 호출이 복구 중 실패했습니다: ${reason}`,
+      warn_embed_settings_failed: (reason) => `경고: 페르소나 벡터 인덱스 업데이트 실패 — 임베딩이 구축되지 않았습니다.\n원인: ${reason}\n다음 전송 시 Step 0이 재실행될 때까지 벡터 검색이 저하될 수 있습니다.`,
+      warn_persona_step0_partial: (reason) => `경고: Step 0 중 페르소나 추출 실패 (다음 전송 시 재시도).\n원인: ${reason}`,
       copilot_refresh: "Copilot 토큰 갱신",
       help_tab_main: "홈",
       help_tab_p1: "프리셋 1",
@@ -689,7 +712,8 @@
  </div> <div> <div style="font-weight: bold; color: #701B1A; margin-bottom: 4px;"> 주의사항</div> • 이 플러그인을 사용하려면 기본 프리셋 프롬프트를 수정해야 합니다.<br> • 플러그인을 사용하지 않은 대화 기록과는 직접 연결할 수 없습니다.<br> • 대화 도중 플러그인을 반복해서 켜고 끄지 마십시오.
  </div> </div> <div style="padding: 12px; border-radius: 8px; background: rgba(76, 175, 80, 0.22); margin-bottom: 12px;"> <div style="font-weight: bold; color: #153D18; margin-bottom: 8px;"> 데이터 저장 안내</div> • 정보 추출 기록은 <b>로어북 > 채팅</b> 항목에 저장되며 언제든지 확인하거나 수정할 수 있습니다.<br> • 봇 분류, 벡터 검색 및 캐릭터 핵심의 인덱스 데이터는 <b>캐시 저장소</b>에 저장됩니다.
  </div> <div style="padding: 12px; border-radius: 8px; background: rgba(33, 150, 243, 0.22);"> <div style="font-weight: bold; color:var(--pse-text); margin-bottom: 8px;">⁉ Q&A</div> <div style="margin-bottom: 8px;"> <div style="font-weight: bold; color:var(--pse-text); margin-bottom: 4px;"> <b style="color: var(--pse-accent-red); font-size: 13px;">ERROR 400: 지원되지 않는 모델</b>이 발생하는 경우</div> • Claude, DeepSeek, Mistral 등 프리필(Prefill) 형식을 지원하지 않는 모델을 사용 중일 수 있습니다.<br/> • 정보 추출 > 공통 프롬프트에서 <b style="color: var(--pse-accent-red); font-size: 13px;">어시스턴트 프리필</b>을 비우십시오.
- </div> <div> <div style="font-weight: bold; color:var(--pse-text); margin-bottom: 4px;"> 검열로 인해 빈 응답이 나오거나 출력이 안 될 때</div> 데이터가 작은 단위로 나뉘어 있어 NSFW 농도가 높게 측정될 수 있으며, 이로 인해 검열 가능성이 높아집니다.<br/> • 프리필 프롬프트를 강화하십시오.<br/> • 검열이 적은 모델로 교체하십시오.
+ </div> <div style="margin-bottom: 8px;"> <div style="font-weight: bold; color:var(--pse-text); margin-bottom: 4px;"> 검열로 인해 빈 응답이 나오거나 출력이 안 될 때</div> 데이터가 작은 단위로 나뉘어 있어 NSFW 농도가 높게 측정될 수 있으며, 이로 인해 검열 가능성이 높아집니다.<br/> • 프리필 프롬프트를 강화하십시오.<br/> • 검열이 적은 모델로 교체하십시오.
+ </div> <div> <div style="font-weight: bold; color:var(--pse-text); margin-bottom: 4px;"> Step 0가 계속 실패하고 시스템에 빈 응답 또는 ERROR 524가 표시되면</div> 캐릭터 데이터가 검열되고 있다는 뜻입니다.<br/> • <b>캐시 저장소 &gt; 페르소나</b>로 들어가 <b>수동 추가</b>를 사용하십시오.
  </div> </div>
 </div>`,
       lbl_loading: "로딩 중...",
@@ -719,7 +743,8 @@
       lbl_param_type: "매개변수형:",
       lbl_param_desc: "전체 데이터를 작가의 노트(Author's Note)로 옮기세요.",
       lbl_director_vec: "디렉터 & 벡터 검색:",
-      lbl_embed_per_turn: "임베딩 모델 턴당 1회",
+      lbl_embed_per_turn:
+        "임베딩 모델은 보통 턴당 1회 호출되지만, 유효한 항목이 없으면 건너뛸 수 있습니다",
       lbl_new_chat: "대화 시작",
       lbl_during_chat: "대화 중",
       lbl_init_time: "설정이 복잡할수록 초기화에 더 많은 시간이 소요됩니다",
@@ -730,13 +755,14 @@
       lbl_cost_data: "소모량은 봇 데이터 양에 비례합니다",
       lbl_extraction_mode: " 추출 모드",
       lbl_extraction_director: " 추출 + 디렉터",
-      lbl_s1_freq_ext: "설정 1: 메인 (10-15 턴마다), 보조 (턴당 2회 + 3턴마다)",
+      lbl_s1_freq_ext:
+        "설정 1: 메인은 보통 10, 15턴 전후, 보조는 턴당 기본 2회 + 3턴 전후 조건부 추가 호출",
       lbl_s2_freq_ext:
-        "설정 2: 메인 (3-15 턴마다), 보조 (턴당 3회 + 2 & 3턴마다)",
+        "설정 2: 메인은 보통 2, 10, 15턴 전후, 보조는 턴당 기본 3회 + 2, 3턴 전후 조건부 추가 호출",
       lbl_s1_freq_dir:
-        "설정 1: 메인 (10, 15 턴마다), 보조 (턴당 4회 + 3턴마다)",
+        "설정 1: 메인은 보통 10, 15턴 전후, 보조는 턴당 기본 4회 + 3턴 전후 조건부 추가 호출",
       lbl_s2_freq_dir:
-        "설정 2: 메인 (4, 10, 15 턴마다), 보조 (턴당 4회 + 2 & 3턴마다)",
+        "설정 2: 메인은 보통 2, 4, 10, 15턴 전후, 보조는 턴당 기본 4회 + 2, 3턴 전후 조건부 추가 호출",
       auto_inject_title: " 자동 주입 활성화됨",
       auto_inject_desc: "기본 설정이 감지되었습니다. 발송 시 시스템이 지정된 System Prompts를 <b>자동으로</b> 주입합니다. 수동 설정은 필요하지 않습니다!",
       help_p1_html: `<div style=" background: rgba(255, 171, 0, 0.22); padding: 12px; border-radius: 8px;"> <b style="color:var(--pse-muted); font-size: 14px;"> 프리셋 조정 가이드</b> <div style="margin-top: 8px; font-size: 13px; line-height: 1.6; color: var(--pse-text);"> <div style="margin-bottom: 4px;">1. <b>삭제 항목:</b> 캐릭터 설명(Character Description), 로어북(Lorebook), 글로벌 노트(Global Note), Supa/HypaMemory.</div> <div style="margin-bottom: 4px;">2. <b>고급 설정:</b> 채팅 진입 > 「고급」 체크 후 「범위 시작」을 <b>-10</b>으로 설정.</div> <div>3. 아래의 시스템 프롬프트를 복사한 후, 봇 > 프롬프트 페이지로 이동하여 <b>최상단 시스템 프롬프트</b>를 열고 프롬프트를 <b>가장 마지막에</b> 삽입하십시오.</div> </div> <div style="margin-top:12px;"> <textarea class="pse-code-window" readonly># UPSTREAM MEMORY USAGE GUIDE
@@ -802,10 +828,11 @@
  </div> </div> </div>`,
       help_p2_html_auto: `<div style=" background: rgba(255, 23, 68, 0.20); padding: 12px; border-radius: 8px;"> <b style="color:var(--pse-muted); font-size: 14px;"> 프리셋 조정 가이드</b> <div style="margin-top: 8px; font-size: 13px; line-height: 1.6; color: var(--pse-text);"> <div style="margin-bottom: 4px;">1. <b>삭제 항목:</b> 캐릭터 설명(Character Description), 로어북(Lorebook), 글로벌 노트(Global Note), Supa/HypaMemory.</div> <div style="margin-bottom: 4px;">2. <b>고급 설정:</b> 채팅 진입 > 「고급」 체크 후 「범위 시작」을 <b>-10</b>으로 설정.</div> </div> <div style="margin-top:12px; padding: 12px; border-radius: 8px; background: rgba(0, 150, 136, 0.20);"> <b style="color: var(--pse-accent-teal); font-size: 14px;"> 자동 주입 활성화됨</b> <div style="margin-top: 8px; font-size: 13px; line-height: 1.6; color: var(--pse-text);"> 기본 설정이 감지되었습니다. 발송 시 시스템이 지정된 System Prompts를 <b>자동으로</b> 주입합니다. 수동 설정은 필요하지 않습니다!
  </div> </div> </div>`,
+      extraction_vec_trigger_note: `<div style="margin-top:8px;padding:8px 10px;border-radius:8px;background:rgba(255,152,0,0.16);font-size:12px;color:var(--pse-text);">• <b>Call 벡터 트리거:</b> 각 항목에서 <b>×</b> 왼쪽의 <b>⚙</b>를 눌러 벡터 트리거를 켜고, 기준/임계값/보장 턴을 설정할 수 있습니다. <b>봇 재구성만</b> 모드에서는 call 주기(<code>every_n_turns</code>)대로 실행됩니다.</div>`,
       cache_guide_title: " 캐시 저장소 안내",
-      cache_guide_content: `<div style="display:grid; gap:8px;"> <div>• 각 카드마다 1~2개의 저장 영역이 생성됩니다.</div> <div>• <b>벡터 데이터 삭제:</b> 임베딩 모델 변경 시 시스템이 자동 전환되지 않거나 오류가 발생할 때 사용하는 수동 조작입니다.</div> <div>• <b>분류:</b> 해당 카드의 항목 분할 및 분류 기록입니다.</div> <div>• <b>페르소나:</b> 해당 카드의 캐릭터 페르소나 기록입니다.</div> <div>• <b> 캐릭터 추출 항목:</b> 카드가 기록한 캐릭터 수를 확인할 수 있습니다. 카드나 모드 로어북에 기재된 캐릭터만 기록되며, 플레이 중 만난 캐릭터는 자동으로 생성되지 않습니다. 추가가 필요하거나 이전에 쓰기에 실패했다면 "미등록 캐릭터 추가"를 클릭하여 시스템을 다시 실행할 수 있습니다.</div> </div>`,
+      cache_guide_content: `<div style="display:grid; gap:8px;"> <div>• 각 카드마다 1~2개의 저장 영역이 생성됩니다.</div> <div>• <b>벡터 데이터 삭제:</b> 임베딩 모델 변경 시 시스템이 자동 전환되지 않거나 오류가 발생할 때 사용하는 수동 조작입니다.</div> <div>• <b>분류:</b> 해당 카드의 항목 분할 및 분류 기록입니다.</div> <div>• <b>페르소나:</b> 해당 카드의 캐릭터 페르소나 기록입니다.</div> <div>• <b>캐릭터 추출 항목:</b> 카드가 기록한 캐릭터 수를 확인할 수 있습니다. 카드나 모드 로어북에 기재된 캐릭터만 기록되며, 플레이 중 만난 캐릭터는 자동으로 생성되지 않습니다. 추가가 필요하거나 이전에 쓰기에 실패했다면 "미등록 캐릭터 추가"를 클릭하여 시스템을 다시 실행할 수 있습니다.</div> <div>• <b>수동 추가:</b> Step 0가 계속 실패하거나 검열 때문에 캐릭터 등록이 되지 않으면 <b>캐시 저장소 &gt; 페르소나</b>에서 <b>수동 추가</b>를 사용해 직접 넣어 주세요.</div> </div>`,
       vector_guide_title: " 벡터 검색 안내",
-      vector_guide_content: `<div style="display:grid; gap:8px;"> <div>• <b>유사도 & 신선도 혼합:</b> 턴이 지날수록 항목의 가중치가 낮아집니다.</div> <div>• <b>프로세스:</b> 매 대화마다 최신 턴과 이전 턴의 데이터를 통합하여 임베딩 모델에 전송하고 벡터 태그를 획득합니다.</div> <div>• <b>매칭:</b> 획득한 벡터 태그를 시스템이 비교합니다.</div> <div>• <b>로어북 TopK:</b> 로어북 항목 중 TopK 항목을 추출하여 컨텍스트에 배치합니다.</div> <div>• <b>정보 추출 피드 (로어북 > 채팅):</b> TopK*2 항목을 정보 추출 모델에 제공합니다.</div> <div>• <b>정보 추출 피드 (캐시 저장소 > 페르소나):</b> TopK*2 항목을 정보 추출 모델에 제공합니다.</div> </div>`,
+      vector_guide_content: `<div style="display:grid; gap:8px;"> <div>• <b>유사도 & 신선도 혼합:</b> 턴이 지날수록 항목의 가중치가 낮아집니다.</div> <div>• <b>프로세스:</b> 매 대화마다 최신 완전 1턴을 강하게 반영하고, 최근 캐시 요약을 덧붙여 임베딩 모델에 질의합니다.</div> <div>• <b>새 Query 규칙:</b> Query 컨텍스트는 <b>always_active=true</b> 항목을 우선 사용하고, state, scene, inventory, memory, knowledge, relation, mask, advice, strategy, world 같은 키워드가 이름에 포함된 최근 lorebook 항목을 추가로 보강합니다.</div> <div>• <b>매칭:</b> 획득한 벡터 태그를 시스템이 비교합니다.</div> <div>• <b>로어북 TopK:</b> 로어북 항목 중 TopK 항목을 추출하여 컨텍스트에 배치합니다.</div> <div>• <b>정보 추출 피드 (로어북 > 채팅):</b> TopK*2 항목을 정보 추출 모델에 제공합니다.</div> <div>• <b>정보 추출 피드 (캐시 저장소 > 페르소나):</b> TopK*2 항목을 정보 추출 모델에 제공합니다.</div> </div>`,
       extraction_guide_title: " 추출 및 명령어 분석 가이드",
       extraction_guide_content: `<div style="display:grid; gap:12px;">
   <div style="background:rgba(156,39,176,0.18); padding:10px 12px; border-radius:8px;">
@@ -873,6 +900,8 @@
       <b style="font-size:13px; color:var(--pse-text);"> 캐릭터 페르소나 추출 (설정 3 & 4)</b>
       <div style="margin-top:6px; display:grid; gap:4px; font-size:12px; color:var(--pse-text);">
         <div>• 결과는 캐시 저장소에 보관되며 벡터 검색으로 읽힙니다. 토큰 낭비를 방지하기 위해 표준 '시스템 프롬프트'에는 <b>표시되지 않습니다</b>.</div>
+        <div>• 벡터 query 컨텍스트는 <code>always_active=true</code> 항목을 우선 사용하고, 최근 N턴 안의 키워드 매칭 lorebook 항목을 추가로 붙입니다.</div>
+        <div>• Step 0가 계속 실패하거나 검열 때문에 캐릭터가 등록되지 않으면 <b>캐시 저장소 &gt; 페르소나</b>에서 <b>수동 추가</b>를 사용하십시오.</div>
       </div>
     </div>
   </div>
@@ -1009,8 +1038,15 @@
       aria_close: "關閉",
       lbl_lore_entry: "Lorebook 條目",
       lbl_cache_entry: "快取條目",
-      lbl_write_mode: "寫入模式 (覆蓋/添加)",
+      lbl_write_mode: "寫入模式",
       lbl_always_active: "始終啟用",
+      lbl_vec_trigger_toggle: "向量觸發",
+      lbl_vec_basis: "向量比對依據",
+      lbl_vec_basis_round: "回合相較（當前 vs 前一回合）",
+      lbl_vec_basis_semantic: "語意輸入",
+      lbl_vec_threshold: "閾值 (0~1)",
+      lbl_vec_fallback_turns: "保底執行回合",
+      lbl_vec_semantic_input: "語意輸入文字",
       yes: "是",
       no: "否",
       lbl_output_format: "輸出格式 (JSON Schema)",
@@ -1085,20 +1121,23 @@
       log_step0_failed: (err) => ` 知識庫初始化失敗：${err}`,
       log_step0_fail_fallback: (err) => ` 知識庫分類失敗，以備用模式繼續運行：${err}`,
       err_vec_kb_failed: (err) => `[RisuAI Agent] 向量知識庫建立失敗/逾時。進度已儲存。\n錯誤：${err}\n請稍等片刻，再點選「重新生成/傳送」繼續從中斷處恢復。`,
+      warn_recovery_call_failed: (callName, reason) => `[TurnRecovery] 呼叫「${callName}」在回復期間失敗：${reason}`,
+      warn_embed_settings_failed: (reason) => `警告：人格向量索引更新失敗 — 嵌入未建立。\n原因：${reason}\n向量搜尋功能可能受損，直到下次傳送觸發 Step 0 重跑。`,
+      warn_persona_step0_partial: (reason) => `警告：Step 0 期間人格萃取失敗（將於下次傳送重試）。\n原因：${reason}`,
       copilot_refresh: "Copilot token refresh",
       help_tab_main: "說明首頁",
       help_tab_p1: "預設設定1",
       help_tab_p2: "預設設定2",
       mode_guide_title: " 模式說明與模型呼叫指南",
       mode_guide_click: "(點擊展開/收起)",
-      mode_guide_content: `<div style="border-top: 1px solid rgba(255, 152, 0, 0.1); padding-top: 12px;"> <!--  初始設定 (Violet) --> <div style=" background: rgba(156, 39, 176, 0.20); padding: 8px 12px; border-radius: 8px; margin-bottom: 16px;"> <b style="color:var(--pse-text); font-size: 14px;"> 初始設定</b> <div style="margin-top: 6px; display: grid; gap: 4px; font-size: 12px; color: var(--pse-text);"> <div>• <b>分類：</b>會擷取角色敘述、Lorebook角色、替換全域備註的第一段內容，以25條一組，發送給模型進行標籤分類。</div> <div>• <b>角色人格萃取(啟用導演模式時)：</b>接下來，會將標籤為角色的條目，20條一組送給LLM進行人格萃取。</div> <div>• <b>向量(啟用導演模式或向量搜尋時)：</b>最後，向量模型會按照各供應商的預設設定，將資料批次送出，以獲得向量標記。</div> </div> </div> <!--  預設模式選擇 (Indigo) --> <div style=" background: rgba(63, 81, 181, 0.20); padding: 8px 12px; border-radius: 8px; margin-bottom: 16px;"> <b style="color:var(--pse-text); font-size: 14px;"> 預設模式選擇</b> <div style="margin-top: 6px; display: grid; gap: 4px; margin-bottom: 8px; font-size: 12px; color: var(--pse-text);"> <div>• <b>設定差異：</b>「設定 1」適用於一般卡片；「設定 2」專為劇情複雜的卡片設計。</div> <div>• <b>萃取：</b>濃縮對話記錄，取代傳統的長回合對話與 Supa/Hypa Memory。</div> <div>• <b>導演：</b>進一步指導劇情、角色反應與變化，強化角色的立體感與劇情連貫度。</div> <div>• <b>僅卡片重組：</b>將卡片重新分類後，放進提示詞結構中最有效的位置。</div> <div>• <b>啟用向量搜尋：</b>取代傳統的關鍵字觸發，提高有效資訊密度。</div> <div>• <b>不使用嵌入模型：</b>設定1/2(萃取) + 僅卡片重組</div> </div> </div> <!--  預設模式模型呼叫頻率 (Blue) --> <div style=" background: rgba(33, 150, 243, 0.22); padding: 8px 12px; border-radius: 8px; margin-bottom: 16px;"> <b style="color:var(--pse-text); font-size: 14px;"> 預設模式模型呼叫頻率</b> <div style="margin-top: 8px;"> <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 8px;"> <span style="background: var(--pse-accent-blue); color: white; padding: 1px 6px; border-radius: 4px; font-size: 11px; font-weight: bold;">開啟對話</span> <span style="color: var(--pse-muted); font-size: 12px;">越複雜的卡片，前置時間越長</span> </div> <div style="display: grid; gap: 4px; padding-left: 4px; margin-bottom: 12px; font-size: 12px; color: var(--pse-text);"> <div>• <b>導演：</b>呼叫主要模型，進行人格萃取</div> <div>• <b>卡片重組：</b>呼叫輔助模型，進行資料分類</div> <div>• <b>向量搜尋：</b>呼叫嵌入模型建立索引</div> </div> <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 8px;"> <span style="background: var(--pse-accent-blue); color: white; padding: 1px 6px; border-radius: 4px; font-size: 11px; font-weight: bold;">之後聊天</span> </div> <div style="display:grid; gap:8px; padding-left:4px;"> <div style="background:rgba(33, 150, 243, 0.20); border:1px solid rgba(33, 150, 243, 0.38); padding:8px; border-radius:6px;"> <div style="color:var(--pse-text); font-weight:bold; font-size:12px; margin-bottom:4px; border-bottom:1px solid rgba(33, 150, 243, 0.25);"> 萃取模式</div> <div style="font-size:12px; color:var(--pse-text);"> • <b>設定 1：</b>主要模型10、15回合各1次，輔助模型1回合2次 + 3回合1次<br/> • <b>設定 2：</b>主要模型3、10、15回合各1次，輔助模型1回合3次 + 2、3回合各1次
- </div> </div> <div style="background:rgba(33, 150, 243, 0.20); border:1px solid rgba(33, 150, 243, 0.38); padding:8px; border-radius:6px;"> <div style="color:var(--pse-text); font-weight:bold; font-size:12px; margin-bottom:4px; border-bottom:1px solid rgba(33, 150, 243, 0.25);"> 萃取 + 導演</div> <div style="font-size:12px; color:var(--pse-text);"> • <b>設定 1：</b>主要模型10、15 回合各1次，輔助模型1回合4次 + 3回合1次<br/> • <b>設定 2：</b>主要模型4、10、15回合各1次，輔助模型1回合4次 + 2、3回合各1次
- </div> </div> <div style="background:rgba(33, 150, 243, 0.20); border:1px solid rgba(33, 150, 243, 0.38); padding:8px; border-radius:6px;"> <div style="color:var(--pse-text); font-weight:bold; font-size:12px; margin-bottom:4px; border-bottom:1px solid rgba(33, 150, 243, 0.25);"> 導演 & 向量搜尋</div> <div style="font-size:12px; color:var(--pse-text);"> • <b>頻率：</b>嵌入模型每回合呼叫1次。
+      mode_guide_content: `<div style="border-top: 1px solid rgba(255, 152, 0, 0.1); padding-top: 12px;"> <!--  初始設定 (Violet) --> <div style=" background: rgba(156, 39, 176, 0.20); padding: 8px 12px; border-radius: 8px; margin-bottom: 16px;"> <b style="color:var(--pse-text); font-size: 14px;"> 初始設定</b> <div style="margin-top: 6px; display: grid; gap: 4px; font-size: 12px; color: var(--pse-text);"> <div>• <b>分類：</b>會擷取角色敘述、Lorebook角色、替換全域備註的第一段內容，以25條一組，發送給模型進行標籤分類。</div> <div>• <b>角色人格萃取(啟用導演模式時)：</b>接下來，會將標籤為角色的條目，20條一組送給LLM進行人格萃取。</div> <div>• <b>向量(啟用導演模式或向量搜尋時)：</b>最後，向量模型會按照各供應商的預設設定，將資料批次送出，以獲得向量標記。</div> </div> </div> <!--  預設模式選擇 (Indigo) --> <div style=" background: rgba(63, 81, 181, 0.20); padding: 8px 12px; border-radius: 8px; margin-bottom: 16px;"> <b style="color:var(--pse-text); font-size: 14px;"> 預設模式選擇</b> <div style="margin-top: 6px; display: grid; gap: 4px; margin-bottom: 8px; font-size: 12px; color: var(--pse-text);"> <div>• <b>設定差異：</b>「設定 1」適用於一般卡片；「設定 2」專為劇情複雜的卡片設計。</div> <div>• <b>萃取：</b>濃縮對話記錄，取代傳統的長回合對話與 Supa/Hypa Memory。</div> <div>• <b>導演：</b>進一步指導劇情、角色反應與變化，強化角色的立體感與劇情連貫度。</div> <div>• <b>僅卡片重組：</b>將卡片重新分類後，放進提示詞結構中最有效的位置。</div> <div>• <b>啟用向量搜尋：</b>取代傳統的關鍵字觸發，提高有效資訊密度。</div> <div>• <b>不使用嵌入模型：</b>設定1/2(萃取) + 僅卡片重組</div> </div> </div> <!--  預設模式模型呼叫頻率 (Blue) --> <div style=" background: rgba(33, 150, 243, 0.22); padding: 8px 12px; border-radius: 8px; margin-bottom: 16px;"> <b style="color:var(--pse-text); font-size: 14px;"> 預設模式模型呼叫頻率</b> <div style="margin-top: 8px;"> <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 8px;"> <span style="background: var(--pse-accent-blue); color: white; padding: 1px 6px; border-radius: 4px; font-size: 11px; font-weight: bold;">開啟對話</span> <span style="color: var(--pse-muted); font-size: 12px;">越複雜的卡片，前置時間越長</span> </div> <div style="display: grid; gap: 4px; padding-left: 4px; margin-bottom: 12px; font-size: 12px; color: var(--pse-text);"> <div>• <b>導演：</b>呼叫主要模型，進行人格萃取</div> <div>• <b>卡片重組：</b>呼叫輔助模型，進行資料分類</div> <div>• <b>向量搜尋：</b>呼叫嵌入模型建立索引</div> </div> <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 8px;"> <span style="background: var(--pse-accent-blue); color: white; padding: 1px 6px; border-radius: 4px; font-size: 11px; font-weight: bold;">之後聊天</span> </div> <div style="font-size:12px; color:var(--pse-muted); padding-left:4px; margin-bottom:8px;">• 以下內容是常見觸發時機，但部分條目屬於條件式啟動，不一定會按固定頻率規律呼叫。</div> <div style="display:grid; gap:8px; padding-left:4px;"> <div style="background:rgba(33, 150, 243, 0.20); border:1px solid rgba(33, 150, 243, 0.38); padding:8px; border-radius:6px;"> <div style="color:var(--pse-text); font-weight:bold; font-size:12px; margin-bottom:4px; border-bottom:1px solid rgba(33, 150, 243, 0.25);"> 萃取模式</div> <div style="font-size:12px; color:var(--pse-text);"> • <b>設定 1：</b>主要模型通常在第 10、15 回合附近觸發；輔助模型每回合有 2 次常駐呼叫，條件符合時會在第 3 回合附近追加呼叫。<br/> • <b>設定 2：</b>主要模型通常在第 2、10、15 回合附近觸發；輔助模型每回合有 3 次常駐呼叫，條件符合時會在第 2、3 回合附近追加呼叫。
+ </div> </div> <div style="background:rgba(33, 150, 243, 0.20); border:1px solid rgba(33, 150, 243, 0.38); padding:8px; border-radius:6px;"> <div style="color:var(--pse-text); font-weight:bold; font-size:12px; margin-bottom:4px; border-bottom:1px solid rgba(33, 150, 243, 0.25);"> 萃取 + 導演</div> <div style="font-size:12px; color:var(--pse-text);"> • <b>設定 1：</b>主要模型通常在第 10、15 回合附近觸發；輔助模型每回合有 4 次常駐呼叫，條件符合時會在第 3 回合附近追加呼叫。<br/> • <b>設定 2：</b>主要模型通常在第 2、4、10、15 回合附近觸發；輔助模型每回合有 4 次常駐呼叫，條件符合時會在第 2、3 回合附近追加呼叫。</div> </div> <div style="background:rgba(33, 150, 243, 0.20); border:1px solid rgba(33, 150, 243, 0.38); padding:8px; border-radius:6px;"> <div style="color:var(--pse-text); font-weight:bold; font-size:12px; margin-bottom:4px; border-bottom:1px solid rgba(33, 150, 243, 0.25);"> 導演 & 向量搜尋</div> <div style="font-size:12px; color:var(--pse-text);"> • <b>一般情況：</b>向量搜尋啟用時，嵌入模型通常每回合呼叫 1 次；但若沒有產生可用條目或查詢，也可能略過不呼叫。
  </div> </div> </div> </div> </div> <!--  接續聊天 (Teal) --> <div style=" background: rgba(0, 150, 136, 0.18); padding: 8px 12px; border-radius: 8px; margin-bottom: 16px;"> <b style="color: var(--pse-accent-teal, #003028); font-size: 14px;"> 接續聊天</b> <div style="margin-top: 6px; display: grid; gap: 4px; font-size: 12px; color: var(--pse-text);"> <div>• 感受到Lag時再使用即可。</div> <div>• 點擊接續聊天之後，會跳出所有的聊天記錄。點擊你要接續的記錄即可。</div> <div>• 接下來，即可直接使用後綴帶有(continue)的記錄，繼續遊玩。</div> </div> </div>`,
+      extraction_vec_trigger_note: `<div style="margin-top:8px;padding:8px 10px;border-radius:8px;background:rgba(255,152,0,0.16);font-size:12px;color:var(--pse-text);">• <b>Call 向量觸發：</b>在每個條目中點擊 <b>×</b> 左側的 <b>⚙</b> 可啟用向量觸發，並設定比對依據、閾值與保底執行回合。若為 <b>僅啟用卡片重組</b>，將改為依 call 執行回合（<code>every_n_turns</code>）觸發。</div>`,
       cache_guide_title: " 快取倉庫說明",
-      cache_guide_content: `<div style="display:grid; gap:8px;"> <div>• 每張卡片會形成 1~2 個儲存區域。</div> <div>• <b>刪除向量資料：</b>當您更換嵌入模型，但系統沒有自動切換或出現錯誤時的手動操作。</div> <div>• <b>分類：</b>該卡片的條目切割與分類記錄。</div> <div>• <b>人格：</b>該卡片的角色人格記錄。</div> <div>• <b> 角色萃取條目：</b>可確認該卡片記錄了多少角色。該處僅會記錄記載於卡片或模組 Lorebook 上的角色，遊玩過程遇見的並不會自動建立。若需要追加或先前寫入失敗，可點選「追加未登錄角色」讓系統重新處理。</div> </div>`,
+      cache_guide_content: `<div style="display:grid; gap:8px;"> <div>• 每張卡片會形成 1~2 個儲存區域。</div> <div>• <b>刪除向量資料：</b>當您更換嵌入模型，但系統沒有自動切換或出現錯誤時的手動操作。</div> <div>• <b>分類：</b>該卡片的條目切割與分類記錄。</div> <div>• <b>人格：</b>該卡片的角色人格記錄。</div> <div>• <b>角色萃取條目：</b>可確認該卡片記錄了多少角色。該處僅會記錄記載於卡片或模組 Lorebook 上的角色，遊玩過程遇見的並不會自動建立。若需要追加或先前寫入失敗，可點選「追加未登錄角色」讓系統重新處理。</div> <div>• <b>手動追加角色：</b>若 Step 0 持續失敗，或角色資料因審查而始終無法正確登錄，請進入 <b>快取倉庫 &gt; 人格</b>，使用 <b>手動追加角色</b> 直接補入。</div> </div>`,
       vector_guide_title: " 向量搜尋說明",
-      vector_guide_content: `<div style="display:grid; gap:8px;"> <div>• <b>混合相似度與新鮮度：</b>條目權重會隨著回合數增加而逐漸降低。</div> <div>• <b>運作流程：</b>每次對話時，系統會統整最近一回合與先前回合的資料送往嵌入模型，獲取向量標記。</div> <div>• <b>比對機制：</b>系統取得向量標記後會進行比對。</div> <div>• <b>Lorebook TopK：</b>抽出 Lorebook 中最相關的 TopK 條目放置於上下文中。</div> <div>• <b>資訊萃取 (Lorebook > 聊天)：</b>抽出 TopK*2 的條目餵給資訊萃取模型。</div> <div>• <b>資訊萃取 (快取倉庫 > 角色人格)：</b>抽出 TopK*2 的條目餵給資訊萃取模型。</div> </div>`,
+      vector_guide_content: `<div style="display:grid; gap:8px;"> <div>• <b>混合相似度與新鮮度：</b>條目權重會隨著回合數增加而逐漸降低。</div> <div>• <b>運作流程：</b>每次對話時，系統會先強化最新完整一回合，再附加最近的快取摘要，一起送往嵌入模型。</div> <div>• <b>新 Query 規則：</b>Query 內容會優先取用 <b>always_active=true</b> 的條目，並補上名稱含有 state、scene、inventory、memory、knowledge、relation、mask、advice、strategy、world 等關鍵字的最近 lorebook 條目。</div> <div>• <b>比對機制：</b>系統取得向量標記後會進行比對。</div> <div>• <b>Lorebook TopK：</b>抽出 Lorebook 中最相關的 TopK 條目放置於上下文中。</div> <div>• <b>資訊萃取 (Lorebook > 聊天)：</b>抽出 TopK*2 的條目餵給資訊萃取模型。</div> <div>• <b>資訊萃取 (快取倉庫 > 角色人格)：</b>抽出 TopK*2 的條目餵給資訊萃取模型。</div> </div>`,
       extraction_guide_title: " 萃取與指令分析指南",
       extraction_guide_content: `<div style="display:grid; gap:12px;">
   <div style="background:rgba(156,39,176,0.18); padding:10px 12px; border-radius:8px;">
@@ -1166,6 +1205,8 @@
       <b style="font-size:13px; color:var(--pse-text);"> 角色人格萃取（設定 3 & 4）</b>
       <div style="margin-top:6px; display:grid; gap:4px; font-size:12px; color:var(--pse-text);">
         <div>• 結果儲存於快取倉庫，由向量搜尋讀取。<b>不會</b>出現在標準的「系統提示詞」中以避免佔用字數。</div>
+        <div>• 向量 query 內容現在會優先使用 <code>always_active=true</code> 的條目，再補上最近 N 輪內名稱命中關鍵字的 lorebook 條目。</div>
+        <div>• 若 Step 0 持續失敗，或角色因審查而無法正確登錄，請進入 <b>快取倉庫 &gt; 人格</b> 使用 <b>手動追加角色</b>。</div>
       </div>
     </div>
   </div>
@@ -1174,7 +1215,8 @@
  </div> <div> <div style="font-weight: bold; color: #701B1A; margin-bottom: 4px;"> 注意事項</div> • 使用該外掛必須要修改預設提示詞。<br> • 無法接續無外掛的對話記錄。<br> • 請勿在對話中途反覆開關外掛。
  </div> </div> <div style="padding: 12px; border-radius: 8px; margin-bottom: 12px; background: rgba(156, 39, 176, 0.20);"> <div style="font-weight: bold; color: #4C1356; margin-bottom: 8px;"> 資料儲存說明</div> • 資訊萃取的記錄存放於 <b>Lorebook > 聊天</b> 條目內，可隨時檢閱或調整。<br> • <b>卡片分類 & 向量搜尋 & 角色核心</b> 的索引資料則會放置於 <b>快取倉庫</b> 內。
  </div> <div style="padding: 12px; border-radius: 8px; background: rgba(33, 150, 243, 0.22);"> <div style="font-weight: bold; color:var(--pse-text); margin-bottom: 8px;">⁉ 答客問</div> <div style="margin-bottom: 8px;"> <div style="font-weight: bold; color:var(--pse-text); margin-bottom: 4px;"> 如果出現 <b style="color: var(--pse-accent-red); font-size: 13px;">ERROR 400：呼叫模型不支援</b></div> • 代表你可能使用的是Claude、DeepSeek、Mistral不支援預填充格式<br> • 進到資訊萃取 > 共同提示詞，將<b style="color: var(--pse-accent-red); font-size: 13px;"> 助理預填充 </b>清空。
- </div> <div> <div style="font-weight: bold; color:var(--pse-text); margin-bottom: 4px;"> 如果被審查空回覆、無法輸出怎麼辦</div> 因為資料量被切割成比較小塊，所以NSFW濃度比較高，進而增加被審查機率。<br> • 加強預填入提示詞。<br> • 換成審查力度較小的模型。
+ </div> <div style="margin-bottom: 8px;"> <div style="font-weight: bold; color:var(--pse-text); margin-bottom: 4px;"> 如果被審查空回覆、無法輸出怎麼辦</div> 因為資料量被切割成比較小塊，所以NSFW濃度比較高，進而增加被審查機率。<br> • 加強預填入提示詞。<br> • 換成審查力度較小的模型。
+ </div> <div> <div style="font-weight: bold; color:var(--pse-text); margin-bottom: 4px;"> 如果 Step 0 一直失敗，系統顯示空回應或 ERROR 524 怎麼辦</div> 代表你的角色資料被審查了。<br> • 進入 <b>快取倉庫 &gt; 人格</b>，使用 <b>手動追加角色</b>。
  </div> </div>
 </div>`,
       lbl_loading: "載入中...",
@@ -1200,7 +1242,8 @@
       lbl_param_type: "參數型：",
       lbl_param_desc: "將整筆資料移至作者備注。",
       lbl_director_vec: " 導演 & 向量搜尋：",
-      lbl_embed_per_turn: "嵌入模型每回合呼叫 1 次",
+      lbl_embed_per_turn:
+        "嵌入模型通常每回合呼叫 1 次，但沒有可用條目時也可能略過",
       lbl_new_chat: "開啟對話",
       lbl_during_chat: "之後聊天",
       lbl_init_time: "越複雜的前置時間越長",
@@ -1212,13 +1255,13 @@
       lbl_extraction_mode: " 萃取模式",
       lbl_extraction_director: " 萃取 + 導演",
       lbl_s1_freq_ext:
-        "設定 1：主要 (10-15 回合/次), 輔助 (每回合 2 次 + 3 回合/次)",
+        "設定 1：主要模型通常在第 10、15 回合附近觸發；輔助模型每回合 2 次常駐呼叫，另有第 3 回合附近的條件式追加呼叫",
       lbl_s2_freq_ext:
-        "設定 2：主要 (3-15 回合/次), 輔助 (每回合 3 次 + 2 & 3 回合/次)",
+        "設定 2：主要模型通常在第 2、10、15 回合附近觸發；輔助模型每回合 3 次常駐呼叫，另有第 2、3 回合附近的條件式追加呼叫",
       lbl_s1_freq_dir:
-        "設定 1：主要 (10、15 回合/次), 輔助 (每回合 4 次 + 3 回合/次)",
+        "設定 1：主要模型通常在第 10、15 回合附近觸發；輔助模型每回合 4 次常駐呼叫，另有第 3 回合附近的條件式追加呼叫",
       lbl_s2_freq_dir:
-        "設定 2：主要 (4、10、15 回合/次), 輔助 (每回合 4 次 + 2 & 3 回合/次)",
+        "設定 2：主要模型通常在第 2、4、10、15 回合附近觸發；輔助模型每回合 4 次常駐呼叫，另有第 2、3 回合附近的條件式追加呼叫",
       lbl_custom_preset_guide: " 給自訂設定的使用者",
       auto_inject_title: " 系統已啟動自動注入",
       auto_inject_desc: "偵測到您維持預設的資訊萃取設定。發送對話時系統將 <b>自動</b> 套用 System Prompts，無須手動設定！",
@@ -1290,7 +1333,7 @@
   let _T = _I18N.en;
   let _langInitialized = false;
   const PLUGIN_NAME = "👤 RisuAI Agent";
-  const PLUGIN_VER = "5.1.3";
+  const PLUGIN_VER = "5.2";
   const LOG = "[RisuAIAgent]";
   const SYSTEM_INJECT_TAG = "PLUGIN_PARALLEL_STATUS";
   const SYSTEM_REWRITE_TAG = "PLUGIN_PARALLEL_REWRITE";
@@ -1430,38 +1473,58 @@
         {
           "lorebook_name": "ra_turn_trace",
           "write_mode": "append",
-          "always_active": true,
+          "always_active": false,
           "output_format": "CALL ROLE: Read recent dialogue and listed memory, then write the current scene continuity layers.\n{\n  \"ra_turn_trace\": {\n    \"scene_context\": \"<location + immediate situation, short phrase>\",\n    \"time_anchor\": \"<explicit in-story time | null>\",\n    \"elapsed_since_prev\": \"<same moment | +10m | +1h | +1d | unspecified>\",\n    \"user_move\": \"<main player action, <=12 words>\",\n    \"narrative_event\": \"<story result, <=15 words>\",\n    \"user_scene_change\": false,\n    \"shift\": \"<tone/stakes change, <=8 words | null>\"\n  }\n}\nFIELD RULES:\n- Keep all strings short. Keywords preferred over full sentences.\n- user_scene_change: true only when player explicitly moves to a new location or skips significant time.\n- shift: null if tone and stakes are unchanged.",
           "retention_enabled": true,
           "retention_after": 10,
-          "retention_keep": 1
+          "retention_keep": 1,
+          "vector_trigger_enabled": false,
+          "vector_basis": "round_compare",
+          "vector_threshold": 0.57,
+          "vector_fallback_turns": 6,
+          "vector_semantic_input": ""
         },
         {
           "lorebook_name": "ra_scene_state",
           "write_mode": "append",
-          "always_active": true,
-          "output_format": "{\n  \"ra_scene_state\": {\n    \"scene_type\": \"<casual|conflict|transition|recovery|social|tense>\",\n    \"location\": \"<place + one atmospheric detail, <=10 words>\",\n    \"player_state\": \"<condition + key items, <=15 words>\",\n    \"npcs\": [\n      {\n        \"name\": \"<NPC name>\",\n        \"physical_state\": \"<appearance or position, <=12 words>\",\n        \"internal_state\": \"<true motive/feeling, <=12 words>\",\n        \"relation_to_player\": \"<current stance, <=10 words | null>\"\n      }\n    ]\n  }\n}\nFIELD RULES:\n- Remove departed NPCs. Add newly arrived ones. npcs: [] if none present.\n- internal_state: true motives even if hidden from the player.\n- Keywords only, no full sentences.",
+          "always_active": false,
+          "output_format": "{\n  \"ra_scene_state\": {\n    \"scene_type\": \"<casual|conflict|transition|recovery|social|tense>\",\n    \"location\": \"<place + one detail, <=10 words>\",\n    \"player_state\": \"<condition + key items, <=15 words>\",\n    \"npcs\": [\"<Name: posture. true motive. stance toward player>\"]\n  }\n}\nFIELD RULES:\n- npcs: one string per NPC. Format \"Name: physical. motive. stance.\" <=18 words. [] if none.\n- True motives even if hidden. Keywords only.",
           "retention_enabled": true,
           "retention_after": 10,
-          "retention_keep": 1
+          "retention_keep": 1,
+          "vector_trigger_enabled": false,
+          "vector_basis": "round_compare",
+          "vector_threshold": 0.57,
+          "vector_fallback_turns": 6,
+          "vector_semantic_input": ""
         },
         {
           "lorebook_name": "ra_inventory",
           "write_mode": "overwrite",
           "always_active": true,
-          "output_format": "{\n  \"ra_inventory\": {\n    \"user\": [\"<held items, clothing, or active equipment>\"],\n    \"npcs\": [\n      {\n        \"name\": \"<NPC name>\",\n        \"inventory\": [\"<held items, clothing, or active equipment>\"]\n      }\n    ]\n  }\n}\nFIELD RULES:\n- Track current clothing and held items. Copy from previous turns if unchanged. Add newly acquired items; remove dropped ones.",
+          "output_format": "{\n  \"ra_inventory\": {\n    \"user\": [\"<item or clothing>\"],\n    \"npcs\": [\"<Name: item, clothing>\"]\n  }\n}\nFIELD RULES:\n- user: list held items/clothing. npcs: one string per NPC, format \"Name: item, clothing.\" [] if none.\n- Copy unchanged. Add acquired; remove dropped.",
           "retention_enabled": true,
           "retention_after": 0,
-          "retention_keep": 0
+          "retention_keep": 0,
+          "vector_trigger_enabled": true,
+          "vector_basis": "semantic_input",
+          "vector_threshold": 0.57,
+          "vector_fallback_turns": 6,
+          "vector_semantic_input": "items equipment clothing outfit weapon possession exchange gift take drop wear remove supplies"
         },
         {
           "lorebook_name": "ra_director",
           "write_mode": "overwrite",
           "always_active": true,
-          "output_format": "{\n  \"ra_director\": {\n    \"staleness_level\": 0,\n    \"environment_intervention\": null\n  }\n}\nFIELD RULES:\n- Compare this turn's content with the previous turn.\n- staleness_level: 0 (completely different scene/action) to 10 (nearly identical).\n- environment_intervention: a soft, open-ended directional suggestion for the narrating LLM. Keep to one concise sentence framed as a possibility. staleness_level >= 5 = suggest a mild shift; staleness_level >= 8: suggest a stronger narrative pivot. (e.g., a character shifts approach or reveals something new | the focus migrates to an unexplored detail of the current scene | an internal tension surfaces that reframes the interaction.) null otherwise.\nOUTPUT: Combine all schemas into one JSON object: {\"ra_turn_trace\": {...}, \"ra_scene_state\": {...}, \"ra_inventory\": {...}, \"ra_director\": {...}}. Single line, no markdown fences, no explanation.",
+          "output_format": "{\n  \"ra_director\": {\n    \"staleness_level\": 0,\n    \"environment_intervention\": null\n  }\n}\nFIELD RULES:\n- Compare this turn's content with the previous turn.\n- staleness_level: 0 (completely different scene/action) to 10 (nearly identical).\n- environment_intervention: a soft, open-ended directional suggestion for the narrating LLM. Keep to one concise sentence framed as a possibility. staleness_level >= 5 = suggest a mild shift; staleness_level >= 8: suggest a stronger narrative pivot. (e.g., a character shifts approach or reveals something new | the focus migrates to an unexplored detail of the current scene | an internal tension surfaces that reframes the interaction.) null otherwise.\nOUTPUT: Combine all schemas into one JSON object. Single line, no markdown fences, no explanation.",
           "retention_enabled": true,
           "retention_after": 0,
-          "retention_keep": 0
+          "retention_keep": 0,
+          "vector_trigger_enabled": false,
+          "vector_basis": "round_compare",
+          "vector_threshold": 0.57,
+          "vector_fallback_turns": 6,
+          "vector_semantic_input": ""
         }
       ]
     },
@@ -1478,19 +1541,29 @@
           "lorebook_name": "ra_logic_state",
           "write_mode": "overwrite",
           "always_active": true,
-          "output_format": "CALL ROLE: Check scene logic, enforce continuity rules, and track active story threads.\n{\n  \"ra_logic_state\": {\n    \"logic_violation\": \"<describe contradiction | null>\",\n    \"strict_directive\": \"<Proceed normally | Reject the user action and narrate failure | Show cognitive friction: character hesitates or struggles>\"\n  }\n}\nFIELD RULES:\n- Check if there have any logic error in these turns.\n- Violation found: describe it concisely; set strict_directive to the appropriate enforcement value.\n- No violation: logic_violation: null; strict_directive: \"Proceed normally\".\n- T-1 ra_logic_state is provided as context; note if this turn repeats or resolves a prior violation.",
+          "output_format": "CALL ROLE: Check scene logic, enforce continuity rules, and track active story threads.\n{\n  \"ra_logic_state\": {\n    \"logic_violation\": \"<describe contradiction | null>\",\n    \"strict_directive\": \"<Proceed normally | Reject the user action and narrate failure | Show cognitive friction: character hesitates or struggles>\"\n  }\n}\nFIELD RULES:\n- Check if there have any logic error in these turns.\n- Violation found: describe it concisely; set strict_directive to the appropriate enforcement value.\n- No violation: logic_violation: null; strict_directive: \"Proceed normally\".\n- T-1 ra_logic_state is provided as context; note if this turn repeats or resolves a prior violation.\nOUTPUT: schema into one JSON object. Single line, no markdown fences, no explanation.",
           "retention_enabled": true,
           "retention_after": 0,
-          "retention_keep": 0
+          "retention_keep": 0,
+          "vector_trigger_enabled": false,
+          "vector_basis": "round_compare",
+          "vector_threshold": 0.57,
+          "vector_fallback_turns": 6,
+          "vector_semantic_input": ""
         },
         {
           "lorebook_name": "ra_quest_log",
           "write_mode": "overwrite",
           "always_active": true,
-          "output_format": "{\n  \"ra_quest_log\": {\n    \"active_threads\": [\n      {\n        \"id\": 1,\n        \"desc\": \"<quest or unresolved tension, <=15 words>\",\n        \"status\": \"<active|progressed|stalled|nearly_resolved>\",\n        \"next_step\": \"<most likely next logical move, <=12 words>\",\n        \"requires_absent\": \"<CharName not in scene but needed by next_step | null>\"\n      }\n    ],\n    \"resolved_this_turn\": [\n      {\n        \"id\": 1,\n        \"closure_reason\": \"<why resolved, <=12 words>\"\n      }\n    ]\n  }\n}\nFIELD RULES:\n- Enforce continuity and keep active story threads usable after older chat scrolls away.\n- Copy previous active_threads as baseline. Update changed fields only.\n- requires_absent: non-null only when next_step depends on a character who is not on the stage.\n- New threads: id = max existing id + 1. Completed threads: move to resolved_this_turn.\n- [] for empty lists.\nOUTPUT: Combine all schemas into one JSON object: {\"ra_logic_state\": {...}, \"ra_quest_log\": {...}}. Single line, no markdown fences, no explanation.",
+          "output_format": "{\n  \"ra_quest_log\": {\n    \"active_threads\": [\n      {\n        \"id\": 1,\n        \"desc\": \"<quest or unresolved tension, <=15 words>\",\n        \"status\": \"<active|progressed|stalled|nearly_resolved>\",\n        \"next_step\": \"<most likely next logical move, <=12 words>\",\n        \"requires_absent\": \"<CharName not in scene but needed by next_step | null>\"\n      }\n    ],\n    \"resolved_this_turn\": [\"<id: why resolved, <=12 words>\"]\n  }\n}\nFIELD RULES:\n- Copy previous active_threads as baseline. Update changed fields only.\n- requires_absent: non-null only when next_step depends on an absent character.\n- New threads: id = max existing id + 1. Completed: move to resolved_this_turn as \"id: reason\".\n- [] for empty lists.\nOUTPUT: schema into one JSON object. Single line, no markdown fences, no explanation.",
           "retention_enabled": true,
           "retention_after": 0,
-          "retention_keep": 0
+          "retention_keep": 0,
+          "vector_trigger_enabled": true,
+          "vector_basis": "semantic_input",
+          "vector_threshold": 0.56,
+          "vector_fallback_turns": 4,
+          "vector_semantic_input": "goal objective mission task promise deal conflict tension debt threat clue suspect investigation contract oath plan"
         }
       ]
     },
@@ -1506,29 +1579,44 @@
         {
           "lorebook_name": "ra_world_log",
           "write_mode": "append",
-          "always_active": true,
-          "output_format": "CALL ROLE: Record new world facts and canon-locking turning points from this batch of turns.\nTEMPORAL NOTE: You are writing entries for THIS batch of turns.\n{\n  \"ra_world_log\": {\n    \"entries\": [\"<Name. Key fact. <=20 words.\"]\n  }\n}\nFIELD RULES:\n- One string per entry: name first, then the key fact. <=20 words total per entry.\n- Recording anything that helps LLM for future immersive narrating.\n- entries: [] if nothing new.",
+          "always_active": false,
+          "output_format": "CALL ROLE: Record new world facts.\nTEMPORAL NOTE: You are writing entries for THIS batch of turns.\n{\n  \"ra_world_log\": {\n    \"entries\": [\"<Name. Key fact. <=20 words.\"]\n  }\n}\nFIELD RULES:\n- One string per entry: name first, then the key fact. <=20 words total per entry.\n- Recording anything that helps LLM for future immersive narrating.\n- entries: [] if nothing new.\nOUTPUT: schema into one JSON object. Single line, no markdown fences, no explanation.",
           "retention_enabled": true,
           "retention_after": 15,
-          "retention_keep": 0
+          "retention_keep": 0,
+          "vector_trigger_enabled": true,
+          "vector_basis": "semantic_input",
+          "vector_threshold": 0.57,
+          "vector_fallback_turns": 0,
+          "vector_semantic_input": "world lore history setting faction culture religion magic city region technology rumor law custom mythology"
         },
         {
           "lorebook_name": "ra_turning_point_log",
           "write_mode": "append",
           "always_active": false,
-          "output_format": "TEMPORAL NOTE: You are writing entries for THIS batch of turns.\n{\n  \"ra_turning_point_log\": {\n    \"entries\": [\n      {\n        \"turning_point_detected\": \"<true|false>\",\n        \"event\": \"<concise event or line | null>\",\n        \"affected_characters\": [\"<CharName or role>\"],\n        \"what_must_still_remain_true\": [\"<canon fact that must not be denied later>\"],\n        \"carry_forward_details\": [\"<concrete reminder for future scenes>\"],\n        \"inventory_updates\": [\"<description of clothing changes or important obtained items>\"],\n        \"reentry_hook\": \"<how this should reactivate on return | null>\"\n      }\n    ]\n  }\n}\nFIELD RULES:\n- entries: [] if nothing needs preserving.\n- Record only changes future scenes must restore: promises, losses, reveals, stance shifts, named objects, burdens, address changes, or other canon-locking details.\n- Keep carry_forward_details to 2-4 short items per entry.\n- inventory_updates: Log item acquisitions and explicit clothing changes that future scenes must remember.",
+          "output_format": "CALL ROLE: Record canon-locking turning points for this batch of turns.\n{\n  \"ra_turning_point_log\": {\n    \"entries\": [\n      {\n        \"turning_point_detected\": \"<true|false>\",\n        \"event\": \"<concise event or line | null>\",\n        \"affected_characters\": [\"<CharName or role>\"],\n        \"what_must_still_remain_true\": [\"<canon fact that must not be denied later>\"],\n        \"carry_forward_details\": [\"<concrete reminder for future scenes>\"],\n        \"inventory_updates\": [\"<description of clothing changes or important obtained items>\"],\n        \"reentry_hook\": \"<how this should reactivate on return | null>\"\n      }\n    ]\n  }\n}\nFIELD RULES:\n- entries: [] if nothing needs preserving.\n- Record only changes future scenes must restore: promises, losses, reveals, stance shifts, named objects, burdens, address changes, or other canon-locking details.\n- Keep carry_forward_details to 2-4 short items per entry.\n- inventory_updates: Log item acquisitions and explicit clothing changes that future scenes must remember.\nOUTPUT: schema into one JSON object. Single line, no markdown fences, no explanation.",
           "retention_enabled": true,
           "retention_after": 40,
-          "retention_keep": 6
+          "retention_keep": 6,
+          "vector_trigger_enabled": true,
+          "vector_basis": "semantic_input",
+          "vector_threshold": 0.57,
+          "vector_fallback_turns": 0,
+          "vector_semantic_input": "promise oath confession reveal betrayal discovery loss gain injury title nickname gift vow turning point rupture reconciliation stance shift burden"
         },
         {
           "lorebook_name": "ra_pattern_guard",
           "write_mode": "overwrite",
           "always_active": true,
-          "output_format": "{\n  \"ra_pattern_guard\": {\n    \"expression_repetition\": 0,\n    \"flagged_cliches\": [\"<overused descriptive/reactive pattern>\"],\n    \"banned_phrases\": [\"<exact phrase appearing 2+ times in recent assistant replies>\"],\n    \"variation_hint\": \"<one short suggestion targeting prose style, vocabulary, or character reaction variety — must not suggest scene/plot changes | null>\"\n  }\n}\nFIELD RULES:\n- Scope: prose style, vocabulary, character reaction patterns, descriptive tropes. Scene-level pacing is handled by ra_director; do NOT overlap.\n- expression_repetition: 0 (fully varied expression) to 10 (identical descriptive/reactive loops). Evaluate across the last 3 assistant replies.\n- flagged_cliches: up to 3 overused descriptive or reactive patterns (e.g. identical body-language sequences, recycled metaphors, formulaic emotional beats). Exclude scene-level pacing issues. [] if none.\n- banned_phrases: exact phrases or near-identical constructions appearing 2+ times in the last 3 assistant replies. [] if none.\n- variation_hint: null if expression_repetition < 4. Otherwise one concise suggestion for prose/reaction variety.\nOUTPUT: Combine all schemas into one JSON object: {\"ra_world_log\": {...}, \"ra_turning_point_log\": {...}, \"ra_pattern_guard\": {...}}. Single line, no markdown fences, no explanation.",
+          "output_format": "{\n  \"ra_pattern_guard\": {\n    \"expression_repetition\": 0,\n    \"flagged_cliches\": [\"<overused descriptive/reactive pattern>\"],\n    \"banned_phrases\": [\"<exact phrase appearing 2+ times in recent assistant replies>\"],\n    \"variation_hint\": \"<one short suggestion targeting prose style, vocabulary, or character reaction variety — must not suggest scene/plot changes | null>\"\n  }\n}\nFIELD RULES:\n- Scope: prose style, vocabulary, character reaction patterns, descriptive tropes. Do not overlap with scene-level pacing or directional narrative guidance handled elsewhere.\n- expression_repetition: 0 (fully varied expression) to 10 (identical descriptive/reactive loops). Evaluate across the last 3 assistant replies.\n- flagged_cliches: up to 3 overused descriptive or reactive patterns (e.g. identical body-language sequences, recycled metaphors, formulaic emotional beats). Exclude scene-level pacing issues. [] if none.\n- banned_phrases: exact phrases or near-identical constructions appearing 2+ times in the last 3 assistant replies. [] if none.\n- variation_hint: null if expression_repetition < 4. Otherwise one concise suggestion for prose/reaction variety.\nOUTPUT: schema into one JSON object. Single line, no markdown fences, no explanation.",
           "retention_enabled": true,
           "retention_after": 0,
-          "retention_keep": 0
+          "retention_keep": 0,
+          "vector_trigger_enabled": false,
+          "vector_basis": "round_compare",
+          "vector_threshold": 0.57,
+          "vector_fallback_turns": 6,
+          "vector_semantic_input": ""
         }
       ]
     },
@@ -1538,7 +1626,7 @@
       "target_model": "A",
       "every_n_turns": 10,
       "read_dialogue_rounds": 1,
-      "read_lorebook_names": "ra_arc_memory, ra_turn_trace, ra_quest_log, ra_scene_state, ra_turning_point_log, ra_persistent_memory",
+      "read_lorebook_names": "ra_arc_memory, ra_turn_trace, ra_quest_log, ra_scene_state, ra_turning_point_log, ra_world_log, ra_persistent_memory",
       "read_persona_names": "ra_character_core",
       "entries": [
         {
@@ -1548,7 +1636,12 @@
           "output_format": "CALL ROLE: Consolidate long-term memory and reentry anchors.\n{\n  \"ra_arc_memory\": {\n    \"phase_shift_detected\": \"<true|false>\",\n    \"arc_phase\": \"<setup|escalation|rupture|negotiation|resolution|aftermath | null>\",\n    \"turning_point\": \"<exact line/action or concise event | null>\",\n    \"phase_change\": \"<how this stretch changed the story | null>\",\n    \"lasting_effect\": \"<durable consequence | null>\"\n  }\n}\nFIELD RULES:\n- Set phase_shift_detected \"true\" ONLY when a genuine arc phase shift or clear turning point occurred in recent turns.\n- If \"false\": set all other fields to null. Still append; treat as a no-op record.\n- If \"true\": fill all fields. Check ra_world_log for a key moment to anchor turning_point.",
           "retention_enabled": true,
           "retention_after": 50,
-          "retention_keep": 10
+          "retention_keep": 10,
+          "vector_trigger_enabled": false,
+          "vector_basis": "round_compare",
+          "vector_threshold": 0.57,
+          "vector_fallback_turns": 6,
+          "vector_semantic_input": ""
         },
         {
           "lorebook_name": "ra_persistent_memory",
@@ -1557,7 +1650,12 @@
           "output_format": "{\n  \"ra_persistent_memory\": {\n    \"CharName\": {\n      \"identity_nonnegotiables\": [\"<name, title, fact, promise, or attachment that must remain true>\"],\n      \"signature_addressing\": [\"<stable naming or honorific habit>\"],\n      \"reentry_anchors\": [\"<what must be restored on return>\"],\n      \"actor_rule\": [\"<1 short portrayal reminder>\"]\n    }\n  }\n}\nFIELD RULES:\n- Keep only durable core needed for reentry stability.\n- identity_nonnegotiables: use established facts only. Prefer names, titles, duties, vows, losses, and important attachments.\n- signature_addressing: stable forms of address only.\n- reentry_anchors: 1-4 concise recall items.\n- actor_rule: 1-2 short operational reminders. Do not duplicate full persona analysis.",
           "retention_enabled": false,
           "retention_after": 0,
-          "retention_keep": 0
+          "retention_keep": 0,
+          "vector_trigger_enabled": false,
+          "vector_basis": "round_compare",
+          "vector_threshold": 0.6,
+          "vector_fallback_turns": 10,
+          "vector_semantic_input": ""
         },
         {
           "lorebook_name": "ra_reentry_guard",
@@ -1566,7 +1664,12 @@
           "output_format": "{\n  \"ra_reentry_guard\": {\n    \"characters\": {\n      \"CharName\": {\n        \"returning\": false,\n        \"restore_now\": [\"<anchor to reactivate now>\"],\n        \"do_not_introduce\": [\"<unsupported new preference or trait>\"]\n      }\n    }\n  }\n}\nFIELD RULES:\n- Use this to restore what the actor may miss because it only sees the latest 5 rounds.\n- Include only characters relevant to current or likely near-future reentry. {} if none.\n- returning: true only when the character is re-entering now or a return is the obvious next continuity need.\n- restore_now: draw from ra_turning_point_log, ra_persistent_memory, and ra_character_core.\n- do_not_introduce: list unsupported new traits, nicknames, favorite foods, or rewritten motives the model should avoid inventing.\nOUTPUT: Combine all schemas into one JSON object: {\"ra_arc_memory\": {...}, \"ra_persistent_memory\": {...}, \"ra_reentry_guard\": {...}}. Single line, no markdown fences, no explanation.\nAPPEND NOTE for ra_arc_memory: Write only the new arc entry for this batch. Do not reproduce prior entries.",
           "retention_enabled": false,
           "retention_after": 0,
-          "retention_keep": 0
+          "retention_keep": 0,
+          "vector_trigger_enabled": false,
+          "vector_basis": "round_compare",
+          "vector_threshold": 0.6,
+          "vector_fallback_turns": 10,
+          "vector_semantic_input": ""
         }
       ]
     },
@@ -1583,10 +1686,15 @@
           "lorebook_name": "ra_world_encyclopedia",
           "write_mode": "overwrite",
           "always_active": false,
-          "output_format": "CALL ROLE: Merge durable world facts into stable reference memory.\n{\n  \"ra_world_encyclopedia\": {\n    \"geography\": [\n      {\n        \"name\": \"<place>\",\n        \"description\": \"<compact description>\",\n        \"current_relevance\": \"<why it matters now>\"\n      }\n    ],\n    \"npcs\": [\n      {\n        \"name\": \"<NPC>\",\n        \"role\": \"<role in story>\",\n        \"status\": \"<alive/dead/unknown + condition>\",\n        \"notes\": \"<profile + latest durable change>\"\n      }\n    ],\n    \"factions\": [\n      {\n        \"name\": \"<faction>\",\n        \"description\": \"<purpose>\",\n        \"relations\": \"<stance toward player/others>\"\n      }\n    ],\n    \"lore\": [\n      {\n        \"topic\": \"<subject>\",\n        \"detail\": \"<compact durable fact>\"\n      }\n    ]\n  }\n}\nFIELD RULES:\n- Use prior encyclopedia as baseline. Add only durable, stable facts. Remove clear duplicates.\n- Do not write short-term scene noise into the encyclopedia.\n- Keep entries reference-oriented, not prose-heavy.\nOUTPUT: Single valid JSON: {\"ra_world_encyclopedia\": {...}}. Single line, no markdown fences, no explanation.",
+          "output_format": "CALL ROLE: Merge durable world facts into stable reference memory.\n{\n  \"ra_world_encyclopedia\": {\n    \"geography\": [\"<Place: description. why it matters>\"],\n    \"npcs\": [\"<Name (role, status): profile note>\"],\n    \"factions\": [\"<Faction: purpose. stance toward player/others>\"],\n    \"lore\": [\"<Topic: compact durable fact>\"]\n  }\n}\nFIELD RULES:\n- Use prior encyclopedia as baseline. Add only durable, stable facts. Remove clear duplicates.\n- Do not write short-term scene noise. Keep entries reference-oriented.\n- Each category: one string per entry. [] if empty.\nOUTPUT: Single valid JSON: {\"ra_world_encyclopedia\": {...}}. Single line, no markdown fences, no explanation.",
           "retention_enabled": false,
           "retention_after": 0,
-          "retention_keep": 0
+          "retention_keep": 0,
+          "vector_trigger_enabled": false,
+          "vector_basis": "round_compare",
+          "vector_threshold": 0.6,
+          "vector_fallback_turns": 10,
+          "vector_semantic_input": ""
         }
       ]
     }
@@ -1604,105 +1712,150 @@
         {
           "lorebook_name": "ra_turn_trace",
           "write_mode": "append",
-          "always_active": true,
+          "always_active": false,
           "output_format": "CALL ROLE: Read recent dialogue and listed memory, then write the current scene continuity layers.\n{\n  \"ra_turn_trace\": {\n    \"scene_context\": \"<location + immediate situation, short phrase>\",\n    \"time_anchor\": \"<explicit in-story time | null>\",\n    \"elapsed_since_prev\": \"<same moment | +10m | +1h | +1d | unspecified>\",\n    \"user_move\": \"<main player action, <=12 words>\",\n    \"narrative_event\": \"<story result, <=15 words>\",\n    \"user_scene_change\": false,\n    \"shift\": \"<tone/stakes change, <=8 words | null>\"\n  }\n}\nFIELD RULES:\n- Keep all strings short. Keywords preferred over full sentences.\n- user_scene_change: true only when player explicitly moves to a new location or skips significant time.\n- shift: null if tone and stakes are unchanged.",
           "retention_enabled": true,
           "retention_after": 10,
-          "retention_keep": 1
+          "retention_keep": 1,
+          "vector_trigger_enabled": false,
+          "vector_basis": "round_compare",
+          "vector_threshold": 0.6,
+          "vector_fallback_turns": 10,
+          "vector_semantic_input": ""
         },
         {
           "lorebook_name": "ra_scene_state",
           "write_mode": "append",
-          "always_active": true,
-          "output_format": "{\n  \"ra_scene_state\": {\n    \"scene_type\": \"<casual|conflict|transition|recovery|social|tense>\",\n    \"location\": \"<place + one atmospheric detail, <=10 words>\",\n    \"player_state\": \"<condition + key items, <=15 words>\",\n    \"npcs\": [\n      {\n        \"name\": \"<NPC name>\",\n        \"physical_state\": \"<appearance or position, <=12 words>\",\n        \"internal_state\": \"<true motive/feeling, <=12 words>\",\n        \"relation_to_player\": \"<current stance, <=10 words | null>\"\n      }\n    ]\n  }\n}\nFIELD RULES:\n- Remove departed NPCs. Add newly arrived ones. npcs: [] if none present.\n- internal_state: true motives even if hidden from the player.\n- Keywords only, no full sentences.",
+          "always_active": false,
+          "output_format": "{\n  \"ra_scene_state\": {\n    \"scene_type\": \"<casual|conflict|transition|recovery|social|tense>\",\n    \"location\": \"<place + one detail, <=10 words>\",\n    \"player_state\": \"<condition + key items, <=15 words>\",\n    \"npcs\": [\"<Name: posture. true motive. stance toward player>\"]\n  }\n}\nFIELD RULES:\n- npcs: one string per NPC. Format \"Name: physical. motive. stance.\" <=18 words. [] if none.\n- True motives even if hidden. Keywords only.",
           "retention_enabled": true,
           "retention_after": 10,
-          "retention_keep": 1
+          "retention_keep": 1,
+          "vector_trigger_enabled": false,
+          "vector_basis": "round_compare",
+          "vector_threshold": 0.6,
+          "vector_fallback_turns": 10,
+          "vector_semantic_input": ""
         },
         {
           "lorebook_name": "ra_inventory",
           "write_mode": "overwrite",
           "always_active": true,
-          "output_format": "{\n  \"ra_inventory\": {\n    \"user\": [\"<held items, clothing, or active equipment>\"],\n    \"npcs\": [\n      {\n        \"name\": \"<NPC name>\",\n        \"inventory\": [\"<held items, clothing, or active equipment>\"]\n      }\n    ]\n  }\n}\nFIELD RULES:\n- Track current clothing and held items. Copy from previous turns if unchanged. Add newly acquired items; remove dropped ones.",
+          "output_format": "{\n  \"ra_inventory\": {\n    \"user\": [\"<item or clothing>\"],\n    \"npcs\": [\"<Name: item, clothing>\"]\n  }\n}\nFIELD RULES:\n- user: list held items/clothing. npcs: one string per NPC, format \"Name: item, clothing.\" [] if none.\n- Copy unchanged. Add acquired; remove dropped.",
           "retention_enabled": true,
           "retention_after": 0,
-          "retention_keep": 0
+          "retention_keep": 0,
+          "vector_trigger_enabled": true,
+          "vector_basis": "semantic_input",
+          "vector_threshold": 0.57,
+          "vector_fallback_turns": 6,
+          "vector_semantic_input": "items equipment clothing outfit weapon possession exchange gift take drop wear remove supplies"
         },
         {
           "lorebook_name": "ra_director",
           "write_mode": "overwrite",
           "always_active": true,
-          "output_format": "{\n  \"ra_director\": {\n    \"staleness_level\": 0,\n    \"environment_intervention\": null\n  }\n}\nFIELD RULES:\n- Compare this turn's content with the previous turn.\n- staleness_level: 0 (completely different scene/action) to 10 (nearly identical).\n- environment_intervention: a soft, open-ended directional suggestion for the narrating LLM. Keep to one concise sentence framed as a possibility. staleness_level >= 5 = suggest a mild shift; staleness_level >= 8: suggest a stronger narrative pivot. (e.g., a character shifts approach or reveals something new | the focus migrates to an unexplored detail of the current scene | an internal tension surfaces that reframes the interaction.) null otherwise.\nOUTPUT: Combine all schemas into one JSON object: {\"ra_turn_trace\": {...}, \"ra_scene_state\": {...}, \"ra_inventory\": {...}, \"ra_director\": {...}}. Single line, no markdown fences, no explanation.",
+          "output_format": "{\n  \"ra_director\": {\n    \"staleness_level\": 0,\n    \"environment_intervention\": null\n  }\n}\nFIELD RULES:\n- Compare this turn's content with the previous turn.\n- staleness_level: 0 (completely different scene/action) to 10 (nearly identical).\n- environment_intervention: a soft, open-ended directional suggestion for the narrating LLM. Keep to one concise sentence framed as a possibility. staleness_level >= 5 = suggest a mild shift; staleness_level >= 8: suggest a stronger narrative pivot. (e.g., a character shifts approach or reveals something new | the focus migrates to an unexplored detail of the current scene | an internal tension surfaces that reframes the interaction.) null otherwise.\nOUTPUT: Combine all schemas into one JSON object. Single line, no markdown fences, no explanation.",
           "retention_enabled": true,
           "retention_after": 0,
-          "retention_keep": 0
+          "retention_keep": 0,
+          "vector_trigger_enabled": false,
+          "vector_basis": "round_compare",
+          "vector_threshold": 0.6,
+          "vector_fallback_turns": 10,
+          "vector_semantic_input": ""
         }
       ]
     },
     {
       "id": "call_knowledge_logic",
-      "name": "Knowledge & Logic",
+      "name": "Knowledge",
       "target_model": "B",
       "every_n_turns": 1,
-      "read_dialogue_rounds": 3,
-      "read_lorebook_names": "ra_knowledge_matrix, ra_logic_state, ra_quest_log",
+      "read_dialogue_rounds": 5,
+      "read_lorebook_names": "ra_knowledge_matrix, ra_relation_web, ra_knowledge_matrix,ra_knowledge_annotations, ra_quest_log",
       "read_persona_names": "",
       "entries": [
         {
           "lorebook_name": "ra_knowledge_matrix",
           "write_mode": "overwrite",
           "always_active": true,
-          "output_format": "CALL ROLE: Track actionable knowledge, enforce continuity, and keep active threads usable after older chat scrolls away. Reference T-1 ra_logic_state as baseline for recurring violations.\n{\n  \"ra_knowledge_matrix\": {\n    \"changed_ids\": [],\n    \"entries\": [\n      {\n        \"id\": \"K001\",\n        \"subject\": \"<fact or secret, <=15 words>\",\n        \"true_answer\": \"<actual truth, <=15 words>\",\n        \"knowers\": [\"<name>\"],\n        \"unknown_to\": [\"<name>\"],\n        \"public_status\": \"<public|secret>\",\n        \"stability\": \"<locked|fragile>\"\n      }\n    ]\n  }\n}\nFIELD RULES:\n- Copy prior entries as baseline. changed_ids: list only IDs updated this turn.\n- stability: locked = established fact unlikely to change; fragile = could be revealed or altered soon.\n- Track only facts with active narrative consequence. Omit trivial scene details.\n- Remove entries that are fully resolved or publicly known. They belong to long-term memory now, not the active matrix.\n- [] for empty arrays.",
+          "output_format": "CALL ROLE: Track actionable knowledge, enforce continuity.\n{\n  \"ra_knowledge_matrix\": {\n    \"changed_ids\": [],\n    \"entries\": [\n      {\n        \"id\": \"K001\",\n        \"subject\": \"<fact or secret, <=15 words>\",\n        \"true_answer\": \"<actual truth, <=15 words>\",\n        \"knowers\": [\"<name>\"],\n        \"unknown_to\": [\"<name>\"],\n        \"public_status\": \"<public|secret>\",\n        \"stability\": \"<locked|fragile>\"\n      }\n    ]\n  }\n}\nFIELD RULES:\n- Copy prior entries as baseline. changed_ids: list only IDs updated this turn.\n- stability: locked = established fact unlikely to change; fragile = could be revealed or altered soon.\n- Track only facts with active narrative consequence. Omit trivial scene details.\n- Remove entries that are fully resolved or publicly known. They belong to long-term memory now, not the active matrix.\n- [] for empty arrays.\nOUTPUT: schema into one JSON object. Single line, no markdown fences, no explanation.",
           "retention_enabled": true,
           "retention_after": 0,
-          "retention_keep": 0
-        },
-        {
-          "lorebook_name": "ra_logic_state",
-          "write_mode": "overwrite",
-          "always_active": true,
-          "output_format": "{\n  \"ra_logic_state\": {\n    \"logic_violation\": \"<describe contradiction | null>\",\n    \"strict_directive\": \"<Proceed normally | Reject the user action and narrate failure | Show cognitive friction: character hesitates or struggles>\"\n  }\n}\nFIELD RULES:\n- Check if there have any logic error in these turns.\n- Violation found: describe it concisely; set strict_directive to the appropriate enforcement value.\n- No violation: logic_violation: null; strict_directive: \"Proceed normally\".\n- T-1 ra_logic_state is provided as context; note if this turn repeats or resolves a prior violation.",
-          "retention_enabled": true,
-          "retention_after": 0,
-          "retention_keep": 0
-        },
-        {
-          "lorebook_name": "ra_quest_log",
-          "write_mode": "overwrite",
-          "always_active": true,
-          "output_format": "{\n  \"ra_quest_log\": {\n    \"active_threads\": [\n      {\n        \"id\": 1,\n        \"desc\": \"<quest or conflict, <=15 words>\",\n        \"weight\": \"<critical|high|medium|low>\",\n        \"status\": \"<active|progressed|stalled|nearly_resolved>\",\n        \"next_step\": \"<most likely next logical move, <=12 words>\",\n        \"related_npcs\": [\"<name>\"],\n        \"requires_absent\": \"<CharName not in scene but needed by next_step | null>\"\n      }\n    ],\n    \"resolved_this_turn\": [\n      {\n        \"id\": 1,\n        \"closure_reason\": \"<why resolved, <=12 words>\",\n        \"consequence\": \"<lasting change, <=12 words>\"\n      }\n    ]\n  }\n}\nFIELD RULES:\n- Keep active_threads readable even after dialogue older than the latest 5 rounds drops out.\n- Copy previous active_threads as baseline. Update changed fields only.\n- requires_absent: non-null only when next_step logically depends on a character not currently in scene.\n- New threads: id = max existing id + 1. Completed: move to resolved_this_turn.\n- [] for empty lists.\nOUTPUT: Combine all schemas into one JSON object: {\"ra_knowledge_matrix\": {...}, \"ra_logic_state\": {...}, \"ra_quest_log\": {...}}. Single line, no markdown fences, no explanation.",
-          "retention_enabled": true,
-          "retention_after": 0,
-          "retention_keep": 0
-        }
-      ]
-    },
-    {
-      "id": "call_pattern_and_state",
-      "name": "Pattern & State",
-      "target_model": "B",
-      "every_n_turns": 2,
-      "read_dialogue_rounds": 3,
-      "read_lorebook_names": "ra_relation_web, ra_knowledge_matrix, ra_response_guard",
-      "read_persona_names": "",
-      "entries": [
-        {
-          "lorebook_name": "ra_pattern_guard",
-          "write_mode": "overwrite",
-          "always_active": true,
-          "output_format": "CALL ROLE: Summarize repetition pressure, concealment, knowledge for this phase.\n{\n  \"ra_pattern_guard\": {\n    \"expression_repetition\": 0,\n    \"flagged_cliches\": [\"<overused descriptive/reactive pattern>\"],\n    \"banned_phrases\": [\"<exact phrase appearing 2+ times in recent assistant replies>\"],\n    \"variation_hint\": \"<one short suggestion targeting prose style, vocabulary, or character reaction variety — must not suggest scene/plot changes | null>\"\n  }\n}\nFIELD RULES:\n- Scope: prose style, vocabulary, character reaction patterns, descriptive tropes. Scene-level pacing is handled by ra_director; do NOT overlap.\n- expression_repetition: 0 (fully varied expression) to 10 (identical descriptive/reactive loops). Evaluate across the last 3 assistant replies.\n- flagged_cliches: up to 3 overused descriptive or reactive patterns (e.g. identical body-language sequences, recycled metaphors, formulaic emotional beats). Exclude scene-level pacing issues. [] if none.\n- banned_phrases: exact phrases or near-identical constructions appearing 2+ times in the last 3 assistant replies. [] if none.\n- variation_hint: null if expression_repetition < 4. Otherwise one concise suggestion for prose/reaction variety.",
-          "retention_enabled": true,
-          "retention_after": 0,
-          "retention_keep": 0
+          "retention_keep": 0,
+          "vector_trigger_enabled": true,
+          "vector_basis": "semantic_input",
+          "vector_threshold": 0.59,
+          "vector_fallback_turns": 3,
+          "vector_semantic_input": "secret truth reveal clue evidence witness alibi hidden motive rumor blackmail leverage exposed suspicion information"
         },
         {
           "lorebook_name": "ra_knowledge_annotations",
           "write_mode": "overwrite",
           "always_active": false,
-          "output_format": "{\n  \"ra_knowledge_annotations\": {\n    \"entries\": [\n      {\n        \"id\": \"K001\",\n        \"annotation\": \"<implication or risk this knowledge creates, <=20 words>\",\n        \"exploit_risk\": \"<who might weaponize this and how | null>\"\n      }\n    ]\n  }\n}\nFIELD RULES:\n- Only annotate ra_knowledge_matrix entries with active narrative consequence.\n- entries: [] if no entries warrant annotation.\nOUTPUT: Combine all schemas into one JSON object: {\"ra_pattern_guard\": {...}, \"ra_knowledge_annotations\": {...}}. Single line, no markdown fences, no explanation.",
+          "output_format": "CALL ROLE: Track actionable knowledge, enforce continuity.\n{\n  \"ra_knowledge_annotations\": {\n    \"entries\": [\"<K001: implication/risk. exploit_risk or null>\"]\n  }\n}\nFIELD RULES:\n- One string per entry. Format \"Kxxx: annotation. exploit_risk or null.\"\n- Only entries with active narrative consequence. [] if none.\nOUTPUT: schema into one JSON object. Single line, no markdown fences, no explanation.",
+          "retention_enabled": true,
+          "retention_after": 0,
+          "retention_keep": 0,
+          "vector_trigger_enabled": true,
+          "vector_basis": "semantic_input",
+          "vector_threshold": 0.56,
+          "vector_fallback_turns": 4,
+          "vector_semantic_input": "secret truth reveal clue evidence witness alibi hidden motive rumor blackmail leverage exposed suspicion information"
+        },
+        {
+          "lorebook_name": "ra_quest_log",
+          "write_mode": "overwrite",
+          "always_active": true,
+          "output_format": "CALL ROLE: Track actionable quest, enforce continuity\n{\n  \"ra_quest_log\": {\n    \"active_threads\": [\n      {\n        \"id\": 1,\n        \"desc\": \"<quest or conflict, <=15 words>\",\n        \"weight\": \"<critical|high|medium|low>\",\n        \"status\": \"<active|progressed|stalled|nearly_resolved>\",\n        \"next_step\": \"<most likely next logical move, <=12 words>\",\n        \"related_npcs\": [\"<name>\"],\n        \"requires_absent\": \"<CharName not in scene but needed by next_step | null>\"\n      }\n    ],\n    \"resolved_this_turn\": [\"<id: reason. lasting consequence>\"]\n  }\n}\nFIELD RULES:\n- Keep active_threads readable even after older chat scrolls away.\n- Copy previous active_threads as baseline. Update changed fields only.\n- requires_absent: non-null only when next_step depends on a character not in scene.\n- New threads: id = max existing id + 1. Completed: move to resolved_this_turn as \"id: reason. consequence\".\n- [] for empty lists.\nOUTPUT: schema into one JSON object. Single line, no markdown fences, no explanation.",
+          "retention_enabled": true,
+          "retention_after": 0,
+          "retention_keep": 0,
+          "vector_trigger_enabled": true,
+          "vector_basis": "semantic_input",
+          "vector_threshold": 0.56,
+          "vector_fallback_turns": 4,
+          "vector_semantic_input": "goal objective mission task promise deal conflict tension debt threat clue suspect investigation contract oath plan"
+        }
+      ]
+    },
+    {
+      "id": "call_pattern_and_state",
+      "name": "Logic & Pattern",
+      "target_model": "B",
+      "every_n_turns": 1,
+      "read_dialogue_rounds": 3,
+      "read_lorebook_names": "ra_logic_state, ra_response_guard",
+      "read_persona_names": "",
+      "entries": [
+        {
+          "lorebook_name": "ra_logic_state",
+          "write_mode": "overwrite",
+          "always_active": true,
+          "output_format": "CALL ROLE: Examine logic, summarize repetition pressure, concealment for this phase.\n{\n  \"ra_logic_state\": {\n    \"logic_violation\": \"<describe contradiction | null>\",\n    \"strict_directive\": \"<Proceed normally | Reject the user action and narrate failure | Show cognitive friction: character hesitates or struggles>\"\n  }\n}\nFIELD RULES:\n- Check if there have any logic error in these turns.\n- Violation found: describe it concisely; set strict_directive to the appropriate enforcement value.\n- No violation: logic_violation: null; strict_directive: \"Proceed normally\".\n- T-1 ra_logic_state is provided as context; note if this turn repeats or resolves a prior violation.",
+          "retention_enabled": true,
+          "retention_after": 0,
+          "retention_keep": 0,
+          "vector_trigger_enabled": false,
+          "vector_basis": "round_compare",
+          "vector_threshold": 0.6,
+          "vector_fallback_turns": 10,
+          "vector_semantic_input": ""
+        },
+        {
+          "lorebook_name": "ra_pattern_guard",
+          "write_mode": "overwrite",
+          "always_active": true,
+          "output_format": "{\n  \"ra_pattern_guard\": {\n    \"expression_repetition\": 0,\n    \"flagged_cliches\": [\"<overused descriptive/reactive pattern>\"],\n    \"banned_phrases\": [\"<exact phrase appearing 2+ times in recent assistant replies>\"],\n    \"variation_hint\": \"<one short suggestion targeting prose style, vocabulary, or character reaction variety — must not suggest scene/plot changes | null>\"\n  }\n}\nFIELD RULES:\n- Scope: prose style, vocabulary, character reaction patterns, descriptive tropes. Do not overlap with scene-level pacing or directional narrative guidance handled elsewhere.\n- expression_repetition: 0 (fully varied expression) to 10 (identical descriptive/reactive loops). Evaluate across the last 3 assistant replies.\n- flagged_cliches: up to 3 overused descriptive or reactive patterns (e.g. identical body-language sequences, recycled metaphors, formulaic emotional beats). Exclude scene-level pacing issues. [] if none.\n- banned_phrases: exact phrases or near-identical constructions appearing 2+ times in the last 3 assistant replies. [] if none.\n- variation_hint: null if expression_repetition < 4. Otherwise one concise suggestion for prose/reaction variety.\nOUTPUT: Combine all schemas into one JSON object. Single line, no markdown fences, no explanation.",
           "retention_enabled": false,
           "retention_after": 0,
-          "retention_keep": 0
+          "retention_keep": 5,
+          "vector_trigger_enabled": false,
+          "vector_basis": "round_compare",
+          "vector_threshold": 0.6,
+          "vector_fallback_turns": 10,
+          "vector_semantic_input": ""
         }
       ]
     },
@@ -1716,42 +1869,61 @@
       "read_persona_names": "",
       "entries": [
         {
+          "lorebook_name": "ra_response_guard",
+          "write_mode": "overwrite",
+          "always_active": true,
+          "output_format": "CALL ROLE: reply risks for this phase.\n{\n  \"ra_response_guard\": {\n    \"biggest_ooc_risk\": \"<most likely OOC failure, <=18 words | null>\",\n    \"biggest_logic_risk\": \"<continuity or knowledge failure, <=18 words | null>\",\n    \"biggest_political_risk\": \"<tactical or diplomatic misstep, <=18 words | null>\",\n    \"strict_directive\": \"<Proceed normally | Preserve tension | Do not resolve too quickly | Do not speak for user | Enforce guarded response | Enforce emotional continuity | Preserve ambiguity | Restrict unavailable knowledge | Maintain political caution | Do not reveal mask>\"\n  }\n}\nFIELD RULES:\n- Set each risk field to null if that category presents no meaningful concern this turn.\nOUTPUT: schema into one JSON object. Single line, no markdown fences, no explanation.",
+          "retention_enabled": false,
+          "retention_after": 0,
+          "retention_keep": 0,
+          "vector_trigger_enabled": false,
+          "vector_basis": "semantic_input",
+          "vector_threshold": 0.59,
+          "vector_fallback_turns": 3,
+          "vector_semantic_input": ""
+        },
+        {
           "lorebook_name": "ra_strategy_layer",
           "write_mode": "overwrite",
           "always_active": true,
-          "output_format": "CALL ROLE: Summarize strategy, leverage, and final reply risks for this phase.\n{\n  \"ra_strategy_layer\": {\n    \"player_side_goal\": \"<current strategic goal, <=15 words>\",\n    \"player_side_operations\": [\"<active operation or line of action>\"],\n    \"rival_operations\": [\"<opposing move or pressure>\"],\n    \"immediate_leverage\": [\"<asset|weakness|debt|secret|positional advantage>\"],\n    \"strategic_risk\": \"<main current risk, <=18 words | null>\"\n  }\n}\nFIELD RULES:\n- Focus on active, decision-relevant strategic moves only.\n- TEMPORAL NOTE: Update based on this turn's latest dialogue developments.\n- [] for empty lists. null for absent fields.",
+          "output_format": "CALL ROLE: Summarize strategy, leverage.\n{\n  \"ra_strategy_layer\": {\n    \"player_side_goal\": \"<current strategic goal, <=15 words>\",\n    \"player_side_operations\": [\"<active operation or line of action>\"],\n    \"rival_operations\": [\"<opposing move or pressure>\"],\n    \"immediate_leverage\": [\"<asset|weakness|debt|secret|positional advantage>\"],\n    \"strategic_risk\": \"<main current risk, <=18 words | null>\"\n  }\n}\nFIELD RULES:\n- Focus on active, decision-relevant strategic moves only.\n- TEMPORAL NOTE: Update based on this turn's latest dialogue developments.\n- [] for empty lists. null for absent fields.\nOUTPUT: schema into one JSON object. Single line, no markdown fences, no explanation.",
           "retention_enabled": false,
           "retention_after": 0,
-          "retention_keep": 0
+          "retention_keep": 0,
+          "vector_trigger_enabled": true,
+          "vector_basis": "semantic_input",
+          "vector_threshold": 0.59,
+          "vector_fallback_turns": 3,
+          "vector_semantic_input": "plan leverage negotiation bargain pressure command alliance rivalry hierarchy scheme operation tactic retreat exploit"
         },
         {
           "lorebook_name": "ra_strategy_analysis",
           "write_mode": "overwrite",
           "always_active": false,
-          "output_format": "{\n  \"ra_strategy_analysis\": {\n    \"analyst_strategy_overrides\": {\n      \"CharName\": \"<correction if character behaves inconsistently with known goals | null>\"\n    },\n    \"cognition_violations\": [\n      {\n        \"character\": \"<name>\",\n        \"violation\": \"<how their action contradicts established knowledge or goals>\"\n      }\n    ]\n  }\n}\nFIELD RULES:\n- analyst_strategy_overrides: {} if no corrections needed.\n- cognition_violations: [] if no violations found.\n- Focus on characters acting against their established knowledge (ra_knowledge_matrix) or goals (ra_strategy_layer).",
-          "retention_enabled": false,
-          "retention_after": 0,
-          "retention_keep": 0
-        },
-        {
-          "lorebook_name": "ra_response_guard",
-          "write_mode": "overwrite",
-          "always_active": true,
-          "output_format": "{\n  \"ra_response_guard\": {\n    \"biggest_ooc_risk\": \"<most likely OOC failure, <=18 words | null>\",\n    \"biggest_logic_risk\": \"<continuity or knowledge failure, <=18 words | null>\",\n    \"biggest_political_risk\": \"<tactical or diplomatic misstep, <=18 words | null>\",\n    \"strict_directive\": \"<Proceed normally | Preserve tension | Do not resolve too quickly | Do not speak for user | Enforce guarded response | Enforce emotional continuity | Preserve ambiguity | Restrict unavailable knowledge | Maintain political caution | Do not reveal mask>\"\n  }\n}\nFIELD RULES:\n- Set each risk field to null if that category presents no meaningful concern this turn.",
+          "output_format": "CALL ROLE: Summarize strategy, leverage\n{\n  \"ra_strategy_analysis\": {\n    \"analyst_strategy_overrides\": {\n      \"CharName\": \"<correction if inconsistent with goals | null>\"\n    },\n    \"cognition_violations\": [\"<Name: how action contradicts knowledge or goals>\"]\n  }\n}\nFIELD RULES:\n- analyst_strategy_overrides: {} if no corrections. cognition_violations: [] if none.\n- Focus on characters acting against ra_knowledge_matrix or ra_strategy_layer.\nOUTPUT: schema into one JSON object. Single line, no markdown fences, no explanation.",
           "retention_enabled": true,
           "retention_after": 0,
-          "retention_keep": 0
+          "retention_keep": 0,
+          "vector_trigger_enabled": true,
+          "vector_basis": "semantic_input",
+          "vector_threshold": 0.57,
+          "vector_fallback_turns": 3,
+          "vector_semantic_input": "mistake contradiction bluff probe suspicion exposure weakness overplay manipulation misread negotiation pressure slip"
         },
         {
           "lorebook_name": "ra_relation_web",
           "write_mode": "overwrite",
           "always_active": false,
-          "output_format": "{\n  \"ra_relation_web\": {\n    \"key_edges\": [\n      {\n        \"a\": \"<actor A>\",\n        \"b\": \"<actor B>\",\n        \"current_dynamic\": \"<allied|strained|dependent|hostile|suspicious|transactional|deceptive|mixed>\",\n        \"trust_level\": 0,\n        \"imbalance\": \"<A_over_B|B_over_A|balanced|unstable>\",\n        \"recent_shift\": \"<what changed, <=18 words>\"\n      }\n    ],\n    \"most_sensitive_edge\": \"<A-B pair under highest pressure | null>\"\n  }\n}\nRULES:\n- Include only the 3-8 most relevant edges for the current arc.\nOUTPUT: Combine all schemas into one JSON object: {\"ra_strategy_layer\": {...}, \"ra_strategy_analysis\": {...}, \"ra_response_guard\": {...}, \"ra_relation_web\": {...}}. Single line, no markdown fences, no explanation.",
+          "output_format": "CALL ROLE: Summarize relation web\n{\n  \"ra_relation_web\": {\n    \"key_edges\": [\"<A→B: dynamic, trust=N/10, imbalance, recent_shift <=12 words>\"],\n    \"most_sensitive_edge\": \"<A-B pair under highest pressure | null>\"\n  }\n}\nRULES:\n- 3-8 most relevant edges. One string per edge: \"A→B: dynamic, trust=N/10, imbalance, shift.\"\nOUTPUT: schema into one JSON object. Single line, no markdown fences, no explanation.",
           "retention_enabled": false,
           "retention_after": 0,
-          "retention_keep": 0
+          "retention_keep": 0,
+          "vector_trigger_enabled": true,
+          "vector_basis": "semantic_input",
+          "vector_threshold": 0.56,
+          "vector_fallback_turns": 3,
+          "vector_semantic_input": "trust distrust alliance rivalry loyalty obligation debt jealousy intimacy distance dependence resentment affection betrayal reconciliation"
         }
-
       ]
     },
     {
@@ -1766,31 +1938,40 @@
         {
           "lorebook_name": "ra_world_log",
           "write_mode": "append",
-          "always_active": true,
-          "output_format": "CALL ROLE: Record new world facts and canon-locking turning points from this batch of turns.\nTEMPORAL NOTE: You are writing entries for THIS batch of turns.\n{\n  \"ra_world_log\": {\n    \"entries\": [\"<Name. Key fact. <=20 words.\"]\n  }\n}\nFIELD RULES:\n- One string per entry: name first, then the key fact. <=20 words total per entry.\n- Recording anything that helps LLM for future immersive narrating.\n- entries: [] if nothing new.",
+          "always_active": false,
+          "output_format": "CALL ROLE: Record new world facts.\n{\n  \"ra_world_log\": {\n    \"entries\": [\"<Name. Key fact. <=20 words.\"]\n  }\n}\nFIELD RULES:\n- One string per entry: name first, then the key fact. <=20 words total per entry.\n- Recording anything that helps LLM for future immersive narrating.\n- entries: [] if nothing new.",
           "retention_enabled": true,
           "retention_after": 15,
-          "retention_keep": 0
+          "retention_keep": 0,
+          "vector_trigger_enabled": true,
+          "vector_basis": "semantic_input",
+          "vector_threshold": 0.62,
+          "vector_fallback_turns": 0,
+          "vector_semantic_input": "world lore history setting faction culture religion magic city region technology rumor law custom mythology"
         },
         {
           "lorebook_name": "ra_turning_point_log",
           "write_mode": "append",
           "always_active": false,
-          "output_format": "TEMPORAL NOTE: You are writing entries for THIS batch of turns.\n{\n  \"ra_turning_point_log\": {\n    \"entries\": [\n      {\n        \"turning_point_detected\": \"<true|false>\",\n        \"event\": \"<concise event or line | null>\",\n        \"affected_characters\": [\"<CharName or role>\"],\n        \"what_must_still_remain_true\": [\"<canon fact that must not be denied later>\"],\n        \"carry_forward_details\": [\"<concrete reminder for future scenes>\"],\n        \"inventory_updates\": [\"<description of clothing changes or important obtained items>\"],\n        \"reentry_hook\": \"<how this should reactivate on return | null>\"\n      }\n    ]\n  }\n}\nFIELD RULES:\n- entries: [] if nothing needs preserving.\n- Record only changes future scenes must restore: promises, losses, reveals, stance shifts, named objects, burdens, address changes, or other canon-locking details.\n- Keep carry_forward_details to 2-4 short items per entry.\n- inventory_updates: Log item acquisitions and explicit clothing changes that future scenes must remember.\nOUTPUT: Combine all schemas into one JSON object: {\"ra_world_log\": {...}, \"ra_turning_point_log\": {...}}. Single line, no markdown fences, no explanation.",
+          "output_format": "CALL ROLE: Record canon-locking turning points.\n{\n  \"ra_turning_point_log\": {\n    \"entries\": [\n      {\n        \"turning_point_detected\": \"<true|false>\",\n        \"event\": \"<concise event or line | null>\",\n        \"affected_characters\": [\"<CharName or role>\"],\n        \"what_must_still_remain_true\": [\"<canon fact that must not be denied later>\"],\n        \"carry_forward_details\": [\"<concrete reminder for future scenes>\"],\n        \"inventory_updates\": [\"<description of clothing changes or important obtained items>\"],\n        \"reentry_hook\": \"<how this should reactivate on return | null>\"\n      }\n    ]\n  }\n}\nFIELD RULES:\n- entries: [] if nothing needs preserving.\n- Record only changes future scenes must restore: promises, losses, reveals, stance shifts, named objects, burdens, address changes, or other canon-locking details.\n- Keep carry_forward_details to 2-4 short items per entry.\n- inventory_updates: Log item acquisitions and explicit clothing changes that future scenes must remember.\nOUTPUT: Combine all schemas into one JSON object: {\"ra_world_log\": {...}, \"ra_turning_point_log\": {...}}. Single line, no markdown fences, no explanation.",
           "retention_enabled": true,
           "retention_after": 40,
-          "retention_keep": 6
+          "retention_keep": 6,
+          "vector_trigger_enabled": true,
+          "vector_basis": "semantic_input",
+          "vector_threshold": 0.57,
+          "vector_fallback_turns": 0,
+          "vector_semantic_input": "promise oath confession reveal betrayal discovery loss gain injury title nickname gift vow turning point rupture reconciliation stance shift burden"
         }
       ]
     },
-
     {
       "id": "call_longterm",
       "name": "Longterm",
       "target_model": "A",
       "every_n_turns": 10,
       "read_dialogue_rounds": 1,
-      "read_lorebook_names": "ra_arc_memory, ra_turn_trace, ra_quest_log, ra_scene_state, ra_turning_point_log, ra_persistent_memory",
+      "read_lorebook_names": "ra_arc_memory, ra_turn_trace, ra_quest_log, ra_scene_state, ra_turning_point_log, ra_world_log, ra_persistent_memory",
       "read_persona_names": "",
       "entries": [
         {
@@ -1800,7 +1981,12 @@
           "output_format": "CALL ROLE: Consolidate long-term memory, reentry anchors, and resolved archives.\n{\n  \"ra_arc_memory\": {\n    \"phase_shift_detected\": \"<true|false>\",\n    \"arc_phase\": \"<setup|escalation|rupture|negotiation|resolution|aftermath | null>\",\n    \"turning_point\": \"<exact line/action or concise event | null>\",\n    \"phase_change\": \"<how this stretch changed the story | null>\",\n    \"lasting_effect\": \"<durable consequence | null>\"\n  }\n}\nFIELD RULES:\n- Set phase_shift_detected \"true\" ONLY when a genuine arc phase shift or clear turning point occurred in recent turns.\n- If \"false\": set all other fields to null. Still append; treat as a no-op record.\n- If \"true\": fill all fields. Check ra_world_log for a key moment to anchor turning_point.",
           "retention_enabled": true,
           "retention_after": 50,
-          "retention_keep": 10
+          "retention_keep": 10,
+          "vector_trigger_enabled": false,
+          "vector_basis": "round_compare",
+          "vector_threshold": 0.57,
+          "vector_fallback_turns": 6,
+          "vector_semantic_input": ""
         },
         {
           "lorebook_name": "ra_persistent_memory",
@@ -1809,16 +1995,26 @@
           "output_format": "{\n  \"ra_persistent_memory\": {\n    \"CharName\": {\n      \"identity_nonnegotiables\": [\"<name, title, fact, promise, or attachment that must remain true>\"],\n      \"signature_addressing\": [\"<stable naming or honorific habit>\"],\n      \"reentry_anchors\": [\"<what must be restored on return>\"],\n      \"actor_rule\": [\"<1 short portrayal reminder>\"]\n    }\n  }\n}\nFIELD RULES:\n- This is the carry-forward layer for anything the actor still needs after only seeing the latest 5 rounds.\n- Keep only durable core needed for reentry stability.\n- Do not encode affection levels, trust progression, temporary moods, or user-specific attitude states.\n- identity_nonnegotiables: use established facts only. Prefer names, titles, duties, vows, losses, and important attachments.\n- signature_addressing: stable forms of address only.\n- reentry_anchors: 1-4 concise recall items.\n- actor_rule: 1-2 short operational reminders. Do not duplicate full persona analysis.",
           "retention_enabled": false,
           "retention_after": 0,
-          "retention_keep": 0
+          "retention_keep": 0,
+          "vector_trigger_enabled": false,
+          "vector_basis": "round_compare",
+          "vector_threshold": 0.57,
+          "vector_fallback_turns": 6,
+          "vector_semantic_input": ""
         },
         {
           "lorebook_name": "ra_reentry_guard",
           "write_mode": "overwrite",
           "always_active": true,
-          "output_format": "{\n  \"ra_reentry_guard\": {\n    \"characters\": {\n      \"CharName\": {\n        \"returning\": false,\n        \"restore_now\": [\"<anchor to reactivate now>\"],\n        \"do_not_introduce\": [\"<unsupported new preference or trait>\"]\n      }\n    }\n  }\n}\nFIELD RULES:\n- Use this to restore what the actor may miss because it only sees the latest 5 rounds.\n- Include only characters relevant to current or likely near-future reentry. {} if none.\n- returning: true only when the character is re-entering now or a return is the obvious next continuity need.\n- restore_now: draw from ra_turning_point_log, ra_persistent_memory, and ra_character_core.\n- do_not_introduce: list unsupported new traits, nicknames, favorite foods, or rewritten motives the model should avoid inventing.\nOUTPUT: Combine all schemas into one JSON object: {\"ra_arc_memory\": {...}, \"ra_persistent_memory\": {...}, \"ra_reentry_guard\": {...}. Single line, no markdown fences, no explanation.\nAPPEND NOTE for ra_arc_memory: Write only the new arc entry for this batch. Do not reproduce prior entries.",
+          "output_format": "{\n  \"ra_reentry_guard\": {\n    \"characters\": {\n      \"CharName\": {\n        \"returning\": false,\n        \"restore_now\": [\"<anchor to reactivate now>\"],\n        \"do_not_introduce\": [\"<unsupported new preference or trait>\"]\n      }\n    }\n  }\n}\nFIELD RULES:\n- Use this to restore what the actor may miss because it only sees the latest 5 rounds.\n- Include only characters relevant to current or likely near-future reentry. {} if none.\n- returning: true only when the character is re-entering now or a return is the obvious next continuity need.\n- restore_now: draw from ra_turning_point_log and ra_persistent_memory.\n- do_not_introduce: list unsupported new traits, nicknames, favorite foods, or rewritten motives the model should avoid inventing.\nOUTPUT: Combine all schemas into one JSON object: {\"ra_arc_memory\": {...}, \"ra_persistent_memory\": {...}, \"ra_reentry_guard\": {...}. Single line, no markdown fences, no explanation.\nAPPEND NOTE for ra_arc_memory: Write only the new arc entry for this batch. Do not reproduce prior entries.",
           "retention_enabled": false,
           "retention_after": 0,
-          "retention_keep": 0
+          "retention_keep": 0,
+          "vector_trigger_enabled": false,
+          "vector_basis": "round_compare",
+          "vector_threshold": 0.57,
+          "vector_fallback_turns": 6,
+          "vector_semantic_input": ""
         }
       ]
     },
@@ -1835,10 +2031,15 @@
           "lorebook_name": "ra_world_encyclopedia",
           "write_mode": "overwrite",
           "always_active": false,
-          "output_format": "CALL ROLE: Merge durable world facts into stable reference memory.\n{\n  \"ra_world_encyclopedia\": {\n    \"geography\": [\n      {\n        \"name\": \"<place>\",\n        \"description\": \"<compact description>\",\n        \"current_relevance\": \"<why it matters now>\"\n      }\n    ],\n    \"npcs\": [\n      {\n        \"name\": \"<NPC>\",\n        \"role\": \"<role in story>\",\n        \"status\": \"<alive/dead/unknown + condition>\",\n        \"notes\": \"<profile + latest durable change>\"\n      }\n    ],\n    \"factions\": [\n      {\n        \"name\": \"<faction>\",\n        \"description\": \"<purpose>\",\n        \"relations\": \"<stance toward player/others>\"\n      }\n    ],\n    \"lore\": [\n      {\n        \"topic\": \"<subject>\",\n        \"detail\": \"<compact durable fact>\"\n      }\n    ]\n  }\n}\nFIELD RULES:\n- Use prior encyclopedia as baseline. Add only durable, stable facts. Remove clear duplicates.\n- Do not write short-term scene noise into the encyclopedia.\n- Keep entries reference-oriented, not prose-heavy.\nOUTPUT: Single valid JSON: {\"ra_world_encyclopedia\": {...}}. Single line, no markdown fences, no explanation.",
+          "output_format": "CALL ROLE: Merge durable world facts into stable reference memory.\n{\n  \"ra_world_encyclopedia\": {\n    \"geography\": [\"<Place: description. why it matters>\"],\n    \"npcs\": [\"<Name (role, status): profile note>\"],\n    \"factions\": [\"<Faction: purpose. stance toward player/others>\"],\n    \"lore\": [\"<Topic: compact durable fact>\"]\n  }\n}\nFIELD RULES:\n- Use prior encyclopedia as baseline. Add only durable, stable facts. Remove clear duplicates.\n- Do not write short-term scene noise. Keep entries reference-oriented.\n- Each category: one string per entry. [] if empty.\nOUTPUT: Single valid JSON: {\"ra_world_encyclopedia\": {...}}. Single line, no markdown fences, no explanation.",
           "retention_enabled": false,
           "retention_after": 0,
-          "retention_keep": 0
+          "retention_keep": 0,
+          "vector_trigger_enabled": false,
+          "vector_basis": "round_compare",
+          "vector_threshold": 0.57,
+          "vector_fallback_turns": 10,
+          "vector_semantic_input": ""
         }
       ]
     }
@@ -1850,44 +2051,64 @@
       "target_model": "B",
       "every_n_turns": 1,
       "read_dialogue_rounds": 2,
-      "read_lorebook_names": "ra_inventory",
+      "read_lorebook_names": "ra_turn_trace, ra_scene_state, ra_inventory",
       "read_persona_names": "ra_character_core",
       "entries": [
         {
           "lorebook_name": "ra_turn_trace",
           "write_mode": "append",
-          "always_active": true,
+          "always_active": false,
           "output_format": "CALL ROLE: Read recent dialogue and listed memory, then write the current scene continuity layers.\n{\n  \"ra_turn_trace\": {\n    \"scene_context\": \"<location + current tension, short phrase>\",\n    \"time_anchor\": \"<explicit in-story time | null>\",\n    \"elapsed_since_prev\": \"<same moment | +10m | +1h | +1d | unspecified>\",\n    \"user_move\": \"<main player action or line, <=12 words>\",\n    \"character_reaction\": \"<main character response, <=15 words>\",\n    \"shift_in_dynamic\": \"<relationship or tension change | null>\"\n  }\n}\nFIELD RULES:\n- Keep every field short. Prefer action/result phrasing over interpretation.\n- scene_context should remain meaningful if retrieved much later.\n- Capture only the single most important move and reaction from THIS turn.\n- shift_in_dynamic: null if nothing meaningfully changed.",
           "retention_enabled": true,
           "retention_after": 10,
-          "retention_keep": 1
+          "retention_keep": 1,
+          "vector_trigger_enabled": false,
+          "vector_basis": "round_compare",
+          "vector_threshold": 0.6,
+          "vector_fallback_turns": 10,
+          "vector_semantic_input": ""
         },
         {
           "lorebook_name": "ra_scene_state",
           "write_mode": "append",
-          "always_active": true,
+          "always_active": false,
           "output_format": "{\n  \"ra_scene_state\": {\n    \"scene_type\": \"<casual|emotional|conflict|recovery|transition|intimate|combat|debrief|ceremony|political>\",\n    \"stakes_level\": 0,\n    \"characters\": {\n      \"CharName\": {\n        \"current_emotion\": \"<dominant feeling>\",\n        \"surface_expression\": \"<outward presentation, observable only>\",\n        \"hidden_drive\": \"<best-supported inference | null>\",\n        \"drive_confidence\": \"<low|medium|high>\",\n        \"vulnerability_level\": 0,\n        \"approach_tendency\": \"<lean_in|hold_back|test|defend|evade>\"\n      }\n    }\n  }\n}\nFIELD RULES:\n- Include only characters currently active in scene. Prior to use names from ra_character_core.\n- scene_type: single best-fit label. Prefer specific over generic.\n- surface_expression: observable behavior only. No internal projection.\n- hidden_drive: supported inference only. drive_confidence reflects evidence strength.\n- If uncertain, stay conservative. Short phrases only.",
           "retention_enabled": true,
           "retention_after": 10,
-          "retention_keep": 1
+          "retention_keep": 1,
+          "vector_trigger_enabled": false,
+          "vector_basis": "round_compare",
+          "vector_threshold": 0.6,
+          "vector_fallback_turns": 10,
+          "vector_semantic_input": ""
         },
         {
           "lorebook_name": "ra_inventory",
           "write_mode": "overwrite",
           "always_active": true,
-          "output_format": "{\n  \"ra_inventory\": {\n    \"user\": [\"<held items, clothing, or active equipment>\"],\n    \"npcs\": [\n      {\n        \"name\": \"<NPC name>\",\n        \"inventory\": [\"<held items, clothing, or active equipment>\"]\n      }\n    ]\n  }\n}\nFIELD RULES:\n- Track current clothing and held items. Copy from previous turns if unchanged. Add newly acquired items; remove dropped ones.",
+          "output_format": "{\n  \"ra_inventory\": {\n    \"user\": [\"<item or clothing>\"],\n    \"npcs\": [\"<Name: item, clothing>\"]\n  }\n}\nFIELD RULES:\n- user: list held items/clothing. npcs: one string per NPC, format \"Name: item, clothing.\" [] if none.\n- Copy unchanged. Add acquired; remove dropped.",
           "retention_enabled": true,
           "retention_after": 0,
-          "retention_keep": 0
+          "retention_keep": 0,
+          "vector_trigger_enabled": true,
+          "vector_basis": "semantic_input",
+          "vector_threshold": 0.57,
+          "vector_fallback_turns": 6,
+          "vector_semantic_input": "items equipment clothing outfit weapon possession exchange gift take drop wear remove supplies"
         },
         {
           "lorebook_name": "ra_director",
           "write_mode": "overwrite",
           "always_active": true,
-          "output_format": "{\n  \"ra_director\": {\n    \"staleness_level\": 0,\n    \"environment_intervention\": null\n  }\n}\nFIELD RULES:\n- Compare this turn's content with the previous turn.\n- staleness_level: 0 (completely different scene/action) to 10 (nearly identical).\n- environment_intervention: a soft, open-ended directional suggestion for the narrating LLM. Keep to one concise sentence framed as a possibility. staleness_level >= 5 = suggest a mild shift; staleness_level >= 8: suggest a stronger narrative pivot. (e.g., a character shifts approach or reveals something new | the focus migrates to an unexplored detail of the current scene | an internal tension surfaces that reframes the interaction.) null otherwise.\nOUTPUT: Combine all schemas into one JSON object: {\"ra_turn_trace\": {...}, \"ra_scene_state\": {...}, \"ra_inventory\": {...}, \"ra_director\": {...}}. Single line, no markdown fences, no explanation.",
+          "output_format": "{\n  \"ra_director\": {\n    \"staleness_level\": 0,\n    \"environment_intervention\": null\n  }\n}\nFIELD RULES:\n- Compare this turn's content with the previous turn.\n- staleness_level: 0 (completely different scene/action) to 10 (nearly identical).\n- environment_intervention: a soft, open-ended directional suggestion for the narrating LLM. Keep to one concise sentence framed as a possibility. staleness_level >= 5 = suggest a mild shift; staleness_level >= 8: suggest a stronger narrative pivot. (e.g., a character shifts approach or reveals something new | the focus migrates to an unexplored detail of the current scene | an internal tension surfaces that reframes the interaction.) null otherwise.\nOUTPUT: Combine all schemas into one JSON object. Single line, no markdown fences, no explanation.",
           "retention_enabled": true,
           "retention_after": 0,
-          "retention_keep": 0
+          "retention_keep": 0,
+          "vector_trigger_enabled": false,
+          "vector_basis": "round_compare",
+          "vector_threshold": 0.6,
+          "vector_fallback_turns": 10,
+          "vector_semantic_input": ""
         }
       ]
     },
@@ -1897,26 +2118,36 @@
       "target_model": "B",
       "every_n_turns": 1,
       "read_dialogue_rounds": 3,
-      "read_lorebook_names": "ra_logic_state, ra_quest_log",
+      "read_lorebook_names": "ra_logic_state, ra_quest_log, ra_scene_state",
       "read_persona_names": "ra_character_core",
       "entries": [
         {
           "lorebook_name": "ra_logic_state",
           "write_mode": "overwrite",
           "always_active": true,
-          "output_format": "CALL ROLE: Check scene logic, enforce continuity rules, and track active story threads.\n{\n  \"ra_logic_state\": {\n    \"logic_violation\": \"<describe contradiction | null>\",\n    \"strict_directive\": \"<Proceed normally | Reject the user action and narrate failure | Show cognitive friction: character hesitates or struggles>\"\n  }\n}\nFIELD RULES:\n- Check if there have any logic error in these turns.\n- Violation found: describe it concisely; set strict_directive to the appropriate enforcement value.\n- No violation: logic_violation: null; strict_directive: \"Proceed normally\".\n- T-1 ra_logic_state is provided as context; note if this turn repeats or resolves a prior violation.",
+          "output_format": "CALL ROLE: Check scene logic, enforce continuity rules, and track active story threads.\n{\n  \"ra_logic_state\": {\n    \"logic_violation\": \"<describe contradiction | null>\",\n    \"strict_directive\": \"<Proceed normally | Reject the user action and narrate failure | Show cognitive friction: character hesitates or struggles>\"\n  }\n}\nFIELD RULES:\n- Check if there have any logic error in these turns.\n- Violation found: describe it concisely; set strict_directive to the appropriate enforcement value.\n- No violation: logic_violation: null; strict_directive: \"Proceed normally\".\n- T-1 ra_logic_state is provided as context; note if this turn repeats or resolves a prior violation.\nOUTPUT: schema into one JSON object. Single line, no markdown fences, no explanation.",
           "retention_enabled": true,
           "retention_after": 0,
-          "retention_keep": 0
+          "retention_keep": 0,
+          "vector_trigger_enabled": false,
+          "vector_basis": "round_compare",
+          "vector_threshold": 0.6,
+          "vector_fallback_turns": 10,
+          "vector_semantic_input": ""
         },
         {
           "lorebook_name": "ra_quest_log",
           "write_mode": "overwrite",
           "always_active": true,
-          "output_format": "{\n  \"ra_quest_log\": {\n    \"active_threads\": [\n      {\n        \"id\": 1,\n        \"desc\": \"<quest or unresolved tension, <=15 words>\",\n        \"status\": \"<active|progressed|stalled|nearly_resolved>\",\n        \"next_step\": \"<most likely next logical move, <=12 words>\",\n        \"requires_absent\": \"<CharName not in scene but needed by next_step | null>\"\n      }\n    ],\n    \"resolved_this_turn\": [\n      {\n        \"id\": 1,\n        \"closure_reason\": \"<why resolved, <=12 words>\"\n      }\n    ]\n  }\n}\nFIELD RULES:\n- Keep active_threads readable even after dialogue older than the latest 5 rounds drops out.\n- Copy previous active_threads as baseline. Update changed fields only.\n- requires_absent: non-null only when next_step depends on a character not in ra_scene_state. Prior to use names from ra_character_core.\n- New threads: id = max existing id + 1. Completed threads: move to resolved_this_turn.\n- [] for empty lists.\nOUTPUT: Combine all schemas into one JSON object: {\"ra_logic_state\": {...}, \"ra_quest_log\": {...}}. Single line, no markdown fences, no explanation.",
+          "output_format": "{\n  \"ra_quest_log\": {\n    \"active_threads\": [\n      {\n        \"id\": 1,\n        \"desc\": \"<quest or unresolved tension, <=15 words>\",\n        \"status\": \"<active|progressed|stalled|nearly_resolved>\",\n        \"next_step\": \"<most likely next logical move, <=12 words>\",\n        \"requires_absent\": \"<CharName not in scene but needed by next_step | null>\"\n      }\n    ],\n    \"resolved_this_turn\": [\\\"<id: reason. lasting consequence>\\\"]\n  }\n}\nFIELD RULES:\n- Keep active_threads readable even after dialogue older than the latest 5 rounds drops out.\n- Copy previous active_threads as baseline. Update changed fields only.\n- requires_absent: non-null only when next_step depends on a character not in ra_scene_state. Prior to use names from ra_character_core.\n- New threads: id = max existing id + 1. Completed threads: move to resolved_this_turn.\n- [] for empty lists.\nOUTPUT: schema into one JSON object. Single line, no markdown fences, no explanation.",
           "retention_enabled": true,
           "retention_after": 0,
-          "retention_keep": 0
+          "retention_keep": 0,
+          "vector_trigger_enabled": true,
+          "vector_basis": "semantic_input",
+          "vector_threshold": 0.56,
+          "vector_fallback_turns": 4,
+          "vector_semantic_input": "goal objective mission task promise deal conflict tension debt threat clue suspect investigation contract oath plan"
         }
       ]
     },
@@ -1926,26 +2157,36 @@
       "target_model": "B",
       "every_n_turns": 1,
       "read_dialogue_rounds": 2,
-      "read_lorebook_names": "ra_scene_state, ra_logic_state, ra_persistent_memory, ra_reentry_guard, ra_facet_audit, ra_persona_evolution, ra_turning_point_log, ra_quest_log",
+      "read_lorebook_names": "ra_scene_state, ra_logic_state, ra_director, ra_persistent_memory, ra_reentry_guard, ra_facet_audit, ra_persona_evolution, ra_turning_point_log, ra_quest_log",
       "read_persona_names": "ra_persona_inventory",
       "entries": [
         {
           "lorebook_name": "ra_persona_importance",
           "write_mode": "overwrite",
           "always_active": false,
-          "output_format": "CALL ROLE: Plan the next-turn acting brief from scene pressure, persona cache, and recent audits.\nTEMPORAL CONTEXT:\n- All lorebook entries are from T-1. You are planning for the CURRENT turn T-0.\n- ra_scene_state, ra_logic_state, ra_persistent_memory, ra_reentry_guard: T-1 baseline — use as current context.\n- ra_facet_audit (T-1): audited the T-2 reply against the T-2 plan. Assess if the same drift is present in T-1 dialogue. If T-1 already self-corrected, set micro_repair null.\n- ra_persona_evolution: if present, use baseline_adjustment_candidates to determine if evolution_nudge applies. Skip if not yet available.\n- ra_turning_point_log: use carry_forward_details and what_must_still_remain_true when a character is returning or a past rupture still shapes behavior.\n- ra_director: if loop_signal is non-null, incorporate it into the reply strategy.\n{\n  \"ra_persona_importance\": {\n    \"characters\": {\n      \"CharName\": {\n        \"ranked_facets\": [\n          {\n            \"name\": \"<facet>\",\n            \"importance\": 0,\n            \"activation_source\": \"<scene|relationship|threat|status|desire|duty|mixed>\",\n            \"activation_kind\": \"<baseline|scene-evoked|compensatory|stress-leak|earned-shift>\",\n            \"stability\": \"<low|medium|high>\",\n            \"mode\": \"<primary|secondary|background|suppressed>\",\n            \"why_now\": \"<short scene trigger>\",\n            \"counterfactual_risk\": \"<what breaks if absent | null>\"\n          }\n        ]\n      }\n    }\n  }\n}\nFIELD RULES:\n- Include only active characters in scene. Rank 2-4 facets total.\n- Exactly 1 facet should be primary when evidence supports it. At most 1 secondary. Rest: background or suppressed.\n- Build from ra_persona_inventory.core_facets plus current scene pressure. Do not invent extra durable facets here.\n- importance: relative for this turn, not a universal value.\n- activation_kind: baseline = normal stable expression; scene-evoked = naturally foregrounded; compensatory = activated because primary alone leaves scene incomplete; stress-leak = emerges under pressure; earned-shift = supported longer-term adjustment.\n- Favor scene usefulness over completeness. Do not force all baseline traits.\n- Primary facet choice must not justify retconning established events, owned objects, promises, admitted failures, titles, or scene consequences. Preserve dignity through reaction style, not factual denial.",
+          "output_format": "CALL ROLE: Plan the next-turn acting brief from scene pressure, persona cache, and recent audits.\nTEMPORAL CONTEXT:\n- All lorebook entries are from T-1. You are planning for the CURRENT turn T-0.\n- ra_scene_state, ra_logic_state, ra_persistent_memory, ra_reentry_guard: T-1 baseline — use as current context.\n- ra_facet_audit (T-1): audited the T-2 reply against the T-2 plan. Assess if the same drift is present in T-1 dialogue. If T-1 already self-corrected, set micro_repair null.\n- ra_persona_evolution: if present, use baseline_adjustment_candidates to determine if evolution_nudge applies. Skip if not yet available.\n- ra_turning_point_log: use carry_forward_details and what_must_still_remain_true when a character is returning or a past rupture still shapes behavior.\n- ra_director: if environment_intervention is non-null, incorporate it into the reply strategy.\n{\n  \"ra_persona_importance\": {\n    \"characters\": {\n      \"CharName\": {\n        \"ranked_facets\": [\n          {\n            \"name\": \"<facet>\",\n            \"importance\": 0,\n            \"activation_source\": \"<scene|relationship|threat|status|desire|duty|mixed>\",\n            \"activation_kind\": \"<baseline|scene-evoked|compensatory|stress-leak|earned-shift>\",\n            \"stability\": \"<low|medium|high>\",\n            \"mode\": \"<primary|secondary|background|suppressed>\",\n            \"why_now\": \"<short scene trigger>\",\n            \"counterfactual_risk\": \"<what breaks if absent | null>\"\n          }\n        ]\n      }\n    }\n  }\n}\nFIELD RULES:\n- Include only active characters in scene. Rank 2-4 facets total.\n- Exactly 1 facet should be primary when evidence supports it. At most 1 secondary. Rest: background or suppressed.\n- Build from ra_persona_inventory.core_facets plus current scene pressure. Do not invent extra durable facets here.\n- importance: relative for this turn, not a universal value.\n- activation_kind: baseline = normal stable expression; scene-evoked = naturally foregrounded; compensatory = activated because primary alone leaves scene incomplete; stress-leak = emerges under pressure; earned-shift = supported longer-term adjustment.\n- Favor scene usefulness over completeness. Do not force all baseline traits.\n- Primary facet choice must not justify retconning established events, owned objects, promises, admitted failures, titles, or scene consequences. Preserve dignity through reaction style, not factual denial.",
           "retention_enabled": false,
           "retention_after": 0,
-          "retention_keep": 0
+          "retention_keep": 0,
+          "vector_trigger_enabled": false,
+          "vector_basis": "round_compare",
+          "vector_threshold": 0.6,
+          "vector_fallback_turns": 10,
+          "vector_semantic_input": ""
         },
         {
           "lorebook_name": "ra_turn_advice",
           "write_mode": "overwrite",
           "always_active": true,
-          "output_format": "{\n  \"ra_turn_advice\": {\n    \"response_guard\": {\n      \"biggest_risk\": \"<main likely failure next turn>\",\n      \"strict_directive\": \"<Proceed normally | Preserve tension | Do not resolve yet | Enforce guarded response | Show friction | Reject action>\"\n    },\n    \"character_routing\": {\n      \"CharName\": {\n        \"portrayal_goal\": \"<how this character should come across next>\",\n        \"primary_facet\": \"<facet | null>\",\n        \"secondary_facet\": \"<facet | null>\",\n        \"background_facets\": [\"<facet>\"],\n        \"suppressed_facets\": [\"<facet>\"],\n        \"micro_repair\": \"<small correction from ra_facet_audit | null>\",\n        \"evolution_nudge\": \"<small allowed emphasis if ra_persona_evolution supports | null>\",\n        \"integrity_guard\": \"<what canon or dignity rule must not be violated>\",\n        \"reentry_restore\": \"<what to restore if this character is returning | null>\",\n        \"reply_strategy\": \"<one-turn plan>\"\n      }\n    },\n    \"candidate_hint\": {\n      \"preferred_shape\": \"<best reply shape>\",\n      \"avoid_shape\": \"<bad reply shape>\"\n    }\n  }\n}\nFIELD RULES:\n- Make this brief self-sufficient for the next reply.\n- primary_facet must match the primary mode facet from ra_persona_importance above.\n- secondary_facet: at most one. background_facets: max 2. suppressed_facets: max 2.\n- evolution_nudge: only when ra_persona_evolution has a candidate with confidence medium or high.\n- integrity_guard: remind how the character may preserve pride, reserve, or dignity without denying established facts, attachments, or prior actions.\n- reentry_restore: non-null when ra_reentry_guard marks the character returning or when ra_turning_point_log indicates a durable change that must reactivate now.\n- reply_strategy should prefer deflection, irritation, minimization, selective admission, silence, or posture before any factual denial.\n- If ra_director.loop_signal is non-null, incorporate it into reply_strategy or candidate_hint.\nOUTPUT: Combine all schemas into one JSON object: {\"ra_persona_importance\": {...}, \"ra_turn_advice\": {...}}. Single line, no markdown fences, no explanation.",
+          "output_format": "{\n  \"ra_turn_advice\": {\n    \"response_guard\": {\n      \"biggest_risk\": \"<main likely failure next turn>\",\n      \"strict_directive\": \"<Proceed normally | Preserve tension | Do not resolve yet | Enforce guarded response | Show friction | Reject action>\"\n    },\n    \"character_routing\": {\n      \"CharName\": {\n        \"portrayal_goal\": \"<how this character should come across next>\",\n        \"primary_facet\": \"<facet | null>\",\n        \"secondary_facet\": \"<facet | null>\",\n        \"background_facets\": [\"<facet>\"],\n        \"suppressed_facets\": [\"<facet>\"],\n        \"micro_repair\": \"<small correction from ra_facet_audit | null>\",\n        \"evolution_nudge\": \"<small allowed emphasis if ra_persona_evolution supports | null>\",\n        \"integrity_guard\": \"<what canon or dignity rule must not be violated>\",\n        \"reentry_restore\": \"<what to restore if this character is returning | null>\",\n        \"reply_strategy\": \"<one-turn plan>\"\n      }\n    },\n    \"candidate_hint\": {\n      \"preferred_shape\": \"<best reply shape>\",\n      \"avoid_shape\": \"<bad reply shape>\"\n    }\n  }\n}\nFIELD RULES:\n- Make this brief self-sufficient for the next reply.\n- primary_facet must match the primary mode facet from ra_persona_importance above.\n- secondary_facet: at most one. background_facets: max 2. suppressed_facets: max 2.\n- evolution_nudge: only when ra_persona_evolution has a candidate with confidence medium or high.\n- integrity_guard: remind how the character may preserve pride, reserve, or dignity without denying established facts, attachments, or prior actions.\n- reentry_restore: non-null when ra_reentry_guard marks the character returning or when ra_turning_point_log indicates a durable change that must reactivate now.\n- reply_strategy should prefer deflection, irritation, minimization, selective admission, silence, or posture before any factual denial.\n- If ra_director.environment_intervention is non-null, incorporate it into reply_strategy or candidate_hint.\nOUTPUT: Combine all schemas into one JSON object: {\"ra_persona_importance\": {...}, \"ra_turn_advice\": {...}}. Single line, no markdown fences, no explanation.",
           "retention_enabled": false,
           "retention_after": 0,
-          "retention_keep": 0
+          "retention_keep": 0,
+          "vector_trigger_enabled": false,
+          "vector_basis": "round_compare",
+          "vector_threshold": 0.6,
+          "vector_fallback_turns": 10,
+          "vector_semantic_input": ""
         }
       ]
     },
@@ -1965,7 +2206,26 @@
           "output_format": "CALL ROLE: Audit the previous visible reply against the previous turn plan.\nTEMPORAL NOTE: All lorebook entries are from T-1. You are auditing the T-1 assistant reply using the T-1 ra_turn_advice as the reference benchmark.\n{\n  \"ra_facet_audit\": {\n    \"audited_turn\": \"T-1\",\n    \"advice_source_turn\": \"T-1\",\n    \"characters\": {\n      \"CharName\": {\n        \"intended_primary\": \"<facet | null>\",\n        \"observed_primary\": \"<facet | null>\",\n        \"suppressed_leakage\": [\"<facet>\"],\n        \"prestige_override_failure\": false,\n        \"overblending\": \"<low|medium|high>\",\n        \"alignment\": \"<aligned|partial|misaligned>\",\n        \"repair_hint\": \"<short next-turn adjustment | null>\"\n      }\n    }\n  }\n}\nFIELD RULES:\n- intended_primary: the primary_facet from the ra_turn_advice you read.\n- observed_primary: the facet most visibly dominating the actual assistant reply.\n- suppressed_leakage: facets that surfaced too strongly despite being listed as suppressed.\n- prestige_override_failure: true when the reply protects pride, dignity, prestige, or image by denying established facts, important attachments, prior admissions, or scene consequences.\n- overblending: whether too many traits diluted the intended hierarchy.\n- alignment: aligned = hierarchy largely landed; partial = intended facet present but diluted; misaligned = different facet dominated or suppression clearly failed.\n- repair_hint: short and directly usable by next turn's micro_repair. null if aligned.\n- Include only active characters with enough material. Judge observable portrayal only. Do not penalize subtlety.\n- Flag leakage when suppressed facet made the reply softer, sweeter, or more generic than intended.\nOUTPUT: Single valid JSON: {\"ra_facet_audit\": {...}}. Single line, no markdown fences, no explanation.",
           "retention_enabled": false,
           "retention_after": 0,
-          "retention_keep": 0
+          "retention_keep": 0,
+          "vector_trigger_enabled": false,
+          "vector_basis": "round_compare",
+          "vector_threshold": 0.6,
+          "vector_fallback_turns": 10,
+          "vector_semantic_input": ""
+        },
+        {
+          "lorebook_name": "ra_persona_evolution",
+          "write_mode": "overwrite",
+          "always_active": false,
+          "output_format": "{\n  \"ra_persona_evolution\": {\n    \"characters\": {\n      \"CharName\": {\n        \"stable_core\": [\"<facet>\"],\n        \"drift_risks\": [\"<repeated portrayal drift>\"],\n        \"baseline_adjustment_candidates\": [\n          {\n            \"name\": \"<facet>\",\n            \"direction\": \"<up|down|watch>\",\n            \"confidence\": \"<low|medium|high>\",\n            \"reason\": \"<short evidence summary>\"\n          }\n        ],\n        \"repair_directive\": \"<minimal future correction | null>\"\n      }\n    }\n  }\n}\nFIELD RULES:\n- Include only characters with enough recent material.\n- stable_core: identity-bearing facets clearly still intact.\n- drift_risks: repeated flattening, prestige-protecting fact denial, suppressed-facet leakage, or return-scene memory collapse.\n- baseline_adjustment_candidates with confidence medium or high feed ra_turn_advice evolution_nudge.\n- Do not encode relationship progression or temporary mood shifts as structural change.",
+          "retention_enabled": false,
+          "retention_after": 0,
+          "retention_keep": 5,
+          "vector_trigger_enabled": true,
+          "vector_basis": "round_compare",
+          "vector_threshold": 0.57,
+          "vector_fallback_turns": 4,
+          "vector_semantic_input": ""
         }
       ]
     },
@@ -1981,29 +2241,44 @@
         {
           "lorebook_name": "ra_world_log",
           "write_mode": "append",
-          "always_active": true,
-          "output_format": "CALL ROLE: Record new world facts and canon-locking turning points from this batch of turns.\nTEMPORAL NOTE: You are writing entries for THIS batch of turns.\n{\n  \"ra_world_log\": {\n    \"entries\": [\"<Name. Key fact. <=20 words.\"]\n  }\n}\nFIELD RULES:\n- One string per entry: name first, then the key fact. <=20 words total per entry.\n- Recording anything that helps LLM for future immersive narrating.\n- entries: [] if nothing new.",
+          "always_active": false,
+          "output_format": "CALL ROLE: Record new world facts.\nTEMPORAL NOTE: You are writing entries for THIS batch of turns.\n{\n  \"ra_world_log\": {\n    \"entries\": [\"<Name. Key fact. <=20 words.\"]\n  }\n}\nFIELD RULES:\n- One string per entry: name first, then the key fact. <=20 words total per entry.\n- Recording anything that helps LLM for future immersive narrating.\n- entries: [] if nothing new.\nOUTPUT: schema into one JSON object. Single line, no markdown fences, no explanation.",
           "retention_enabled": true,
           "retention_after": 15,
-          "retention_keep": 0
+          "retention_keep": 0,
+          "vector_trigger_enabled": true,
+          "vector_basis": "semantic_input",
+          "vector_threshold": 0.62,
+          "vector_fallback_turns": 0,
+          "vector_semantic_input": "world lore history setting faction culture religion magic city region technology rumor law custom mythology"
         },
         {
           "lorebook_name": "ra_turning_point_log",
           "write_mode": "append",
           "always_active": false,
-          "output_format": "TEMPORAL NOTE: You are writing entries for THIS batch of turns.\n{\n  \"ra_turning_point_log\": {\n    \"entries\": [\n      {\n        \"turning_point_detected\": \"<true|false>\",\n        \"event\": \"<concise event or line | null>\",\n        \"affected_characters\": [\"<CharName or role>\"],\n        \"what_must_still_remain_true\": [\"<canon fact that must not be denied later>\"],\n        \"carry_forward_details\": [\"<concrete reminder for future scenes>\"],\n        \"inventory_updates\": [\"<description of clothing changes or important obtained items>\"],\n        \"reentry_hook\": \"<how this should reactivate on return | null>\"\n      }\n    ]\n  }\n}\nFIELD RULES:\n- entries: [] if nothing needs preserving.\n- Record only changes future scenes must restore: promises, losses, reveals, stance shifts, named objects, burdens, address changes, or other canon-locking details.\n- Keep carry_forward_details to 2-4 short items per entry.\n- inventory_updates: Log item acquisitions and explicit clothing changes that future scenes must remember.",
+          "output_format": "CALL ROLE: Record canon-locking turning points for this batch of turns.\n{\n  \"ra_turning_point_log\": {\n    \"entries\": [\n      {\n        \"turning_point_detected\": \"<true|false>\",\n        \"event\": \"<concise event or line | null>\",\n        \"affected_characters\": [\"<CharName or role>\"],\n        \"what_must_still_remain_true\": [\"<canon fact that must not be denied later>\"],\n        \"carry_forward_details\": [\"<concrete reminder for future scenes>\"],\n        \"inventory_updates\": [\"<description of clothing changes or important obtained items>\"],\n        \"reentry_hook\": \"<how this should reactivate on return | null>\"\n      }\n    ]\n  }\n}\nFIELD RULES:\n- entries: [] if nothing needs preserving.\n- Record only changes future scenes must restore: promises, losses, reveals, stance shifts, named objects, burdens, address changes, or other canon-locking details.\n- Keep carry_forward_details to 2-4 short items per entry.\n- inventory_updates: Log item acquisitions and explicit clothing changes that future scenes must remember.\nOUTPUT: schema into one JSON object. Single line, no markdown fences, no explanation.",
           "retention_enabled": true,
           "retention_after": 40,
-          "retention_keep": 6
+          "retention_keep": 6,
+          "vector_trigger_enabled": true,
+          "vector_basis": "semantic_input",
+          "vector_threshold": 0.57,
+          "vector_fallback_turns": 0,
+          "vector_semantic_input": "promise oath confession reveal betrayal discovery loss gain injury title nickname gift vow turning point rupture reconciliation stance shift burden"
         },
         {
           "lorebook_name": "ra_pattern_guard",
           "write_mode": "overwrite",
           "always_active": true,
-          "output_format": "{\n  \"ra_pattern_guard\": {\n    \"expression_repetition\": 0,\n    \"flagged_cliches\": [\"<overused descriptive/reactive pattern>\"],\n    \"banned_phrases\": [\"<exact phrase appearing 2+ times in recent assistant replies>\"],\n    \"variation_hint\": \"<one short suggestion targeting prose style, vocabulary, or character reaction variety — must not suggest scene/plot changes | null>\"\n  }\n}\nFIELD RULES:\n- Scope: prose style, vocabulary, character reaction patterns, descriptive tropes. Scene-level pacing is handled by ra_director; do NOT overlap.\n- expression_repetition: 0 (fully varied expression) to 10 (identical descriptive/reactive loops). Evaluate across the last 3 assistant replies.\n- flagged_cliches: up to 3 overused descriptive or reactive patterns (e.g. identical body-language sequences, recycled metaphors, formulaic emotional beats). Exclude scene-level pacing issues. [] if none.\n- banned_phrases: exact phrases or near-identical constructions appearing 2+ times in the last 3 assistant replies. [] if none.\n- variation_hint: null if expression_repetition < 4. Otherwise one concise suggestion for prose/reaction variety.\nOUTPUT: Combine all schemas into one JSON object: {\"ra_world_log\": {...}, \"ra_turning_point_log\": {...}, \"ra_pattern_guard\": {...}}. Single line, no markdown fences, no explanation.",
+          "output_format": "{\n  \"ra_pattern_guard\": {\n    \"expression_repetition\": 0,\n    \"flagged_cliches\": [\"<overused descriptive/reactive pattern>\"],\n    \"banned_phrases\": [\"<exact phrase appearing 2+ times in recent assistant replies>\"],\n    \"variation_hint\": \"<one short suggestion targeting prose style, vocabulary, or character reaction variety — must not suggest scene/plot changes | null>\"\n  }\n}\nFIELD RULES:\n- Scope: prose style, vocabulary, character reaction patterns, descriptive tropes. Do not overlap with scene-level pacing or directional narrative guidance handled elsewhere.\n- expression_repetition: 0 (fully varied expression) to 10 (identical descriptive/reactive loops). Evaluate across the last 3 assistant replies.\n- flagged_cliches: up to 3 overused descriptive or reactive patterns (e.g. identical body-language sequences, recycled metaphors, formulaic emotional beats). Exclude scene-level pacing issues. [] if none.\n- banned_phrases: exact phrases or near-identical constructions appearing 2+ times in the last 3 assistant replies. [] if none.\n- variation_hint: null if expression_repetition < 4. Otherwise one concise suggestion for prose/reaction variety.\nOUTPUT: schema into one JSON object. Single line, no markdown fences, no explanation.",
           "retention_enabled": true,
           "retention_after": 0,
-          "retention_keep": 0
+          "retention_keep": 0,
+          "vector_trigger_enabled": false,
+          "vector_basis": "round_compare",
+          "vector_threshold": 0.57,
+          "vector_fallback_turns": 6,
+          "vector_semantic_input": ""
         }
       ]
     },
@@ -2013,7 +2288,7 @@
       "target_model": "A",
       "every_n_turns": 10,
       "read_dialogue_rounds": 1,
-      "read_lorebook_names": "ra_arc_memory, ra_turn_trace, ra_quest_log, ra_scene_state, ra_turning_point_log, ra_persistent_memory, ra_persona_evolution",
+      "read_lorebook_names": "ra_arc_memory, ra_turn_trace, ra_quest_log, ra_scene_state, ra_turning_point_log, ra_world_log, ra_persistent_memory, ra_persona_evolution",
       "read_persona_names": "ra_character_core",
       "entries": [
         {
@@ -2023,7 +2298,12 @@
           "output_format": "CALL ROLE: Consolidate long-term memory, reentry anchors, and slow persona adjustment.\n{\n  \"ra_arc_memory\": {\n    \"phase_shift_detected\": \"<true|false>\",\n    \"arc_phase\": \"<setup|escalation|rupture|negotiation|resolution|aftermath | null>\",\n    \"turning_point\": \"<exact line/action or concise event | null>\",\n    \"phase_change\": \"<how this stretch changed the story | null>\",\n    \"lasting_effect\": \"<durable consequence | null>\"\n  }\n}\nFIELD RULES:\n- Set phase_shift_detected \"true\" ONLY when a genuine arc phase shift or clear turning point occurred in recent turns.\n- If \"false\": set all other fields to null. Still append; treat as a no-op record.\n- If \"true\": fill all fields. Check ra_world_log for a key moment to anchor turning_point.",
           "retention_enabled": true,
           "retention_after": 50,
-          "retention_keep": 10
+          "retention_keep": 10,
+          "vector_trigger_enabled": false,
+          "vector_basis": "round_compare",
+          "vector_threshold": 0.57,
+          "vector_fallback_turns": 10,
+          "vector_semantic_input": ""
         },
         {
           "lorebook_name": "ra_persistent_memory",
@@ -2032,25 +2312,26 @@
           "output_format": "{\n  \"ra_persistent_memory\": {\n    \"CharName\": {\n      \"identity_nonnegotiables\": [\"<name, title, fact, promise, or attachment that must remain true>\"],\n      \"signature_addressing\": [\"<stable naming or honorific habit>\"],\n      \"reentry_anchors\": [\"<what must be restored on return>\"],\n      \"actor_rule\": [\"<1 short portrayal reminder>\"]\n    }\n  }\n}\nFIELD RULES:\n- Keep only durable core needed for reentry stability.\n- identity_nonnegotiables: use established facts only. Prefer names, titles, duties, vows, losses, and important attachments.\n- signature_addressing: stable forms of address only.\n- reentry_anchors: 1-4 concise recall items.\n- actor_rule: 1-2 short operational reminders. Do not duplicate full persona analysis.",
           "retention_enabled": false,
           "retention_after": 0,
-          "retention_keep": 0
+          "retention_keep": 0,
+          "vector_trigger_enabled": false,
+          "vector_basis": "round_compare",
+          "vector_threshold": 0.6,
+          "vector_fallback_turns": 10,
+          "vector_semantic_input": ""
         },
         {
           "lorebook_name": "ra_reentry_guard",
           "write_mode": "overwrite",
           "always_active": true,
-          "output_format": "{\n  \"ra_reentry_guard\": {\n    \"characters\": {\n      \"CharName\": {\n        \"returning\": false,\n        \"restore_now\": [\"<anchor to reactivate now>\"],\n        \"do_not_introduce\": [\"<unsupported new preference or trait>\"]\n      }\n    }\n  }\n}\nFIELD RULES:\n- Use this to restore what the actor may miss because it only sees the latest 5 rounds.\n- Include only characters relevant to current or likely near-future reentry. {} if none.\n- returning: true only when the character is re-entering now or a return is the obvious next continuity need.\n- restore_now: draw from ra_turning_point_log, ra_persistent_memory, and ra_character_core.\n- do_not_introduce: list unsupported new traits, nicknames, favorite foods, or rewritten motives the model should avoid inventing.",
+          "output_format": "{\n  \"ra_reentry_guard\": {\n    \"characters\": {\n      \"CharName\": {\n        \"returning\": false,\n        \"restore_now\": [\"<anchor to reactivate now>\"],\n        \"do_not_introduce\": [\"<unsupported new preference or trait>\"]\n      }\n    }\n  }\n}\nFIELD RULES:\n- Use this to restore what the actor may miss because it only sees the latest 5 rounds.\n- Include only characters relevant to current or likely near-future reentry. {} if none.\n- returning: true only when the character is re-entering now or a return is the obvious next continuity need.\n- restore_now: draw from ra_turning_point_log, ra_persistent_memory, and ra_character_core.\n- do_not_introduce: list unsupported new traits, nicknames, favorite foods, or rewritten motives the model should avoid inventing.\nOUTPUT: Combine all schemas into one JSON object. Single line, no markdown fences, no explanation.\nAPPEND NOTE for ra_arc_memory: Write only the new arc entry for this batch. Do not reproduce prior entries.",
           "retention_enabled": false,
           "retention_after": 0,
-          "retention_keep": 0
-        },
-        {
-          "lorebook_name": "ra_persona_evolution",
-          "write_mode": "overwrite",
-          "always_active": false,
-          "output_format": "{\n  \"ra_persona_evolution\": {\n    \"characters\": {\n      \"CharName\": {\n        \"stable_core\": [\"<facet>\"],\n        \"drift_risks\": [\"<repeated portrayal drift>\"],\n        \"baseline_adjustment_candidates\": [\n          {\n            \"name\": \"<facet>\",\n            \"direction\": \"<up|down|watch>\",\n            \"confidence\": \"<low|medium|high>\",\n            \"reason\": \"<short evidence summary>\"\n          }\n        ],\n        \"repair_directive\": \"<minimal future correction | null>\"\n      }\n    }\n  }\n}\nFIELD RULES:\n- Include only characters with enough recent material.\n- stable_core: identity-bearing facets clearly still intact.\n- drift_risks: repeated flattening, prestige-protecting fact denial, suppressed-facet leakage, or return-scene memory collapse.\n- baseline_adjustment_candidates with confidence medium or high feed ra_turn_advice evolution_nudge.\n- Do not encode relationship progression or temporary mood shifts as structural change.\nOUTPUT: Combine all schemas into one JSON object: {\"ra_arc_memory\": {...}, \"ra_persistent_memory\": {...}, \"ra_reentry_guard\": {...}, \"ra_persona_evolution\": {...}}. Single line, no markdown fences, no explanation.\nAPPEND NOTE for ra_arc_memory: Write only the new arc entry for this batch. Do not reproduce prior entries.",
-          "retention_enabled": false,
-          "retention_after": 0,
-          "retention_keep": 0
+          "retention_keep": 0,
+          "vector_trigger_enabled": false,
+          "vector_basis": "round_compare",
+          "vector_threshold": 0.6,
+          "vector_fallback_turns": 10,
+          "vector_semantic_input": ""
         }
       ]
     },
@@ -2067,15 +2348,19 @@
           "lorebook_name": "ra_world_encyclopedia",
           "write_mode": "overwrite",
           "always_active": false,
-          "output_format": "CALL ROLE: Merge durable world facts into stable reference memory.\n{\n  \"ra_world_encyclopedia\": {\n    \"geography\": [\n      {\n        \"name\": \"<place>\",\n        \"description\": \"<compact description>\",\n        \"current_relevance\": \"<why it matters now>\"\n      }\n    ],\n    \"npcs\": [\n      {\n        \"name\": \"<NPC>\",\n        \"role\": \"<role in story>\",\n        \"status\": \"<alive/dead/unknown + condition>\",\n        \"notes\": \"<profile + latest durable change>\"\n      }\n    ],\n    \"factions\": [\n      {\n        \"name\": \"<faction>\",\n        \"description\": \"<purpose>\",\n        \"relations\": \"<stance toward player/others>\"\n      }\n    ],\n    \"lore\": [\n      {\n        \"topic\": \"<subject>\",\n        \"detail\": \"<compact durable fact>\"\n      }\n    ]\n  }\n}\nFIELD RULES:\n- Use prior encyclopedia as baseline. Add only durable, stable facts. Remove clear duplicates.\n- Do not write short-term scene noise into the encyclopedia.\n- Keep entries reference-oriented, not prose-heavy.\nOUTPUT: Single valid JSON: {\"ra_world_encyclopedia\": {...}}. Single line, no markdown fences, no explanation.",
+          "output_format": "CALL ROLE: Merge durable world facts into stable reference memory.\n{\n  \"ra_world_encyclopedia\": {\n    \"geography\": [\"<Place: description. why it matters>\"],\n    \"npcs\": [\"<Name (role, status): profile note>\"],\n    \"factions\": [\"<Faction: purpose. stance toward player/others>\"],\n    \"lore\": [\"<Topic: compact durable fact>\"]\n  }\n}\nFIELD RULES:\n- Use prior encyclopedia as baseline. Add only durable, stable facts. Remove clear duplicates.\n- Do not write short-term scene noise. Keep entries reference-oriented.\n- Each category: one string per entry. [] if empty.\nOUTPUT: Single valid JSON: {\"ra_world_encyclopedia\": {...}}. Single line, no markdown fences, no explanation.",
           "retention_enabled": false,
           "retention_after": 0,
-          "retention_keep": 0
+          "retention_keep": 0,
+          "vector_trigger_enabled": false,
+          "vector_basis": "round_compare",
+          "vector_threshold": 0.6,
+          "vector_fallback_turns": 10,
+          "vector_semantic_input": ""
         }
       ]
     }
-  ];
-  const DEFAULT_MODEL_CALLS_4 = [
+  ];  const DEFAULT_MODEL_CALLS_4 = [
     {
       "id": "call_state",
       "name": "State",
@@ -2088,29 +2373,44 @@
         {
           "lorebook_name": "ra_turn_trace",
           "write_mode": "append",
-          "always_active": true,
+          "always_active": false,
           "output_format": "CALL ROLE: Read recent dialogue and listed memory, then write the current scene context, continuity, and strategic effect layers.\nTEMPORAL NOTE: The ra_turn_trace entry in the lorebook is from T-1. You are writing the CURRENT turn.\n{\n  \"ra_turn_trace\": {\n    \"scene_context\": \"<location + current tension, short phrase>\",\n    \"time_anchor\": \"<explicit in-story time | null>\",\n    \"elapsed_since_prev\": \"<same moment | +10m | +1h | +1d | unspecified>\",\n    \"user_move\": \"<main player action or line, <=12 words>\",\n    \"character_reaction\": \"<main character response, <=15 words>\",\n    \"turn_effect\": \"<political/leverage/relation shift this turn | null>\"\n  }\n}\nFIELD RULES:\n- Keep every field short. Prefer action/result phrasing.\n- character_reaction: the single most important NPC response this turn.\n- turn_effect: focus on leverage gained/lost, alliances tested, secrets risked, or positional shifts. null if none.\n- scene_context should remain meaningful if retrieved much later.",
           "retention_enabled": true,
           "retention_after": 10,
-          "retention_keep": 1
+          "retention_keep": 1,
+          "vector_trigger_enabled": false,
+          "vector_basis": "round_compare",
+          "vector_threshold": 0.6,
+          "vector_fallback_turns": 10,
+          "vector_semantic_input": ""
         },
         {
           "lorebook_name": "ra_scene_state",
           "write_mode": "append",
-          "always_active": true,
+          "always_active": false,
           "output_format": "TEMPORAL NOTE: The ra_scene_state in the lorebook is from T-1. You are writing the CURRENT turn.\n{\n  \"ra_scene_state\": {\n    \"scene_type\": \"<casual|emotional|conflict|recovery|transition|intimate|combat|debrief|ceremony|political>\",\n    \"location\": \"<place + one atmospheric detail, <=10 words>\",\n    \"player_state\": \"<condition + key items, <=15 words>\",\n    \"stakes_level\": 0,\n    \"characters\": {\n      \"CharName\": {\n        \"physical_state\": \"<appearance, position or posture, <=12 words>\",\n        \"current_emotion\": \"<dominant feeling>\",\n        \"surface_expression\": \"<outward presentation, observable only>\",\n        \"hidden_drive\": \"<best-supported inference | null>\",\n        \"drive_confidence\": \"<low|medium|high>\",\n        \"vulnerability_level\": 0,\n        \"approach_tendency\": \"<lean_in|hold_back|test|defend|evade>\"\n      }\n    }\n  }\n}\nFIELD RULES:\n- Include only characters currently active in scene. Prior to use names from ra_character_core.\n- physical_state: observable position or attire nuance. Drive and emotion are tracked in separate fields below.\n- surface_expression: observable behavior only. No internal projection.\n- hidden_drive: supported inference only. drive_confidence reflects evidence strength.\n- If uncertain, stay conservative. Short phrases only.",
           "retention_enabled": true,
           "retention_after": 10,
-          "retention_keep": 1
+          "retention_keep": 1,
+          "vector_trigger_enabled": false,
+          "vector_basis": "round_compare",
+          "vector_threshold": 0.6,
+          "vector_fallback_turns": 10,
+          "vector_semantic_input": ""
         },
         {
           "lorebook_name": "ra_inventory",
           "write_mode": "overwrite",
           "always_active": true,
-          "output_format": "{\n  \"ra_inventory\": {\n    \"user\": [\"<held items, clothing, or active equipment>\"],\n    \"npcs\": [\n      {\n        \"name\": \"<NPC name>\",\n        \"inventory\": [\"<held items, clothing, or active equipment>\"]\n      }\n    ]\n  }\n}\nFIELD RULES:\n- Track current clothing and held items. Copy from previous turns if unchanged. Add newly acquired items; remove dropped ones.",
+          "output_format": "{\n  \"ra_inventory\": {\n    \"user\": [\"<item or clothing>\"],\n    \"npcs\": [\"<Name: item, clothing>\"]\n  }\n}\nFIELD RULES:\n- user: list held items/clothing. npcs: one string per NPC, format \"Name: item, clothing.\" [] if none.\n- Copy unchanged. Add acquired; remove dropped.",
           "retention_enabled": true,
           "retention_after": 0,
-          "retention_keep": 0
+          "retention_keep": 0,
+          "vector_trigger_enabled": true,
+          "vector_basis": "semantic_input",
+          "vector_threshold": 0.57,
+          "vector_fallback_turns": 6,
+          "vector_semantic_input": "items equipment clothing outfit weapon possession exchange gift take drop wear remove supplies"
         },
         {
           "lorebook_name": "ra_director",
@@ -2119,7 +2419,12 @@
           "output_format": "{\n  \"ra_director\": {\n    \"staleness_level\": 0,\n    \"environment_intervention\": null\n  }\n}\nFIELD RULES:\n- Compare this turn's content with the previous turn.\n- staleness_level: 0 (completely different scene/action) to 10 (nearly identical).\n- environment_intervention: a soft, open-ended directional suggestion for the narrating LLM. Keep to one concise sentence framed as a possibility. staleness_level >= 5 = suggest a mild shift; staleness_level >= 8: suggest a stronger narrative pivot. (e.g., a character shifts approach or reveals something new | the focus migrates to an unexplored detail of the current scene | an internal tension surfaces that reframes the interaction.) null otherwise.\nOUTPUT: Combine all schemas into one JSON object: {\"ra_turn_trace\": {...}, \"ra_scene_state\": {...}, \"ra_inventory\": {...}, \"ra_director\": {...}}. Single line, no markdown fences, no explanation.",
           "retention_enabled": true,
           "retention_after": 0,
-          "retention_keep": 0
+          "retention_keep": 0,
+          "vector_trigger_enabled": false,
+          "vector_basis": "round_compare",
+          "vector_threshold": 0.6,
+          "vector_fallback_turns": 10,
+          "vector_semantic_input": ""
         }
       ]
     },
@@ -2139,7 +2444,12 @@
           "output_format": "CALL ROLE: Track actionable knowledge, enforce continuity, and keep active threads usable after older chat scrolls away. Reference T-1 ra_logic_state as baseline for recurring violations.\n{\n  \"ra_knowledge_matrix\": {\n    \"changed_ids\": [],\n    \"entries\": [\n      {\n        \"id\": \"K001\",\n        \"subject\": \"<fact or secret, <=15 words>\",\n        \"true_answer\": \"<actual truth, <=15 words>\",\n        \"knowers\": [\"<name>\"],\n        \"unknown_to\": [\"<name>\"],\n        \"public_status\": \"<public|secret>\",\n        \"stability\": \"<locked|fragile>\"\n      }\n    ]\n  }\n}\nFIELD RULES:\n- Copy prior entries as baseline. changed_ids: list only IDs updated this turn.\n- stability: locked = established fact unlikely to change; fragile = could be revealed or altered soon.\n- Track only facts with active narrative consequence. Omit trivial scene details.\n- [] for empty arrays.",
           "retention_enabled": true,
           "retention_after": 0,
-          "retention_keep": 0
+          "retention_keep": 0,
+          "vector_trigger_enabled": true,
+          "vector_basis": "semantic_input",
+          "vector_threshold": 0.59,
+          "vector_fallback_turns": 3,
+          "vector_semantic_input": "secret truth reveal clue evidence witness alibi hidden motive rumor blackmail leverage exposed suspicion information"
         },
         {
           "lorebook_name": "ra_logic_state",
@@ -2148,16 +2458,26 @@
           "output_format": "{\n  \"ra_logic_state\": {\n    \"logic_violation\": \"<describe contradiction | null>\",\n    \"strict_directive\": \"<Proceed normally | Reject the user action and narrate failure | Show cognitive friction: character hesitates or struggles>\"\n  }\n}\nFIELD RULES:\n- Check if there have any logic error in these turns.\n- Violation found: describe it concisely; set strict_directive to the appropriate enforcement value.\n- No violation: logic_violation: null; strict_directive: \"Proceed normally\".\n- T-1 ra_logic_state is provided as context; note if this turn repeats or resolves a prior violation.",
           "retention_enabled": true,
           "retention_after": 0,
-          "retention_keep": 0
+          "retention_keep": 0,
+          "vector_trigger_enabled": false,
+          "vector_basis": "round_compare",
+          "vector_threshold": 0.6,
+          "vector_fallback_turns": 10,
+          "vector_semantic_input": ""
         },
         {
           "lorebook_name": "ra_quest_log",
           "write_mode": "overwrite",
           "always_active": true,
-          "output_format": "{\n  \"ra_quest_log\": {\n    \"active_threads\": [\n      {\n        \"id\": 1,\n        \"desc\": \"<quest or conflict, <=15 words>\",\n        \"weight\": \"<critical|high|medium|low>\",\n        \"status\": \"<active|progressed|stalled|nearly_resolved>\",\n        \"next_step\": \"<most likely next logical move, <=12 words>\",\n        \"related_npcs\": [\"<name>\"],\n        \"requires_absent\": \"<CharName not in scene but needed by next_step | null>\"\n      }\n    ],\n    \"resolved_this_turn\": [\n      {\n        \"id\": 1,\n        \"closure_reason\": \"<why resolved, <=12 words>\",\n        \"consequence\": \"<lasting change, <=12 words>\"\n      }\n    ]\n  }\n}\nFIELD RULES:\n- Keep active_threads readable even after dialogue older than the latest 5 rounds drops out.\n- Copy previous active_threads as baseline. Update changed fields only.\n- requires_absent: non-null only when next_step logically depends on a character not currently in scene.\n- New threads: id = max existing id + 1. Completed: move to resolved_this_turn.\n- [] for empty lists.\nOUTPUT: Combine all schemas into one JSON object: {\"ra_knowledge_matrix\": {...}, \"ra_logic_state\": {...}, \"ra_quest_log\": {...}}. Single line, no markdown fences, no explanation.",
+          "output_format": "{\n  \"ra_quest_log\": {\n    \"active_threads\": [\n      {\n        \"id\": 1,\n        \"desc\": \"<quest or conflict, <=15 words>\",\n        \"weight\": \"<critical|high|medium|low>\",\n        \"status\": \"<active|progressed|stalled|nearly_resolved>\",\n        \"next_step\": \"<most likely next logical move, <=12 words>\",\n        \"related_npcs\": [\"<name>\"],\n        \"requires_absent\": \"<CharName not in scene but needed by next_step | null>\"\n      }\n    ],\n    \"resolved_this_turn\": [\"<id: reason. lasting consequence>\"]\n  }\n}\nFIELD RULES:\n- Keep active_threads readable even after older chat scrolls away.\n- Copy previous active_threads as baseline. Update changed fields only.\n- requires_absent: non-null only when next_step depends on a character not in scene.\n- New threads: id = max existing id + 1. Completed: move to resolved_this_turn as \"id: reason. consequence\".\n- [] for empty lists.\nOUTPUT: Combine all schemas into one JSON object: {\"ra_knowledge_matrix\": {...}, \"ra_logic_state\": {...}, \"ra_quest_log\": {...}}. Single line, no markdown fences, no explanation.",
           "retention_enabled": true,
           "retention_after": 0,
-          "retention_keep": 0
+          "retention_keep": 0,
+          "vector_trigger_enabled": true,
+          "vector_basis": "semantic_input",
+          "vector_threshold": 0.56,
+          "vector_fallback_turns": 4,
+          "vector_semantic_input": "goal objective mission task promise deal conflict tension debt threat clue suspect investigation contract oath plan"
         }
       ]
     },
@@ -2167,26 +2487,36 @@
       "target_model": "B",
       "every_n_turns": 1,
       "read_dialogue_rounds": 2,
-      "read_lorebook_names": "ra_scene_state, ra_logic_state, ra_knowledge_matrix, ra_mask_state, ra_persistent_memory, ra_reentry_guard, ra_facet_audit, ra_persona_evolution, ra_turning_point_log, ra_quest_log",
+      "read_lorebook_names": "ra_scene_state, ra_logic_state, ra_director, ra_knowledge_matrix, ra_mask_state, ra_persistent_memory, ra_reentry_guard, ra_facet_audit, ra_persona_evolution, ra_turning_point_log, ra_quest_log",
       "read_persona_names": "ra_persona_inventory",
       "entries": [
         {
           "lorebook_name": "ra_persona_importance",
           "write_mode": "overwrite",
           "always_active": true,
-          "output_format": "CALL ROLE: Plan the next-turn acting brief from scene pressure, knowledge state, mask state, and recent audits.\nTEMPORAL CONTEXT:\n- All lorebook entries are from T-1. You are planning for the CURRENT turn T-0.\n- ra_scene_state, ra_logic_state, ra_persistent_memory, ra_reentry_guard: T-1 baseline — use as current context.\n- ra_facet_audit (T-1): audited the T-2 reply against the T-2 plan. Assess if the same drift is present in T-1 dialogue. If T-1 already self-corrected, set micro_repair null.\n- ra_persona_evolution: if present, use baseline_adjustment_candidates to determine if evolution_nudge applies. Skip if not yet available.\n- ra_turning_point_log: use carry_forward_details and what_must_still_remain_true when a character is returning or a past rupture still shapes behavior.\n- ra_director: if loop_signal is non-null, incorporate it into the reply strategy.\n- ra_mask_state and ra_knowledge_matrix: if present, check for active concealment and political context when assigning facets.\n{\n  \"ra_persona_importance\": {\n    \"characters\": {\n      \"CharName\": {\n        \"ranked_facets\": [\n          {\n            \"name\": \"<facet>\",\n            \"importance\": 0,\n            \"activation_source\": \"<scene|relationship|threat|status|desire|duty|mixed>\",\n            \"activation_kind\": \"<baseline|scene-evoked|compensatory|stress-leak|earned-shift>\",\n            \"stability\": \"<low|medium|high>\",\n            \"mode\": \"<primary|secondary|background|suppressed>\",\n            \"why_now\": \"<short scene trigger>\",\n            \"counterfactual_risk\": \"<what breaks if absent | null>\"\n          }\n        ]\n      }\n    }\n  }\n}\nFIELD RULES:\n- Include only active characters in scene. Rank 2-4 facets total.\n- Exactly 1 facet should be primary when evidence supports it. At most 1 secondary. Rest: background or suppressed.\n- Build from ra_persona_inventory.core_facets plus current scene pressure. Do not invent extra durable facets here.\n- importance: relative for this turn only.\n- activation_kind: baseline = normal expression; scene-evoked = naturally foregrounded by scene; compensatory = fills gap left by primary; stress-leak = emerges under pressure; earned-shift = supported longer-term adjustment.\n- Favor scene usefulness over completeness. Check ra_mask_state and ra_knowledge_matrix for political or deceptive context.\n- Primary facet choice must not justify retconning established events, owned objects, promises, admitted failures, leverage positions, titles, or scene consequences. Preserve dignity through reaction style, not factual denial.",
+          "output_format": "CALL ROLE: Plan the next-turn acting brief from scene pressure, knowledge state, mask state, and recent audits.\nTEMPORAL CONTEXT:\n- All lorebook entries are from T-1. You are planning for the CURRENT turn T-0.\n- ra_scene_state, ra_logic_state, ra_persistent_memory, ra_reentry_guard: T-1 baseline — use as current context.\n- ra_facet_audit (T-1): audited the T-2 reply against the T-2 plan. Assess if the same drift is present in T-1 dialogue. If T-1 already self-corrected, set micro_repair null.\n- ra_persona_evolution: if present, use baseline_adjustment_candidates to determine if evolution_nudge applies. Skip if not yet available.\n- ra_turning_point_log: use carry_forward_details and what_must_still_remain_true when a character is returning or a past rupture still shapes behavior.\n- ra_director: if environment_intervention is non-null, incorporate it into the reply strategy.\n- ra_mask_state and ra_knowledge_matrix: if present, check for active concealment and political context when assigning facets.\n{\n  \"ra_persona_importance\": {\n    \"characters\": {\n      \"CharName\": {\n        \"ranked_facets\": [\n          {\n            \"name\": \"<facet>\",\n            \"importance\": 0,\n            \"activation_source\": \"<scene|relationship|threat|status|desire|duty|mixed>\",\n            \"activation_kind\": \"<baseline|scene-evoked|compensatory|stress-leak|earned-shift>\",\n            \"stability\": \"<low|medium|high>\",\n            \"mode\": \"<primary|secondary|background|suppressed>\",\n            \"why_now\": \"<short scene trigger>\",\n            \"counterfactual_risk\": \"<what breaks if absent | null>\"\n          }\n        ]\n      }\n    }\n  }\n}\nFIELD RULES:\n- Include only active characters in scene. Rank 2-4 facets total.\n- Exactly 1 facet should be primary when evidence supports it. At most 1 secondary. Rest: background or suppressed.\n- Build from ra_persona_inventory.core_facets plus current scene pressure. Do not invent extra durable facets here.\n- importance: relative for this turn only.\n- activation_kind: baseline = normal expression; scene-evoked = naturally foregrounded by scene; compensatory = fills gap left by primary; stress-leak = emerges under pressure; earned-shift = supported longer-term adjustment.\n- Favor scene usefulness over completeness. Check ra_mask_state and ra_knowledge_matrix for political or deceptive context.\n- Primary facet choice must not justify retconning established events, owned objects, promises, admitted failures, leverage positions, titles, or scene consequences. Preserve dignity through reaction style, not factual denial.",
           "retention_enabled": true,
           "retention_after": 0,
-          "retention_keep": 0
+          "retention_keep": 0,
+          "vector_trigger_enabled": false,
+          "vector_basis": "round_compare",
+          "vector_threshold": 0.6,
+          "vector_fallback_turns": 10,
+          "vector_semantic_input": ""
         },
         {
           "lorebook_name": "ra_turn_advice",
           "write_mode": "overwrite",
           "always_active": true,
-          "output_format": "{\n  \"ra_turn_advice\": {\n    \"response_guard\": {\n      \"biggest_risk\": \"<main likely failure next turn>\",\n      \"strict_directive\": \"<Proceed normally | Preserve tension | Do not resolve yet | Enforce guarded response | Show friction | Reject action | Maintain political caution>\"\n    },\n    \"character_routing\": {\n      \"CharName\": {\n        \"portrayal_goal\": \"<how this character should come across next>\",\n        \"primary_facet\": \"<facet | null>\",\n        \"secondary_facet\": \"<facet | null>\",\n        \"background_facets\": [\"<facet>\"],\n        \"suppressed_facets\": [\"<facet>\"],\n        \"micro_repair\": \"<small correction from ra_facet_audit | null>\",\n        \"evolution_nudge\": \"<small allowed emphasis if ra_persona_evolution supports | null>\",\n        \"integrity_guard\": \"<what canon or dignity rule must not be violated>\",\n        \"reentry_restore\": \"<what to restore if this character is returning | null>\",\n        \"mask_note\": \"<if ra_mask_state exists: remind of active concealment goal | null>\",\n        \"reply_strategy\": \"<one-turn plan>\"\n      }\n    },\n    \"candidate_hint\": {\n      \"preferred_shape\": \"<best reply shape>\",\n      \"avoid_shape\": \"<bad reply shape>\"\n    }\n  }\n}\nFIELD RULES:\n- Make this brief self-sufficient for the next reply.\n- primary_facet must match the primary mode facet from ra_persona_importance above.\n- secondary_facet: at most one. background_facets: max 2. suppressed_facets: max 2.\n- response_guard.strict_directive is persona-side provisional guidance for this turn.\n- integrity_guard: remind how the character may preserve pride, reserve, or political dignity without denying established facts, attachments, leverage, or prior actions.\n- reentry_restore: non-null when ra_reentry_guard marks the character returning or when ra_turning_point_log indicates a durable change that must reactivate now.\n- mask_note: non-null only when ra_mask_state shows active concealment relevant to this turn.\n- reply_strategy should prefer deflection, irritation, minimization, selective admission, silence, posture, or tactical reframing before any factual denial.\n- If ra_director.loop_signal is non-null, incorporate it into reply_strategy or candidate_hint.\nOUTPUT: Combine all schemas into one JSON object: {\"ra_persona_importance\": {...}, \"ra_turn_advice\": {...}}. Single line, no markdown fences, no explanation.",
+          "output_format": "{\n  \"ra_turn_advice\": {\n    \"response_guard\": {\n      \"biggest_risk\": \"<main likely failure next turn>\",\n      \"strict_directive\": \"<Proceed normally | Preserve tension | Do not resolve yet | Enforce guarded response | Show friction | Reject action | Maintain political caution>\"\n    },\n    \"character_routing\": {\n      \"CharName\": {\n        \"portrayal_goal\": \"<how this character should come across next>\",\n        \"primary_facet\": \"<facet | null>\",\n        \"secondary_facet\": \"<facet | null>\",\n        \"background_facets\": [\"<facet>\"],\n        \"suppressed_facets\": [\"<facet>\"],\n        \"micro_repair\": \"<small correction from ra_facet_audit | null>\",\n        \"evolution_nudge\": \"<small allowed emphasis if ra_persona_evolution supports | null>\",\n        \"integrity_guard\": \"<what canon or dignity rule must not be violated>\",\n        \"reentry_restore\": \"<what to restore if this character is returning | null>\",\n        \"mask_note\": \"<if ra_mask_state exists: remind of active concealment goal | null>\",\n        \"reply_strategy\": \"<one-turn plan>\"\n      }\n    },\n    \"candidate_hint\": {\n      \"preferred_shape\": \"<best reply shape>\",\n      \"avoid_shape\": \"<bad reply shape>\"\n    }\n  }\n}\nFIELD RULES:\n- Make this brief self-sufficient for the next reply.\n- primary_facet must match the primary mode facet from ra_persona_importance above.\n- secondary_facet: at most one. background_facets: max 2. suppressed_facets: max 2.\n- response_guard.strict_directive is persona-side provisional guidance for this turn.\n- integrity_guard: remind how the character may preserve pride, reserve, or political dignity without denying established facts, attachments, leverage, or prior actions.\n- reentry_restore: non-null when ra_reentry_guard marks the character returning or when ra_turning_point_log indicates a durable change that must reactivate now.\n- mask_note: non-null only when ra_mask_state shows active concealment relevant to this turn.\n- reply_strategy should prefer deflection, irritation, minimization, selective admission, silence, posture, or tactical reframing before any factual denial.\n- If ra_director.environment_intervention is non-null, incorporate it into reply_strategy or candidate_hint.\nOUTPUT: Combine all schemas into one JSON object: {\"ra_persona_importance\": {...}, \"ra_turn_advice\": {...}}. Single line, no markdown fences, no explanation.",
           "retention_enabled": false,
           "retention_after": 0,
-          "retention_keep": 0
+          "retention_keep": 0,
+          "vector_trigger_enabled": false,
+          "vector_basis": "round_compare",
+          "vector_threshold": 0.6,
+          "vector_fallback_turns": 10,
+          "vector_semantic_input": ""
         }
       ]
     },
@@ -2206,7 +2536,12 @@
           "output_format": "CALL ROLE: Audit the previous visible reply against the previous turn plan.\nTEMPORAL NOTE: All lorebook entries are from T-1. You are auditing the T-1 assistant reply using the T-1 ra_turn_advice as the reference benchmark.\n{\n  \"ra_facet_audit\": {\n    \"audited_turn\": \"T-1\",\n    \"advice_source_turn\": \"T-1\",\n    \"characters\": {\n      \"CharName\": {\n        \"intended_primary\": \"<facet | null>\",\n        \"observed_primary\": \"<facet | null>\",\n        \"suppressed_leakage\": [\"<facet>\"],\n        \"prestige_override_failure\": false,\n        \"overblending\": \"<low|medium|high>\",\n        \"alignment\": \"<aligned|partial|misaligned>\",\n        \"repair_hint\": \"<short next-turn adjustment | null>\"\n      }\n    }\n  }\n}\nFIELD RULES:\n- intended_primary: the primary_facet from the ra_turn_advice you read.\n- observed_primary: the facet most visibly dominating the actual assistant reply.\n- suppressed_leakage: facets that surfaced too strongly despite being listed as suppressed.\n- prestige_override_failure: true when the reply protects pride, dignity, prestige, or political image by denying established facts, important attachments, prior admissions, leverage exposure, or scene consequences.\n- overblending: whether too many traits diluted the intended hierarchy.\n- alignment: aligned = hierarchy largely landed; partial = intended facet present but diluted; misaligned = different facet dominated or suppression clearly failed.\n- repair_hint: short and directly usable by next turn's micro_repair. null if aligned.\n- Include only active characters with enough material. Judge observable portrayal only. Do not penalize subtlety.\n- Flag leakage when suppressed facet made the reply softer, sweeter, or more generic than intended.\nOUTPUT: Single valid JSON: {\"ra_facet_audit\": {...}}. Single line, no markdown fences, no explanation.",
           "retention_enabled": false,
           "retention_after": 0,
-          "retention_keep": 0
+          "retention_keep": 0,
+          "vector_trigger_enabled": false,
+          "vector_basis": "round_compare",
+          "vector_threshold": 0.6,
+          "vector_fallback_turns": 10,
+          "vector_semantic_input": ""
         }
       ]
     },
@@ -2223,10 +2558,15 @@
           "lorebook_name": "ra_pattern_guard",
           "write_mode": "overwrite",
           "always_active": true,
-          "output_format": "CALL ROLE: Summarize repetition pressure, concealment, knowledge for this phase.\n{\n  \"ra_pattern_guard\": {\n    \"expression_repetition\": 0,\n    \"flagged_cliches\": [\"<overused descriptive/reactive pattern>\"],\n    \"banned_phrases\": [\"<exact phrase appearing 2+ times in recent assistant replies>\"],\n    \"variation_hint\": \"<one short suggestion targeting prose style, vocabulary, or character reaction variety — must not suggest scene/plot changes | null>\"\n  }\n}\nFIELD RULES:\n- Scope: prose style, vocabulary, character reaction patterns, descriptive tropes. Scene-level pacing is handled by ra_director; do NOT overlap.\n- expression_repetition: 0 (fully varied expression) to 10 (identical descriptive/reactive loops). Evaluate across the last 3 assistant replies.\n- flagged_cliches: up to 3 overused descriptive or reactive patterns (e.g. identical body-language sequences, recycled metaphors, formulaic emotional beats). Exclude scene-level pacing issues. [] if none.\n- banned_phrases: exact phrases or near-identical constructions appearing 2+ times in the last 3 assistant replies. [] if none.\n- variation_hint: null if expression_repetition < 4. Otherwise one concise suggestion for prose/reaction variety.",
+          "output_format": "CALL ROLE: Summarize repetition pressure, concealment, knowledge for this phase.\n{\n  \"ra_pattern_guard\": {\n    \"expression_repetition\": 0,\n    \"flagged_cliches\": [\"<overused descriptive/reactive pattern>\"],\n    \"banned_phrases\": [\"<exact phrase appearing 2+ times in recent assistant replies>\"],\n    \"variation_hint\": \"<one short suggestion targeting prose style, vocabulary, or character reaction variety — must not suggest scene/plot changes | null>\"\n  }\n}\nFIELD RULES:\n- Scope: prose style, vocabulary, character reaction patterns, descriptive tropes. Do not overlap with scene-level pacing or directional narrative guidance handled elsewhere.\n- expression_repetition: 0 (fully varied expression) to 10 (identical descriptive/reactive loops). Evaluate across the last 3 assistant replies.\n- flagged_cliches: up to 3 overused descriptive or reactive patterns (e.g. identical body-language sequences, recycled metaphors, formulaic emotional beats). Exclude scene-level pacing issues. [] if none.\n- banned_phrases: exact phrases or near-identical constructions appearing 2+ times in the last 3 assistant replies. [] if none.\n- variation_hint: null if expression_repetition < 4. Otherwise one concise suggestion for prose/reaction variety.",
           "retention_enabled": true,
           "retention_after": 0,
-          "retention_keep": 0
+          "retention_keep": 0,
+          "vector_trigger_enabled": false,
+          "vector_basis": "round_compare",
+          "vector_threshold": 0.6,
+          "vector_fallback_turns": 10,
+          "vector_semantic_input": ""
         },
         {
           "lorebook_name": "ra_mask_state",
@@ -2235,16 +2575,26 @@
           "output_format": "{\n  \"ra_mask_state\": {\n    \"CharName\": {\n      \"inner_active_facets\": [\"<real internal facet>\"],\n      \"displayed_facets\": [\"<facet shown outwardly>\"],\n      \"concealed_facets\": [\"<facet intentionally hidden>\"],\n      \"mask_goal\": \"<what the mask achieves, <=18 words>\"\n    }\n  }\n}\nFIELD RULES:\n- Each list 0-3 items. Include only characters with active deceptive or strategic social presentation.\n- TEMPORAL NOTE: Update based on this turn's behavior.",
           "retention_enabled": false,
           "retention_after": 0,
-          "retention_keep": 0
+          "retention_keep": 0,
+          "vector_trigger_enabled": true,
+          "vector_basis": "semantic_input",
+          "vector_threshold": 0.57,
+          "vector_fallback_turns": 4,
+          "vector_semantic_input": "conceal hide disguise bluff pretend withhold mislead cover story test expose mask facade secret"
         },
         {
           "lorebook_name": "ra_knowledge_annotations",
           "write_mode": "overwrite",
           "always_active": false,
-          "output_format": "{\n  \"ra_knowledge_annotations\": {\n    \"entries\": [\n      {\n        \"id\": \"K001\",\n        \"annotation\": \"<implication or risk this knowledge creates, <=20 words>\",\n        \"exploit_risk\": \"<who might weaponize this and how | null>\"\n      }\n    ]\n  }\n}\nFIELD RULES:\n- Only annotate ra_knowledge_matrix entries with active narrative consequence.\n- entries: [] if no entries warrant annotation.\nOUTPUT: Combine all schemas into one JSON object: {\"ra_pattern_guard\": {...}, \"ra_mask_state\": {...}, \"ra_knowledge_annotations\": {...}}. Single line, no markdown fences, no explanation.",
+          "output_format": "{\n  \"ra_knowledge_annotations\": {\n    \"entries\": [\"<K001: implication/risk. exploit_risk or null>\"]\n  }\n}\nFIELD RULES:\n- One string per entry. Format \"Kxxx: annotation. exploit_risk or null.\"\n- Only entries with active narrative consequence. [] if none.\nOUTPUT: Combine all schemas into one JSON object: {\"ra_pattern_guard\": {...}, \"ra_mask_state\": {...}, \"ra_knowledge_annotations\": {...}}. Single line, no markdown fences, no explanation.",
           "retention_enabled": false,
           "retention_after": 0,
-          "retention_keep": 0
+          "retention_keep": 0,
+          "vector_trigger_enabled": true,
+          "vector_basis": "semantic_input",
+          "vector_threshold": 0.56,
+          "vector_fallback_turns": 4,
+          "vector_semantic_input": "secret truth reveal clue evidence witness alibi hidden motive rumor blackmail leverage exposed suspicion information"
         }
       ]
     },
@@ -2264,16 +2614,26 @@
           "output_format": "CALL ROLE: Summarize strategy, leverage, and final reply risks for this phase.\n{\n  \"ra_strategy_layer\": {\n    \"player_side_goal\": \"<current strategic goal, <=15 words>\",\n    \"player_side_operations\": [\"<active operation or line of action>\"],\n    \"rival_operations\": [\"<opposing move or pressure>\"],\n    \"immediate_leverage\": [\"<asset|weakness|debt|secret|positional advantage>\"],\n    \"strategic_risk\": \"<main current risk, <=18 words | null>\"\n  }\n}\nFIELD RULES:\n- Focus on active, decision-relevant strategic moves only.\n- TEMPORAL NOTE: Update based on this turn's latest dialogue developments.\n- [] for empty lists. null for absent fields.",
           "retention_enabled": false,
           "retention_after": 0,
-          "retention_keep": 0
+          "retention_keep": 0,
+          "vector_trigger_enabled": true,
+          "vector_basis": "semantic_input",
+          "vector_threshold": 0.59,
+          "vector_fallback_turns": 3,
+          "vector_semantic_input": "plan leverage negotiation bargain pressure command alliance rivalry hierarchy scheme operation tactic retreat exploit"
         },
         {
           "lorebook_name": "ra_strategy_analysis",
           "write_mode": "overwrite",
           "always_active": false,
-          "output_format": "{\n  \"ra_strategy_analysis\": {\n    \"analyst_strategy_overrides\": {\n      \"CharName\": \"<correction if character behaves inconsistently with known goals | null>\"\n    },\n    \"cognition_violations\": [\n      {\n        \"character\": \"<name>\",\n        \"violation\": \"<how their action contradicts established knowledge or goals>\"\n      }\n    ]\n  }\n}\nFIELD RULES:\n- analyst_strategy_overrides: {} if no corrections needed.\n- cognition_violations: [] if no violations found.\n- Focus on characters acting against their established knowledge (ra_knowledge_matrix) or goals (ra_strategy_layer).",
+          "output_format": "{\n  \"ra_strategy_analysis\": {\n    \"analyst_strategy_overrides\": {\n      \"CharName\": \"<correction if inconsistent with goals | null>\"\n    },\n    \"cognition_violations\": [\"<Name: how action contradicts knowledge or goals>\"]\n  }\n}\nFIELD RULES:\n- analyst_strategy_overrides: {} if no corrections. cognition_violations: [] if none.\n- Focus on characters acting against ra_knowledge_matrix or ra_strategy_layer.",
           "retention_enabled": false,
           "retention_after": 0,
-          "retention_keep": 0
+          "retention_keep": 0,
+          "vector_trigger_enabled": true,
+          "vector_basis": "semantic_input",
+          "vector_threshold": 0.57,
+          "vector_fallback_turns": 3,
+          "vector_semantic_input": "mistake contradiction bluff probe suspicion exposure weakness overplay manipulation misread negotiation pressure slip"
         },
         {
           "lorebook_name": "ra_response_guard",
@@ -2282,7 +2642,12 @@
           "output_format": "{\n  \"ra_response_guard\": {\n    \"biggest_ooc_risk\": \"<most likely OOC failure, <=18 words | null>\",\n    \"biggest_logic_risk\": \"<continuity or knowledge failure, <=18 words | null>\",\n    \"biggest_political_risk\": \"<tactical or diplomatic misstep, <=18 words | null>\",\n    \"biggest_facet_mismatch_risk\": \"<wrong persona expression, <=20 words | null>\",\n    \"strict_directive\": \"<Proceed normally | Preserve tension | Do not resolve too quickly | Do not speak for user | Enforce guarded response | Enforce emotional continuity | Preserve ambiguity | Restrict unavailable knowledge | Maintain political caution | Do not reveal mask>\"\n  }\n}\nFIELD RULES:\n- Set each risk field to null if that category presents no meaningful concern this turn.\n- Read ra_turn_advice.response_guard.strict_directive as persona-side provisional guidance.\n- strict_directive here is the FINAL enforcement layer for the main model this turn. If it differs from ra_turn_advice.response_guard.strict_directive, prefer ra_response_guard.strict_directive.\nOUTPUT: Combine all schemas into one JSON object: {\"ra_strategy_layer\": {...}, \"ra_strategy_analysis\": {...}, \"ra_response_guard\": {...}}. Single line, no markdown fences, no explanation.",
           "retention_enabled": false,
           "retention_after": 0,
-          "retention_keep": 0
+          "retention_keep": 0,
+          "vector_trigger_enabled": false,
+          "vector_basis": "semantic_input",
+          "vector_threshold": 0.62,
+          "vector_fallback_turns": 4,
+          "vector_semantic_input": ""
         }
       ]
     },
@@ -2299,11 +2664,16 @@
         {
           "lorebook_name": "ra_world_log",
           "write_mode": "append",
-          "always_active": true,
+          "always_active": false,
           "output_format": "CALL ROLE: Record new world facts and canon-locking turning points from this batch of turns.\nTEMPORAL NOTE: You are writing entries for THIS batch of turns.\n{\n  \"ra_world_log\": {\n    \"entries\": [\"<Name. Key fact. <=20 words.\"]\n  }\n}\nFIELD RULES:\n- One string per entry: name first, then the key fact. <=20 words total per entry.\n- Recording anything that helps LLM for future immersive narrating.\n- entries: [] if nothing new.",
           "retention_enabled": true,
           "retention_after": 15,
-          "retention_keep": 0
+          "retention_keep": 0,
+          "vector_trigger_enabled": true,
+          "vector_basis": "semantic_input",
+          "vector_threshold": 0.62,
+          "vector_fallback_turns": 0,
+          "vector_semantic_input": "world lore history setting faction culture religion magic city region technology rumor law custom mythology"
         },
         {
           "lorebook_name": "ra_turning_point_log",
@@ -2312,7 +2682,12 @@
           "output_format": "TEMPORAL NOTE: You are writing entries for THIS batch of turns.\n{\n  \"ra_turning_point_log\": {\n    \"entries\": [\n      {\n        \"turning_point_detected\": \"<true|false>\",\n        \"event\": \"<concise event or line | null>\",\n        \"affected_characters\": [\"<CharName or role>\"],\n        \"what_must_still_remain_true\": [\"<canon fact that must not be denied later>\"],\n        \"carry_forward_details\": [\"<concrete reminder for future scenes>\"],\n        \"inventory_updates\": [\"<description of clothing changes or important obtained items>\"],\n        \"reentry_hook\": \"<how this should reactivate on return | null>\"\n      }\n    ]\n  }\n}\nFIELD RULES:\n- entries: [] if nothing needs preserving.\n- Record only changes future scenes must restore: promises, losses, reveals, stance shifts, named objects, burdens, address changes, or other canon-locking details.\n- Keep carry_forward_details to 2-4 short items per entry.\n- inventory_updates: Log item acquisitions and explicit clothing changes that future scenes must remember.\nOUTPUT: Combine all schemas into one JSON object: {\"ra_world_log\": {...}, \"ra_turning_point_log\": {...}}. Single line, no markdown fences, no explanation.",
           "retention_enabled": true,
           "retention_after": 40,
-          "retention_keep": 6
+          "retention_keep": 6,
+          "vector_trigger_enabled": true,
+          "vector_basis": "semantic_input",
+          "vector_threshold": 0.57,
+          "vector_fallback_turns": 0,
+          "vector_semantic_input": "promise oath confession reveal betrayal discovery loss gain injury title nickname gift vow turning point rupture reconciliation stance shift burden"
         }
       ]
     },
@@ -2325,7 +2700,7 @@
       "target_model": "A",
       "every_n_turns": 4,
       "read_dialogue_rounds": 5,
-      "read_lorebook_names": "ra_scene_principles, ra_relation_web",
+      "read_lorebook_names": "ra_scene_principles, ra_relation_web, ra_scene_state, ra_turn_trace, ra_quest_log",
       "read_persona_names": "ra_character_core",
       "entries": [
         {
@@ -2335,16 +2710,26 @@
           "output_format": "CALL ROLE: Produce deeper scene principles and relationship pressure maps for the current arc moment. T-1 ra_relation_web is provided as baseline for incremental edge updates.\n{\n  \"ra_scene_principles\": {\n    \"priority_dimensions\": [\"<dim1>\", \"<dim2>\", \"<dim3>\"],\n    \"priority_order_reason\": \"<<=22 words>\",\n    \"primary_persona_constraint\": \"<<=18 words>\",\n    \"secondary_persona_constraint\": \"<<=18 words | null>\",\n    \"principles\": [\n      {\n        \"name\": \"<short name>\",\n        \"why_now\": \"<<=20 words>\",\n        \"good_signal\": \"<what success looks like, <=20 words>\",\n        \"bad_signal\": \"<what failure looks like, <=20 words>\"\n      }\n    ],\n    \"facet_success_criteria\": [\"<facet-behavior match>\"],\n    \"short_term_success\": \"<success over next 1-3 replies, <=26 words>\"\n  }\n}\nRULES:\n- 3-5 principles. Focus on what is most at stake in this specific scene and arc phase.",
           "retention_enabled": false,
           "retention_after": 0,
-          "retention_keep": 0
+          "retention_keep": 0,
+          "vector_trigger_enabled": false,
+          "vector_basis": "round_compare",
+          "vector_threshold": 0.6,
+          "vector_fallback_turns": 10,
+          "vector_semantic_input": ""
         },
         {
           "lorebook_name": "ra_relation_web",
           "write_mode": "overwrite",
           "always_active": false,
-          "output_format": "{\n  \"ra_relation_web\": {\n    \"key_edges\": [\n      {\n        \"a\": \"<actor A>\",\n        \"b\": \"<actor B>\",\n        \"current_dynamic\": \"<allied|strained|dependent|hostile|suspicious|transactional|deceptive|mixed>\",\n        \"trust_level\": 0,\n        \"imbalance\": \"<A_over_B|B_over_A|balanced|unstable>\",\n        \"recent_shift\": \"<what changed, <=18 words>\"\n      }\n    ],\n    \"most_sensitive_edge\": \"<A-B pair under highest pressure | null>\"\n  }\n}\nRULES:\n- Include only the 3-8 most relevant edges for the current arc.\nOUTPUT: Combine all schemas into one JSON object: {\"ra_scene_principles\": {...}, \"ra_relation_web\": {...}}. Single line, no markdown fences, no explanation.",
+          "output_format": "{\n  \"ra_relation_web\": {\n    \"key_edges\": [\"<A→B: dynamic, trust=N/10, imbalance, recent_shift <=12 words>\"],\n    \"most_sensitive_edge\": \"<A-B pair under highest pressure | null>\"\n  }\n}\nRULES:\n- 3-8 most relevant edges. One string per edge: \"A→B: dynamic, trust=N/10, imbalance, shift.\"\nOUTPUT: Combine all schemas into one JSON object: {\"ra_scene_principles\": {...}, \"ra_relation_web\": {...}}. Single line, no markdown fences, no explanation.",
           "retention_enabled": false,
           "retention_after": 0,
-          "retention_keep": 0
+          "retention_keep": 0,
+          "vector_trigger_enabled": true,
+          "vector_basis": "semantic_input",
+          "vector_threshold": 0.56,
+          "vector_fallback_turns": 3,
+          "vector_semantic_input": "trust distrust alliance rivalry loyalty obligation debt jealousy intimacy distance dependence resentment affection betrayal reconciliation"
         }
       ]
     },
@@ -2355,7 +2740,7 @@
       "target_model": "A",
       "every_n_turns": 10,
       "read_dialogue_rounds": 1,
-      "read_lorebook_names": "ra_arc_memory, ra_strategy_layer, ra_relation_web, ra_knowledge_matrix, ra_persona_importance, ra_turning_point_log, ra_persistent_memory, ra_facet_audit, ra_persona_evolution, ra_world_log, ra_turn_trace, ra_quest_log",
+      "read_lorebook_names": "ra_arc_memory, ra_strategy_layer, ra_relation_web, ra_knowledge_matrix, ra_persona_importance, ra_turn_advice, ra_turning_point_log, ra_persistent_memory, ra_facet_audit, ra_persona_evolution, ra_world_log, ra_turn_trace, ra_quest_log",
       "read_persona_names": "ra_character_core",
       "entries": [
         {
@@ -2365,7 +2750,12 @@
           "output_format": "CALL ROLE: Consolidate long-term memory, reentry anchors, and slow persona adjustment.\n{\n  \"ra_arc_memory\": {\n    \"phase_shift_detected\": \"<true|false>\",\n    \"arc_phase\": \"<setup|escalation|rupture|negotiation|resolution|aftermath | null>\",\n    \"turning_point\": \"<exact line/action or concise event | null>\",\n    \"phase_change\": \"<how this stretch changed the story | null>\",\n    \"lasting_effect\": \"<durable consequence | null>\"\n  }\n}\nFIELD RULES:\n- Set phase_shift_detected \"true\" ONLY when a genuine arc phase shift or clear turning point occurred in recent turns.\n- If \"false\": set all other fields to null. Still append; treat as a no-op record.\n- If \"true\": fill all fields. Check ra_world_log for a key moment to anchor turning_point.",
           "retention_enabled": true,
           "retention_after": 50,
-          "retention_keep": 10
+          "retention_keep": 10,
+          "vector_trigger_enabled": false,
+          "vector_basis": "round_compare",
+          "vector_threshold": 0.6,
+          "vector_fallback_turns": 10,
+          "vector_semantic_input": ""
         },
         {
           "lorebook_name": "ra_persistent_memory",
@@ -2374,7 +2764,12 @@
           "output_format": "{\n  \"ra_persistent_memory\": {\n    \"CharName\": {\n      \"identity_nonnegotiables\": [\"<name, title, fact, promise, or attachment that must remain true>\"],\n      \"signature_addressing\": [\"<stable naming or honorific habit>\"],\n      \"reentry_anchors\": [\"<what must be restored on return>\"],\n      \"actor_rule\": [\"<1 short portrayal reminder>\"]\n    }\n  }\n}\nFIELD RULES:\n- This is the carry-forward layer for anything the actor still needs after only seeing the latest 5 rounds.\n- Keep only durable core needed for reentry stability.\n- Do not encode affection levels, trust progression, temporary moods, or user-specific attitude states.\n- identity_nonnegotiables: use established facts only. Prefer names, titles, duties, vows, losses, and important attachments.\n- signature_addressing: stable forms of address only.\n- reentry_anchors: 1-4 concise recall items.\n- actor_rule: 1-2 short operational reminders. Do not duplicate full persona analysis.",
           "retention_enabled": false,
           "retention_after": 0,
-          "retention_keep": 0
+          "retention_keep": 0,
+          "vector_trigger_enabled": false,
+          "vector_basis": "round_compare",
+          "vector_threshold": 0.6,
+          "vector_fallback_turns": 10,
+          "vector_semantic_input": ""
         },
         {
           "lorebook_name": "ra_reentry_guard",
@@ -2383,7 +2778,12 @@
           "output_format": "{\n  \"ra_reentry_guard\": {\n    \"characters\": {\n      \"CharName\": {\n        \"returning\": false,\n        \"restore_now\": [\"<anchor to reactivate now>\"],\n        \"do_not_introduce\": [\"<unsupported new preference or trait>\"]\n      }\n    }\n  }\n}\nFIELD RULES:\n- Use this to restore what the actor may miss because it only sees the latest 5 rounds.\n- Include only characters relevant to current or likely near-future reentry. {} if none.\n- returning: true only when the character is re-entering now or a return is the obvious next continuity need.\n- restore_now: draw from ra_turning_point_log, ra_persistent_memory, and ra_character_core.\n- do_not_introduce: list unsupported new traits, nicknames, favorite foods, or rewritten motives the model should avoid inventing.",
           "retention_enabled": false,
           "retention_after": 0,
-          "retention_keep": 0
+          "retention_keep": 0,
+          "vector_trigger_enabled": false,
+          "vector_basis": "round_compare",
+          "vector_threshold": 0.6,
+          "vector_fallback_turns": 10,
+          "vector_semantic_input": ""
         },
         {
           "lorebook_name": "ra_persona_evolution",
@@ -2392,7 +2792,12 @@
           "output_format": "{\n  \"ra_persona_evolution\": {\n    \"characters\": {\n      \"CharName\": {\n        \"stable_core\": [\"<facet>\"],\n        \"drift_risks\": [\"<repeated portrayal drift>\"],\n        \"baseline_adjustment_candidates\": [\n          {\n            \"name\": \"<facet>\",\n            \"direction\": \"<up|down|watch>\",\n            \"confidence\": \"<low|medium|high>\",\n            \"reason\": \"<short evidence summary>\"\n          }\n        ],\n        \"repair_directive\": \"<minimal future correction | null>\"\n      }\n    }\n  }\n}\nFIELD RULES:\n- Include only characters with enough recent material.\n- stable_core: identity-bearing facets clearly still intact.\n- drift_risks: repeated flattening, prestige-protecting fact denial, suppressed-facet leakage, mask overuse, or return-scene memory collapse.\n- baseline_adjustment_candidates with confidence medium or high feed ra_turn_advice evolution_nudge.\n- Do not encode relationship progression or temporary mood shifts as structural change.\nOUTPUT: Combine all schemas into one JSON object: {\"ra_arc_memory\": {...}, \"ra_persistent_memory\": {...}, \"ra_reentry_guard\": {...}, \"ra_persona_evolution\": {...}}. Single line, no markdown fences, no explanation.\nAPPEND NOTE for ra_arc_memory: Write only the new arc entry for this batch. Do not reproduce prior entries.",
           "retention_enabled": false,
           "retention_after": 0,
-          "retention_keep": 0
+          "retention_keep": 0,
+          "vector_trigger_enabled": true,
+          "vector_basis": "round_compare",
+          "vector_threshold": 0.57,
+          "vector_fallback_turns": 6,
+          "vector_semantic_input": ""
         }
       ]
     },
@@ -2409,10 +2814,15 @@
           "lorebook_name": "ra_world_encyclopedia",
           "write_mode": "overwrite",
           "always_active": false,
-          "output_format": "CALL ROLE: Merge durable world facts into stable reference memory.\n{\n  \"ra_world_encyclopedia\": {\n    \"geography\": [\n      {\n        \"name\": \"<place>\",\n        \"description\": \"<compact description>\",\n        \"current_relevance\": \"<why it matters now>\"\n      }\n    ],\n    \"npcs\": [\n      {\n        \"name\": \"<NPC>\",\n        \"role\": \"<role in story>\",\n        \"status\": \"<alive/dead/unknown + condition>\",\n        \"notes\": \"<profile + latest durable change>\"\n      }\n    ],\n    \"factions\": [\n      {\n        \"name\": \"<faction>\",\n        \"description\": \"<purpose>\",\n        \"relations\": \"<stance toward player/others>\"\n      }\n    ],\n    \"lore\": [\n      {\n        \"topic\": \"<subject>\",\n        \"detail\": \"<compact durable fact>\"\n      }\n    ]\n  }\n}\nFIELD RULES:\n- Use prior encyclopedia as baseline. Add only durable, stable facts. Remove clear duplicates.\n- Do not write short-term scene noise into the encyclopedia.\n- Keep entries reference-oriented, not prose-heavy.\nOUTPUT: Single valid JSON: {\"ra_world_encyclopedia\": {...}}. Single line, no markdown fences, no explanation.",
+          "output_format": "CALL ROLE: Merge durable world facts into stable reference memory.\n{\n  \"ra_world_encyclopedia\": {\n    \"geography\": [\"<Place: description. why it matters>\"],\n    \"npcs\": [\"<Name (role, status): profile note>\"],\n    \"factions\": [\"<Faction: purpose. stance toward player/others>\"],\n    \"lore\": [\"<Topic: compact durable fact>\"]\n  }\n}\nFIELD RULES:\n- Use prior encyclopedia as baseline. Add only durable, stable facts. Remove clear duplicates.\n- Do not write short-term scene noise. Keep entries reference-oriented.\n- Each category: one string per entry. [] if empty.\nOUTPUT: Single valid JSON: {\"ra_world_encyclopedia\": {...}}. Single line, no markdown fences, no explanation.",
           "retention_enabled": false,
           "retention_after": 0,
-          "retention_keep": 0
+          "retention_keep": 0,
+          "vector_trigger_enabled": false,
+          "vector_basis": "round_compare",
+          "vector_threshold": 0.6,
+          "vector_fallback_turns": 10,
+          "vector_semantic_input": ""
         }
       ]
     }
@@ -2425,7 +2835,7 @@
     extractor_a_model: "",
     extractor_a_provider_model_map: "{}",
     extractor_a_provider_url_map: "{}",
-    extractor_a_temperature: 0.2,
+    extractor_a_temperature: 0.5,
     extractor_b_provider: "custom_api",
     extractor_b_format: "openai",
     extractor_b_url: "",
@@ -2433,7 +2843,7 @@
     extractor_b_model: "",
     extractor_b_provider_model_map: "{}",
     extractor_b_provider_url_map: "{}",
-    extractor_b_temperature: 0.2,
+    extractor_b_temperature: 0.5,
     embedding_provider: "custom_api",
     embedding_format: "openai",
     embedding_model: "",
@@ -2814,6 +3224,74 @@ OUTPUT (STRICT):
   let replacerFn = null;
   let replacerRegistered = false;
   let _lastEmbedErrorMsg = ""; // tracks last embedding failure for descriptive errors
+  function buildVectorTriggerFailureMessage(reason, context = "") {
+    const detail = safeTrim(reason) || "Unknown error";
+    const suffix = context ? ` (${context})` : "";
+    return `Vector trigger embedding failed${suffix}: ${detail}`;
+  }
+  // Turn-scoped query vector cache: reset each replacer run so the same queryText
+  // (used by getLorebookContextByVector, getPersonaContextByVector, and
+  // injectKnowledgeIntoMessages in the same turn) only triggers one remote embed call.
+  // Key: "<provider>|<format>|<url>|<model>|<textHash>", value: Float[]
+  const _turnQueryVecCache = new Map();
+  const _turnQueryVecPending = new Map();
+  // Accumulated embed token estimate for the current turn (shown in ProgressPanel)
+  let _turnEmbedTokens = 0;
+  // Per-turn embedding batch queue: collects all cache-miss texts from
+  // injectKnowledgeIntoMessages and getPersonaContextByVector so they can be
+  // sent to the embedding model in a single batched API call instead of two
+  // sequential calls.  Keyed by cfg-fingerprint+textHash so identical texts
+  // share the same slot.  Flushed once by _flushTurnEmbedQueue() after all
+  // enqueue calls are done.  Reset in the replacer's finally block.
+  const _turnEmbedQueue = new Map(); // key -> { cfg, text, callbacks: [{resolve,reject}] }
+  let _turnEmbedFlushPromise = null; // non-null once flush has started
+  function _enqueueTurnEmbed(text, cfg) {
+    const cfgFp = cfg.provider + '|' + cfg.format + '|' + cfg.url + '|' + cfg.requestModel;
+    const key = cfgFp + '|' + simpleHash(String(text || ''));
+    if (_turnEmbedQueue.has(key)) {
+      return new Promise((resolve, reject) => _turnEmbedQueue.get(key).callbacks.push({ resolve, reject }));
+    }
+    return new Promise((resolve, reject) => {
+      _turnEmbedQueue.set(key, { cfg, text: String(text || ''), callbacks: [{ resolve, reject }] });
+    });
+  }
+  async function _flushTurnEmbedQueue() {
+    if (_turnEmbedFlushPromise) return _turnEmbedFlushPromise;
+    if (_turnEmbedQueue.size === 0) return;
+    // Snapshot the current queue and immediately clear it so the next flush
+    // call (e.g. lorebook phase after persona phase) starts with a fresh queue.
+    const snapshot = new Map(_turnEmbedQueue);
+    _turnEmbedQueue.clear();
+    _turnEmbedFlushPromise = (async () => {
+      // Group by cfg fingerprint (normally one group — same embedding model)
+      const groups = new Map();
+      for (const [key, entry] of snapshot) {
+        const cfgFp = entry.cfg.provider + '|' + entry.cfg.format + '|' + entry.cfg.url + '|' + entry.cfg.requestModel;
+        if (!groups.has(cfgFp)) groups.set(cfgFp, { cfg: entry.cfg, entries: [] });
+        groups.get(cfgFp).entries.push({ key, text: entry.text, callbacks: entry.callbacks });
+      }
+      for (const { cfg, entries } of groups.values()) {
+        let vectors;
+        try {
+          vectors = await fetchEmbeddingVectorsRemote(entries.map(e => e.text), cfg);
+        } catch (err) {
+          for (const e of entries) for (const cb of e.callbacks) cb.reject(err);
+          continue;
+        }
+        for (let i = 0; i < entries.length; i++) {
+          const vec = vectors[i];
+          for (const cb of entries[i].callbacks) {
+            if (Array.isArray(vec) && vec.length) cb.resolve(vec);
+            else cb.reject(new Error('Embedding returned empty vector for: ' + entries[i].text.slice(0, 60)));
+          }
+        }
+      }
+    })();
+    // Once the flush settles, clear the promise guard so future calls to
+    // _flushTurnEmbedQueue process the next batch of enqueued texts.
+    _turnEmbedFlushPromise.finally(() => { _turnEmbedFlushPromise = null; });
+    return _turnEmbedFlushPromise;
+  }
   const sessionStep0HandledHashByScope = new Map();
   let embeddingCacheStore = null;
   let configCache = {};
@@ -2842,7 +3320,7 @@ OUTPUT (STRICT):
     let _counterEl = null;
     let _titleEl = null;
     let _spinnerEl = null;
-    let _state = { main: 0, aux: 0, embed: 0, doneMain: 0, doneAux: 0, doneEmbed: 0, mainTokens: 0, auxTokens: 0 };
+    let _state = { main: 0, aux: 0, embed: 0, doneMain: 0, doneAux: 0, doneEmbed: 0, mainTokens: 0, auxTokens: 0, embedTokens: 0 };
     let _visible = false;
     let _confirmResolve = null;
     // ── i18n helpers ──────────────────────────────────────────────────────────
@@ -3104,7 +3582,7 @@ OUTPUT (STRICT):
       const fmtTokens = tokens > 0
         ? (tokens >= 1000000 ? (tokens / 1000000).toFixed(1) + "M" : tokens >= 1000 ? (tokens / 1000).toFixed(1) + "k" : String(tokens))
         : null;
-      const tokenBadge = (fmtTokens && (cls === "main" || cls === "aux"))
+      const tokenBadge = (fmtTokens && (cls === "main" || cls === "aux" || cls === "embed"))
         ? `<div class="pp-token-badge"> ~${fmtTokens} ${_L("token_est_unit")}</div>` : "";
       return ` <div class="pp-counter-card ${cls}" id="pp-card-${cls}"> <div class="pp-card-top"> <div class="pp-card-label-wrap"> <span class="pp-card-icon">${icon}</span> <span class="pp-counter-label">${label}</span> </div> ${tokenBadge}
  </div> <div class="pp-card-bottom"> <div class="pp-mini-bar-wrap"> <div class="pp-mini-bar" style="width: ${pct}%"></div> </div> <div class="pp-counter-info"> <span class="pp-counter-val">${done}</span> <span class="pp-counter-total">/ ${total}</span> </div> </div> </div>`;
@@ -3116,7 +3594,7 @@ OUTPUT (STRICT):
     }
     function _render() {
       if (!_panelEl) return;
-      const { main, aux, embed, doneMain, doneAux, doneEmbed, mainTokens, auxTokens } = _state;
+      const { main, aux, embed, doneMain, doneAux, doneEmbed, mainTokens, auxTokens, embedTokens } = _state;
       const totalAll = main + aux + embed;
       const doneAll = doneMain + doneAux + doneEmbed;
       const pct = totalAll > 0 ? Math.min(100, Math.round(doneAll / totalAll * 100)) : 0;
@@ -3126,7 +3604,7 @@ OUTPUT (STRICT):
         _counterEl.innerHTML =
           _buildCounterHTML("counter_main", "main", doneMain, main, mainTokens) +
           _buildCounterHTML("counter_aux", "aux", doneAux, aux, auxTokens) +
-          _buildCounterHTML("counter_embed", "embed", doneEmbed, embed, 0);
+          _buildCounterHTML("counter_embed", "embed", doneEmbed, embed, embedTokens);
       }
     }
     // ── Public methods ────────────────────────────────────────────────────────
@@ -3151,8 +3629,13 @@ OUTPUT (STRICT):
       _render();
     }
     function setTokens(type, count) {
-      if (type === "main") _state.mainTokens = count;
-      if (type === "aux") _state.auxTokens = count;
+      // Never overwrite a positive token estimate with zero — during a turn
+      // the pre-estimated step0 tokens must remain visible even if the
+      // subsequent execution-call estimate produces 0 (e.g. all calls are
+      // aux-only and _preMainTokens stays 0).  Token counts only move upward.
+      if (type === "main" && (count > 0 || _state.mainTokens === 0)) _state.mainTokens = count;
+      if (type === "aux"  && (count > 0 || _state.auxTokens  === 0)) _state.auxTokens  = count;
+      if (type === "embed") _state.embedTokens = count;
       _render();
     }
     function hideConfirm() {
@@ -3184,7 +3667,7 @@ OUTPUT (STRICT):
       _state = {
         main: opts.main || 0, aux: opts.aux || 0, embed: opts.embed || 0,
         doneMain: 0, doneAux: 0, doneEmbed: 0,
-        mainTokens: opts.mainTokens || 0, auxTokens: opts.auxTokens || 0,
+        mainTokens: opts.mainTokens || 0, auxTokens: opts.auxTokens || 0, embedTokens: 0,
       };
       // Remove any stale panel
       const stale = document.getElementById("pse-pp-overlay");
@@ -3354,6 +3837,7 @@ OUTPUT (STRICT):
   let _refreshStabilizeUntil = 0;
   let _refreshDeleteBlockUntil = 0;
   let _lastProcessedChatScopedKey = null;
+  let _lastProcessedTurnCount = -1;  // [Fix] track turn count to detect turn-back (悔棋)
   function enterRefreshProtection() {
     const now = Date.now();
     _refreshStabilizeUntil = Math.max(_refreshStabilizeUntil, now + REFRESH_STABILIZE_MS);
@@ -3424,10 +3908,21 @@ OUTPUT (STRICT):
       }
       const calls = getModelCallsByPreset(preset);
       let dueCalls = calls.filter((c) => isModelCallDue(c, pendingData.userMsgCount));
+      const vectorFiltered = await filterDueCallsByVectorTrigger(
+        dueCalls,
+        pendingData.userMsgCount,
+        pendingData.scopeId,
+        pendingData.chatScopedKey,
+        char,
+        chat,
+        baseConversation,
+      );
+      dueCalls = vectorFiltered.filteredCalls;
       // 過濾掉已經寫入的 call，避免重複擷取浪費 token
       dueCalls = dueCalls.filter(call => !this.isCallAlreadyWritten(call, chat, pendingData.userMsgCount));
       if (dueCalls.length === 0) {
         console.log(`${LOG} [TurnRecovery] Turn ${pendingData.userMsgCount} all data already written, skipping recovery.`);
+        if (vectorFiltered.state) await saveCallVectorTriggerState(vectorFiltered.state);
         await this.markDone(pendingData.scopeId);
         return true;
       }
@@ -3444,11 +3939,34 @@ OUTPUT (STRICT):
             url: endpoint.url, apiKey: endpoint.key, keySlot: endpoint.keySlot, model: endpoint.model, format: endpoint.format, temperature: endpoint.temperature, messages: extractedMessages, timeoutMs: configCache.timeout_ms, mode: call.target_model, thinkingEnabled: endpoint.thinkingEnabled || false, thinkingLevel: endpoint.thinkingLevel || "",
           });
           const raw = String(result?.raw || "").trim();
-          if (raw) await writeOutputsForCall(call, raw, result?.parsed, roundIndex, dueCalls);
+          if (raw) {
+            await writeOutputsForCall(call, raw, result?.parsed, roundIndex, dueCalls);
+            if (vectorFiltered.state) {
+              markCallVectorEntryTriggered(
+                call,
+                pendingData.userMsgCount,
+                vectorFiltered.state,
+              );
+            }
+          }
         } catch (callErr) {
-          console.warn(`${LOG} [TurnRecovery] Call "${call.name}" failed:`, callErr?.message);
+          const callErrMsg = callErr?.message || String(callErr);
+          const callDisplayName = safeTrim(call?.name || call?.id || "unnamed");
+          console.warn(`${LOG} [TurnRecovery] Call "${callDisplayName}" failed:`, callErrMsg);
+          // Write to lastSyncError so the user can see *which* call failed and why,
+          // even though recovery is best-effort (we do NOT abort the main model here).
+          try {
+            const scopedKeys = (await getScopedKeysForCurrentChat().catch(() => ({ requestKeys: null }))).requestKeys;
+            const errKey = scopedKeys?.lastSyncError || LAST_SYNC_ERROR_KEY;
+            const errDetail = typeof _T.warn_recovery_call_failed === "function"
+              ? _T.warn_recovery_call_failed(callDisplayName, callErrMsg)
+              : `[TurnRecovery] Recovery call "${callDisplayName}" failed: ${callErrMsg}`;
+            await Risuai.safeLocalStorage.setItem(errKey, errDetail);
+            await Risuai.log(`${LOG}  ${errDetail}`);
+          } catch { }
         }
       }
+      if (vectorFiltered.state) await saveCallVectorTriggerState(vectorFiltered.state);
       await this.markDone(pendingData.scopeId);
       return true;
     }
@@ -3839,6 +4357,7 @@ OUTPUT (STRICT):
   const LAST_SYNC_ERROR_KEY = "last_lore_sync_error";
   const LAST_EXTRACTOR_MODE_KEY = "last_extractor_mode";
   const LAST_VEC_SETTING_KEY = "last_vec_setting";
+  const CALL_VECTOR_TRIGGER_STATE_KEY = "call_vector_trigger_state";
   function getScopeCharId(char) {
     const rawId = String(char?.chaId || char?.id || char?._id || "").replace(
       /[^0-9a-zA-Z_-]/g,
@@ -7076,6 +7595,74 @@ OUTPUT (STRICT):
     total += 3; // reply priming overhead
     return total;
   }
+  // ---------------------------------------------------------------------------
+  // getQueryEmbeddingForTurn(queryText)
+  //
+  // Turn-scoped deduplication for query embeddings.
+  //
+  // Both getLorebookContextByVector, getPersonaContextByVector, and
+  // injectKnowledgeIntoMessages build the same query from the latest conversation
+  // turn and call getEmbeddingsForTexts([queryText], true) (skipCache=true).
+  // Because skipCache=true bypasses embeddingVectorCache, each call triggers a
+  // separate remote HTTP request — resulting in two (or more) identical API calls
+  // per turn.
+  //
+  // This function caches query vectors in _turnQueryVecCache (keyed on
+  // provider+model+textHash) which is cleared in the replacer's finally block.
+  // The first call fetches remotely and stores the result; subsequent calls
+  // within the same turn return the cached vector immediately.
+  //
+  // Token estimation: each call accumulates the query text token cost into
+  // _turnEmbedTokens only on the first (non-cached) fetch, and pushes the
+  // running total to ProgressPanel.
+  // ---------------------------------------------------------------------------
+  async function getQueryEmbeddingForTurn(queryText) {
+    const cfg = resolveEmbeddingRuntimeConfig();
+    const textHash = simpleHash(String(queryText || ""));
+    const cacheKey = `${cfg.provider}|${cfg.format}|${cfg.url}|${cfg.requestModel}|${textHash}`;
+    if (_turnQueryVecCache.has(cacheKey)) {
+      return _turnQueryVecCache.get(cacheKey);
+    }
+    const pending = _turnQueryVecPending.get(cacheKey);
+    if (pending) {
+      await _flushTurnEmbedQueue();
+      return await pending;
+    }
+    const queryPromise = enqueueQueryEmbeddingForTurn(queryText, cfg);
+    await _flushTurnEmbedQueue();
+    return await queryPromise;
+  }
+  function enqueueQueryEmbeddingForTurn(queryText, cfgOverride = null) {
+    const cfg = cfgOverride || resolveEmbeddingRuntimeConfig();
+    const textHash = simpleHash(String(queryText || ""));
+    const cacheKey = `${cfg.provider}|${cfg.format}|${cfg.url}|${cfg.requestModel}|${textHash}`;
+    if (_turnQueryVecCache.has(cacheKey)) {
+      return Promise.resolve(_turnQueryVecCache.get(cacheKey));
+    }
+    if (_turnQueryVecPending.has(cacheKey)) {
+      return _turnQueryVecPending.get(cacheKey);
+    }
+    // Estimate tokens for the query text (same formula as fetchEmbeddingVectorsRemote)
+    const perInputTokenLimit = getEmbeddingTokenLimit(cfg.requestModel);
+    const queryTokens = Math.min(
+      Math.ceil(String(queryText || "").length / 3),
+      perInputTokenLimit,
+    );
+    _turnEmbedTokens += queryTokens;
+    try { ProgressPanel.setTokens("embed", _turnEmbedTokens); } catch (_ppErr) { }
+    const queryPromise = _enqueueTurnEmbed(queryText, cfg)
+      .then((vec) => {
+        _turnQueryVecCache.set(cacheKey, vec);
+        _turnQueryVecPending.delete(cacheKey);
+        return vec;
+      })
+      .catch((err) => {
+        _turnQueryVecPending.delete(cacheKey);
+        throw err;
+      });
+    _turnQueryVecPending.set(cacheKey, queryPromise);
+    return queryPromise;
+  }
   async function fetchEmbeddingVectorsRemote(texts, cfg, strict = false) {
     const slot = cfg.keySlot || null;
     // Resolve the active key for this call (supports key pool rotation)
@@ -7301,6 +7888,56 @@ OUTPUT (STRICT):
     }
     return out;
   }
+  async function warmCallRoleVectorsForStep0(char, preset) {
+    const calls = getModelCallsByPreset(preset);
+    if (!Array.isArray(calls) || calls.length === 0) return;
+    const embedCfg = resolveEmbeddingRuntimeConfig();
+    const cardKey = await getActiveCardKey(char);
+    const store = await loadEmbeddingCacheStore();
+    const cardName = safeTrim(char?.name || "Character");
+    const roleTexts = [];
+    for (const call of calls) {
+      const entries = Array.isArray(call?.entries) ? call.entries : [];
+      for (const entry of entries) {
+        const triggerCfg = getEntryVectorTriggerConfig(entry);
+        const semanticText = safeTrim(triggerCfg.semanticInput);
+        if (semanticText) roleTexts.push(semanticText);
+        const outputRole = safeTrim(entry?.output_format || "");
+        if (outputRole) roleTexts.push(outputRole);
+      }
+    }
+    const uniqueTexts = Array.from(new Set(roleTexts.filter(Boolean)));
+    if (!uniqueTexts.length) return;
+    const pending = uniqueTexts.filter((text) => {
+      const key = `callrole|${simpleHash(text)}`;
+      return !Array.isArray(store.cards?.[cardKey]?.entries?.[key]?.vector);
+    });
+    if (!pending.length) return;
+    const vecs = await fetchEmbeddingVectorsRemote(pending, embedCfg, false);
+    let changed = false;
+    for (let i = 0; i < pending.length; i++) {
+      const vec = Array.isArray(vecs?.[i]) ? vecs[i] : [];
+      if (!vec.length) continue;
+      const text = pending[i];
+      upsertEmbeddingCacheEntry(
+        store,
+        cardKey,
+        cardName,
+        `callrole|${simpleHash(text)}`,
+        {
+          sourceType: "call_role",
+          name: "call_role",
+          textHash: simpleHash(text),
+          dims: vec.length,
+          vector: vec,
+          text,
+        },
+        embedCfg.requestModel,
+      );
+      changed = true;
+    }
+    if (changed) await saveEmbeddingCacheStore(store, { replaceCardKeys: [cardKey] });
+  }
   function normalizeLoreContentForStorage(loreName, content) {
     const name = safeTrim(loreName);
     const raw = String(content || "").trim();
@@ -7524,15 +8161,18 @@ OUTPUT (STRICT):
     const allMsgs = (conversationMessages || []).filter(
       (m) => m.role === "user" || m.role === "assistant" || m.role === "char",
     );
-    // 最新 1 輪對話（高權重×2）＋上一輪 State 萃取（第一個 call 的 lorebook 條目）
+    // 最新 1 輪對話（高權重×2）＋自定義 preset 可適用的 query lore 摘要
     const latestTurnMsgs = limitConversationByRounds(allMsgs, 1);
     const latestTurnText = latestTurnMsgs.map((m) => String(m.content || "")).join("\n");
     const stateRounds = Math.max(1, queryRounds - 1);
     const { char: _lbChar, chat: _lbChat } = await getCurrentChatContextSafe();
-    const firstCallLoreNames = getFirstCallLoreNames(_lbChar);
-    const prevStateText = getPrevStateTextFromLocalLore(
+    const vectorQueryLoreNames = getVectorQueryLoreNames(
+      _lbChar,
       Array.isArray(_lbChat?.localLore) ? _lbChat.localLore : [],
-      firstCallLoreNames,
+    );
+    const prevStateText = getVectorQueryContextTextFromLocalLore(
+      Array.isArray(_lbChat?.localLore) ? _lbChat.localLore : [],
+      vectorQueryLoreNames,
       stateRounds,
     );
     const nameText = (Array.isArray(names) ? names : [])
@@ -7598,7 +8238,7 @@ OUTPUT (STRICT):
         const cardKey = await getActiveCardKey(char);
         const store = await loadEmbeddingCacheStore();
         const cardBlock = store.cards?.[cardKey];
-        const [queryVec] = await getEmbeddingsForTexts([queryText], true);
+        const queryPromise = enqueueQueryEmbeddingForTurn(queryText, embedCfg);
         const vectors = new Array(inactivePool.length).fill(null);
         const misses = [];
         for (let i = 0; i < inactivePool.length; i++) {
@@ -7625,10 +8265,15 @@ OUTPUT (STRICT):
         }
         if (misses.length) {
           let newlyAdded = false;
-          const remoteVectors = await fetchEmbeddingVectorsRemote(
-            misses.map((x) => x.text),
-            embedCfg,
-          );
+          // Accumulate token estimate before flushing so the panel badge updates immediately.
+          const _lbMissTokens = misses.reduce((sum, x) =>
+            sum + Math.min(Math.ceil(String(x.text || "").length / 3), getEmbeddingTokenLimit(embedCfg.requestModel)), 0);
+          _turnEmbedTokens += _lbMissTokens;
+          try { ProgressPanel.setTokens("embed", _turnEmbedTokens); } catch (_ppErr) { }
+          // Enqueue all misses at once and flush as a single API call.
+          const vecPromises = misses.map((x) => _enqueueTurnEmbed(x.text, embedCfg));
+          await _flushTurnEmbedQueue();
+          const remoteVectors = await Promise.all(vecPromises.map((p) => p.catch(() => null)));
           for (let i = 0; i < misses.length; i++) {
             const vec = Array.isArray(remoteVectors[i]) ? remoteVectors[i] : [];
             if (!vec.length) continue;
@@ -7654,14 +8299,15 @@ OUTPUT (STRICT):
               const memoryCacheKey = `${embedCfg.provider}|${embedCfg.format}|${embedCfg.url}|${embedCfg.requestModel}|${simpleHash(miss.text)}`;
               embeddingVectorCache.set(memoryCacheKey, vec);
               if (embeddingVectorCache.size > 1000) {
-                embeddingVectorCache.delete(
-                  embeddingVectorCache.keys().next().value,
-                );
+                embeddingVectorCache.delete(embeddingVectorCache.keys().next().value);
               }
             }
           }
           if (newlyAdded) await saveEmbeddingCacheStore();
+        } else {
+          await _flushTurnEmbedQueue();
         }
+        const queryVec = await queryPromise;
         // Derive current turn count for recency decay (same source as main injection path)
         const { chat: _decayChat } = await getCurrentChatContextSafe();
         const _currentTurn = countUserMessages(conversationMessages || []) +
@@ -7747,15 +8393,18 @@ OUTPUT (STRICT):
     const allMsgs = (conversationMessages || []).filter(
       (m) => m.role === "user" || m.role === "assistant" || m.role === "char",
     );
-    // 最新 1 輪對話（高權重×2）＋上一輪 State 萃取（第一個 call 的 lorebook 條目）
+    // 最新 1 輪對話（高權重×2）＋自定義 preset 可適用的 query lore 摘要
     const latestTurnMsgs = limitConversationByRounds(allMsgs, 1);
     const latestTurnText = latestTurnMsgs.map((m) => String(m.content || "")).join("\n");
     const stateRounds = Math.max(1, queryRounds - 1);
     const { chat: _pcChat } = await getCurrentChatContextSafe();
-    const firstCallLoreNames = getFirstCallLoreNames(char);
-    const prevStateText = getPrevStateTextFromLocalLore(
+    const vectorQueryLoreNames = getVectorQueryLoreNames(
+      char,
       Array.isArray(_pcChat?.localLore) ? _pcChat.localLore : [],
-      firstCallLoreNames,
+    );
+    const prevStateText = getVectorQueryContextTextFromLocalLore(
+      Array.isArray(_pcChat?.localLore) ? _pcChat.localLore : [],
+      vectorQueryLoreNames,
       stateRounds,
     );
     const queryText =
@@ -7774,14 +8423,8 @@ OUTPUT (STRICT):
       });
     }
     if (entries.length === 0) return "";
-    let queryVec;
-    try {
-      [queryVec] = await getEmbeddingsForTexts([queryText], true);
-    } catch (e) {
-      throw new Error(
-        `Persona vector search failed — could not embed query text. ${e?.message || String(e)}`,
-      );
-    }
+    const cfg = resolveEmbeddingRuntimeConfig();
+    const queryPromise = enqueueQueryEmbeddingForTurn(queryText, cfg);
     const store = await loadEmbeddingCacheStore();
     const vectors = new Array(entries.length).fill(null);
     const missing = [];
@@ -7798,48 +8441,63 @@ OUTPUT (STRICT):
       }
     }
     if (missing.length > 0) {
-      const cfg = resolveEmbeddingRuntimeConfig();
-      const batchSize = getEmbeddingBatchSize(cfg.requestModel);
-      for (let i = 0; i < missing.length; i += batchSize) {
-        const batch = missing.slice(i, i + batchSize);
-        let vecs;
-        try {
-          vecs = await fetchEmbeddingVectorsRemote(
-            batch.map((x) => x.text),
-            cfg,
-          );
-        } catch (e) {
-          throw new Error(
-            `Persona vector indexing failed — could not embed persona entries. ${e?.message || String(e)}`,
-          );
-        }
-        let newlyAdded = false;
-        for (let j = 0; j < batch.length; j++) {
-          const vec = vecs[j];
-          if (vec && vec.length) {
-            const idx = missingIdx[i + j];
-            vectors[idx] = vec;
-            const entry = batch[j];
-            upsertEmbeddingCacheEntry(
-              store,
-              cardKey,
-              safeTrim(char?.name || "Character"),
-              `persona|${entry.textHash}`,
-              {
-                sourceType: "persona",
-                name: entry.name,
-                textHash: entry.textHash,
-                dims: vec.length,
-                vector: vec,
-                text: entry.text,
-              },
-              cfg.requestModel,
-            );
-            newlyAdded = true;
-          }
-        }
-        if (newlyAdded) await saveEmbeddingCacheStore(store);
+      // Accumulate token estimate upfront before flushing.
+      const _pMissTokens = missing.reduce((sum, x) =>
+        sum + Math.min(Math.ceil(String(x.text || "").length / 3), getEmbeddingTokenLimit(cfg.requestModel)), 0);
+      _turnEmbedTokens += _pMissTokens;
+      try { ProgressPanel.setTokens("embed", _turnEmbedTokens); } catch (_ppErr) { }
+      // Enqueue ALL persona misses at once and flush as a single API call.
+      const vecPromises = missing.map((x) => _enqueueTurnEmbed(x.text, cfg));
+      try {
+        await _flushTurnEmbedQueue();
+      } catch (e) {
+        throw new Error(
+          `Persona vector indexing failed — could not embed persona entries. ${e?.message || String(e)}`,
+        );
       }
+      const vecs = await Promise.all(vecPromises.map((p) => p.catch(() => null)));
+      let newlyAdded = false;
+      for (let j = 0; j < missing.length; j++) {
+        const vec = vecs[j];
+        if (vec && vec.length) {
+          const idx = missingIdx[j];
+          vectors[idx] = vec;
+          const entry = missing[j];
+          upsertEmbeddingCacheEntry(
+            store,
+            cardKey,
+            safeTrim(char?.name || "Character"),
+            `persona|${entry.textHash}`,
+            {
+              sourceType: "persona",
+              name: entry.name,
+              textHash: entry.textHash,
+              dims: vec.length,
+              vector: vec,
+              text: entry.text,
+            },
+            cfg.requestModel,
+          );
+          newlyAdded = true;
+        }
+      }
+      if (newlyAdded) await saveEmbeddingCacheStore(store);
+    } else {
+      try {
+        await _flushTurnEmbedQueue();
+      } catch (e) {
+        throw new Error(
+          `Persona vector search failed — could not embed query text. ${e?.message || String(e)}`,
+        );
+      }
+    }
+    let queryVec;
+    try {
+      queryVec = await queryPromise;
+    } catch (e) {
+      throw new Error(
+        `Persona vector search failed — could not embed query text. ${e?.message || String(e)}`,
+      );
     }
     const scored = [];
     for (let i = 0; i < entries.length; i++) {
@@ -8159,6 +8817,11 @@ OUTPUT (STRICT):
       write_mode: "append",
       always_active: false,
       output_format: "",
+      vector_trigger_enabled: false,
+      vector_basis: "semantic_input",
+      vector_threshold: 0.6,
+      vector_fallback_turns: 10,
+      vector_semantic_input: "",
     };
   }
   function normalizeOutputEntry(entry, target) {
@@ -8169,6 +8832,23 @@ OUTPUT (STRICT):
       entry?.retention_enabled === 1;
     const retentionAfter = Math.max(0, toInt(entry?.retention_after, 0));
     const retentionKeep = Math.max(0, toInt(entry?.retention_keep, 5));
+    const vectorTriggerEnabled =
+      entry?.vector_trigger_enabled === true ||
+      entry?.vector_trigger_enabled === "true" ||
+      entry?.vector_trigger_enabled === 1;
+    const rawVectorBasis = safeTrim(entry?.vector_basis);
+    const vectorBasis =
+      rawVectorBasis === "round_compare"
+        ? "round_compare"
+        : "semantic_input";
+    const vectorThreshold = clampUnitInterval(
+      entry?.vector_threshold,
+      d.vector_threshold,
+    );
+    const vectorFallbackTurns = Math.max(
+      0,
+      toInt(entry?.vector_fallback_turns, d.vector_fallback_turns),
+    );
     return {
       lorebook_name: safeTrim(entry?.lorebook_name) || d.lorebook_name,
       write_mode:
@@ -8182,6 +8862,13 @@ OUTPUT (STRICT):
       retention_enabled: retentionEnabled,
       retention_after: retentionAfter,
       retention_keep: retentionKeep,
+      vector_trigger_enabled: vectorTriggerEnabled,
+      vector_basis: vectorBasis,
+      vector_threshold: vectorThreshold,
+      vector_fallback_turns: vectorFallbackTurns,
+      vector_semantic_input: String(
+        entry?.vector_semantic_input ?? d.vector_semantic_input,
+      ),
     };
   }
   function parseOutputEntries(raw, target) {
@@ -8350,12 +9037,40 @@ OUTPUT (STRICT):
     const n = Math.max(1, toInt(call?.every_n_turns, 1));
     return roundIndex % n === 0;
   }
+  const VECTOR_QUERY_LOREBOOK_KEYWORDS = [
+    "state",
+    "trace",
+    "scene",
+    "inventory",
+    "quest",
+    "memory",
+    "knowledge",
+    "relation",
+    "mask",
+    "advice",
+    "director",
+    "persona",
+    "strategy",
+    "world",
+    "turning_point",
+    "reentry",
+    "logic",
+  ];
+  function isVectorQueryKeywordLoreName(name) {
+    const text = safeTrim(name).toLowerCase();
+    if (!text) return false;
+    return VECTOR_QUERY_LOREBOOK_KEYWORDS.some((keyword) =>
+      text.includes(keyword),
+    );
+  }
   /**
-  * 取得「設定」中第一個呼叫的所有 lorebook_name（用於向量查詢的 State 萃取來源）。
-  * 會依照 char 解析對應的 cardMemoryPreset，再讀取第一個 call 的 entries。
-  * 若 char 未設定、呼叫不存在或 entries 為空，回傳空陣列。
+  * 取得向量查詢用的 lorebook 名稱。
+  * 規則：
+  * - 所有 always_active=true 的 entry 都納入
+  * - 另外補上 lorebook_name 命中關鍵字的 entry
+  * 這樣自定義 preset 不需要依賴「第一個 call 必須是 state call」。
   */
-  function getFirstCallLoreNames(char) {
+  function getVectorQueryLoreNames(char, localLore = []) {
     try {
       const rawCharId = String(char?.chaId || char?.id || char?._id || "").replace(/[^0-9a-zA-Z_-]/g, "");
       const charName = safeTrim(char?.name || "");
@@ -8368,15 +9083,31 @@ OUTPUT (STRICT):
         ? String(cardCfg.memory_extract)
         : String(toInt(configCache.active_preset, 3));
       const calls = getModelCallsByPreset(preset);
-      if (!calls.length) return [];
-      const firstCall = calls[0];
-      const entries = Array.isArray(firstCall.entries) ? firstCall.entries : [];
-      return entries
-        .map((e) => safeTrim(e?.lorebook_name))
-        .filter(Boolean);
+      const names = new Set();
+      for (const call of calls) {
+        const entries = Array.isArray(call?.entries) ? call.entries : [];
+        for (const entry of entries) {
+          const loreName = safeTrim(entry?.lorebook_name);
+          if (!loreName) continue;
+          const alwaysActive =
+            entry?.always_active === true ||
+            entry?.always_active === "1" ||
+            entry?.always_active === 1 ||
+            String(entry?.always_active) === "true";
+          if (alwaysActive || isVectorQueryKeywordLoreName(loreName)) {
+            names.add(loreName);
+          }
+        }
+      }
+      if (names.size > 0) return [...names];
     } catch {
-      return [];
     }
+    const fallbackNames = new Set();
+    for (const entry of Array.isArray(localLore) ? localLore : []) {
+      const loreName = safeTrim(entry?.comment || "");
+      if (isVectorQueryKeywordLoreName(loreName)) fallbackNames.add(loreName);
+    }
+    return [...fallbackNames];
   }
   /**
   * 從 localLore 中取出指定 lorebook_name 的最新萃取文字（最多 stateRounds 組）。
@@ -8384,7 +9115,7 @@ OUTPUT (STRICT):
   * - append 模式條目（有 ### Turn N 區塊）：取最新 stateRounds 個區塊。
   * 若找不到任何內容則回傳空字串（對話初期安全處理）。
   */
-  function getPrevStateTextFromLocalLore(localLore, loreNames, stateRounds) {
+  function getVectorQueryContextTextFromLocalLore(localLore, loreNames, stateRounds) {
     if (!Array.isArray(localLore) || !loreNames.length || stateRounds < 1) return "";
     const nameSet = new Set(loreNames.map((n) => safeTrim(n)).filter(Boolean));
     const parts = [];
@@ -8414,6 +9145,257 @@ OUTPUT (STRICT):
       }
     }
     return parts.join("\n\n");
+  }
+  function getCallVectorTriggerStateStorageKey(scopeId, chatScopedKey) {
+    return `${makeScopedStorageKey(CALL_VECTOR_TRIGGER_STATE_KEY, scopeId)}::${chatScopedKey}`;
+  }
+  async function loadCallVectorTriggerState(scopeId, chatScopedKey) {
+    const key = getCallVectorTriggerStateStorageKey(scopeId, chatScopedKey);
+    try {
+      const raw = await Risuai.pluginStorage.getItem(key);
+      if (!raw) {
+        return {
+          key,
+          entryLastTriggered: {},
+          prevQueryVec: [],
+          prevQueryTurn: 0,
+        };
+      }
+      const parsed = typeof raw === "string" ? JSON.parse(raw) : raw;
+      const entryLastTriggered =
+        parsed && typeof parsed.entryLastTriggered === "object"
+          ? parsed.entryLastTriggered
+          : {};
+      const prevQueryVec = Array.isArray(parsed?.prevQueryVec)
+        ? parsed.prevQueryVec
+          .map((x) => Number(x))
+          .filter((x) => Number.isFinite(x))
+        : [];
+      return {
+        key,
+        entryLastTriggered,
+        prevQueryVec,
+        prevQueryTurn: Math.max(0, toInt(parsed?.prevQueryTurn, 0)),
+      };
+    } catch {
+      return {
+        key,
+        entryLastTriggered: {},
+        prevQueryVec: [],
+        prevQueryTurn: 0,
+      };
+    }
+  }
+  async function saveCallVectorTriggerState(state) {
+    if (!state?.key) return;
+    const payload = {
+      entryLastTriggered:
+        state?.entryLastTriggered &&
+          typeof state.entryLastTriggered === "object"
+          ? state.entryLastTriggered
+          : {},
+      prevQueryVec: Array.isArray(state?.prevQueryVec)
+        ? state.prevQueryVec
+        : [],
+      prevQueryTurn: Math.max(0, toInt(state?.prevQueryTurn, 0)),
+      updatedAt: Date.now(),
+    };
+    try {
+      await Risuai.pluginStorage.setItem(state.key, JSON.stringify(payload));
+    } catch { }
+  }
+  function getEntryVectorTriggerConfig(entry) {
+    const enabled =
+      entry?.vector_trigger_enabled === true ||
+      entry?.vector_trigger_enabled === "true" ||
+      entry?.vector_trigger_enabled === 1;
+    const rawBasis = safeTrim(entry?.vector_basis);
+    const basis = rawBasis === "round_compare" ? "round_compare" : "semantic_input";
+    const threshold = clampUnitInterval(entry?.vector_threshold, 0.6);
+    const fallbackTurns = Math.max(0, toInt(entry?.vector_fallback_turns, 10));
+    const semanticInput = String(entry?.vector_semantic_input || "");
+    return {
+      enabled,
+      basis,
+      threshold,
+      fallbackTurns,
+      semanticInput,
+    };
+  }
+  function getCallEntryTriggerId(call, entry, entryIndex) {
+    const callId = safeTrim(call?.id || call?.name || "call");
+    const loreName = safeTrim(entry?.lorebook_name || `entry_${entryIndex}`);
+    return `${callId}::${loreName}::${entryIndex}`;
+  }
+  function buildCallVectorQueryText(conversationMessages, char, localLore) {
+    const queryRounds = Math.max(
+      1,
+      toInt(
+        configCache.vector_search_query_dialogue_rounds,
+        DEFAULTS.vector_search_query_dialogue_rounds,
+      ),
+    );
+    const allMsgs = (conversationMessages || []).filter(
+      (m) => m?.role === "user" || m?.role === "assistant" || m?.role === "char",
+    );
+    const latestTurnMsgs = limitConversationByRounds(allMsgs, 1);
+    const latestTurnText = latestTurnMsgs
+      .map((m) => String(m?.content || ""))
+      .join("\n");
+    const stateRounds = Math.max(1, queryRounds - 1);
+    const vectorQueryLoreNames = getVectorQueryLoreNames(
+      char,
+      Array.isArray(localLore) ? localLore : [],
+    );
+    const prevStateText = getVectorQueryContextTextFromLocalLore(
+      Array.isArray(localLore) ? localLore : [],
+      vectorQueryLoreNames,
+      stateRounds,
+    );
+    return (
+      (latestTurnText ? `${latestTurnText}\n${latestTurnText}` : "") +
+      (prevStateText ? `\n\n${prevStateText}` : "")
+    ).trim() || " ";
+  }
+  async function filterDueCallsByVectorTrigger(
+    dueCalls,
+    roundIndex,
+    scopeId,
+    chatScopedKey,
+    char,
+    chat,
+    baseConversation,
+  ) {
+    const calls = Array.isArray(dueCalls) ? dueCalls : [];
+    if (!calls.length) return { filteredCalls: calls, state: null };
+    // "Bot Reorg only": follow call schedule only (no per-entry vector gating)
+    if (isCardReorgOnlyMode()) {
+      return { filteredCalls: calls, state: null };
+    }
+    const hasVectorConfigured = calls.some((call) =>
+      Array.isArray(call?.entries) &&
+      call.entries.some((entry) => getEntryVectorTriggerConfig(entry).enabled)
+    );
+    if (!hasVectorConfigured) return { filteredCalls: calls, state: null };
+    const state = await loadCallVectorTriggerState(scopeId, chatScopedKey);
+    const cardKey = await getActiveCardKey(char);
+    const store = await loadEmbeddingCacheStore();
+    const queryText = buildCallVectorQueryText(
+      baseConversation,
+      char,
+      chat?.localLore,
+    );
+    let queryVec = [];
+    let queryVecFailed = false;
+    try {
+      queryVec = await getQueryEmbeddingForTurn(queryText);
+    } catch (err) {
+      queryVec = [];
+      queryVecFailed = true;
+      throw new Error(
+        buildVectorTriggerFailureMessage(
+          err?.message || String(err),
+          "query embedding",
+        ),
+      );
+    }
+    const prevVec = Array.isArray(state.prevQueryVec) ? state.prevQueryVec : [];
+    const filteredCalls = [];
+    for (const call of calls) {
+      const entries = Array.isArray(call?.entries) ? call.entries : [];
+      if (!entries.length) {
+        filteredCalls.push(call);
+        continue;
+      }
+      const selectedEntries = [];
+      let hasEnabledEntry = false;
+      for (let i = 0; i < entries.length; i++) {
+        const entry = entries[i];
+        const cfg = getEntryVectorTriggerConfig(entry);
+        if (!cfg.enabled) {
+          // Non-vector entries always follow the call's schedule.
+          selectedEntries.push(entry);
+          continue;
+        }
+        hasEnabledEntry = true;
+        const triggerId = getCallEntryTriggerId(call, entry, i);
+        const lastTurn = Math.max(
+          0,
+          toInt(state.entryLastTriggered?.[triggerId], 0),
+        );
+        const turnsSince = Math.max(0, roundIndex - lastTurn);
+        const forced =
+          cfg.fallbackTurns > 0 && turnsSince >= cfg.fallbackTurns;
+        if (forced) {
+          selectedEntries.push(entry);
+          continue;
+        }
+        let score = -1;
+        if (cfg.basis === "semantic_input") {
+          const semanticText =
+            safeTrim(cfg.semanticInput) || safeTrim(entry?.output_format || "");
+          if (semanticText) {
+            const semanticKey = `callrole|${simpleHash(semanticText)}`;
+            const semanticHit = store.cards?.[cardKey]?.entries?.[semanticKey];
+            const cachedVec = Array.isArray(semanticHit?.vector)
+              ? semanticHit.vector
+              : null;
+            try {
+              const semanticVec = cachedVec ||
+                (await getEmbeddingsForTexts([semanticText], false))[0];
+              score = cosineSimilarity(queryVec, semanticVec);
+            } catch (err) {
+              throw new Error(
+                buildVectorTriggerFailureMessage(
+                  err?.message || String(err),
+                  `semantic_input:${safeTrim(entry?.lorebook_name || `entry_${i}`)}`,
+                ),
+              );
+            }
+          }
+        } else if (queryVecFailed) {
+          throw new Error(
+            buildVectorTriggerFailureMessage(
+              _lastEmbedErrorMsg || "query embedding unavailable",
+              `round_compare:${safeTrim(entry?.lorebook_name || `entry_${i}`)}`,
+            ),
+          );
+        } else if (Array.isArray(prevVec) && prevVec.length > 0) {
+          score = cosineSimilarity(queryVec, prevVec);
+        }
+        if (Number.isFinite(score) && score >= cfg.threshold) {
+          selectedEntries.push(entry);
+        }
+      }
+      if (!hasEnabledEntry) {
+        filteredCalls.push(call);
+        continue;
+      }
+      if (selectedEntries.length > 0)
+        filteredCalls.push({
+          ...call,
+          entries: selectedEntries,
+        });
+    }
+    state.prevQueryVec = Array.isArray(queryVec) ? queryVec : [];
+    state.prevQueryTurn = Math.max(0, toInt(roundIndex, 0));
+    return { filteredCalls, state };
+  }
+  function markCallVectorEntryTriggered(call, roundIndex, state) {
+    if (!state || !call) return;
+    if (
+      !state.entryLastTriggered ||
+      typeof state.entryLastTriggered !== "object"
+    ) {
+      state.entryLastTriggered = {};
+    }
+    const entries = Array.isArray(call?.entries) ? call.entries : [];
+    for (let i = 0; i < entries.length; i++) {
+      const cfg = getEntryVectorTriggerConfig(entries[i]);
+      if (!cfg.enabled) continue;
+      const triggerId = getCallEntryTriggerId(call, entries[i], i);
+      state.entryLastTriggered[triggerId] = Math.max(0, toInt(roundIndex, 0));
+    }
   }
   async function buildScopedExtractorMessages(
     baseConversation,
@@ -8470,9 +9452,6 @@ OUTPUT (STRICT):
       .filter((s) => !!safeTrim(s))
       .join("\n\n");
     // [新增] 向量搜尋成功後，推進面板上的進度指示器
-    if (isKbFeatureEnabled() && configCache.vector_search_enabled === 1) {
-      try { ProgressPanel.increment("embed"); } catch (_ppErr) { }
-    }
     return buildExtractorMessages(scopedConversation, modelCall, mergedContext);
   }
   async function buildPersonaExtractorMessages(characterText, modelCall) {
@@ -10281,14 +11260,17 @@ OUTPUT (STRICT):
       1,
       toInt(configCache.vector_search_query_dialogue_rounds, 4),
     );
-    // 最新 1 輪對話（高權重×2）＋上一輪 State 萃取（第一個 call 的 lorebook 條目）
+    // 最新 1 輪對話（高權重×2）＋自定義 preset 可適用的 query lore 摘要
     const latestTurnMsgs = limitConversationByRounds(trimmedTurns, 1);
     const latestTurnText = latestTurnMsgs.map((m) => String(m.content || "")).join("\n");
     const stateRounds = Math.max(1, queryRounds - 1);
-    const firstCallLoreNames = getFirstCallLoreNames(char);
-    const prevStateText = getPrevStateTextFromLocalLore(
+    const vectorQueryLoreNames = getVectorQueryLoreNames(
+      char,
       Array.isArray(chat?.localLore) ? chat.localLore : [],
-      firstCallLoreNames,
+    );
+    const prevStateText = getVectorQueryContextTextFromLocalLore(
+      Array.isArray(chat?.localLore) ? chat.localLore : [],
+      vectorQueryLoreNames,
       stateRounds,
     );
     // 最新對話重複×2 確保高權重，prevStateText 補充上下文（初期為空字串，不影響）
@@ -10310,8 +11292,8 @@ OUTPUT (STRICT):
       ) {
         try {
           const finalQueryText = resolvedQueryText || " ";
-          const queryVecs = await getEmbeddingsForTexts([finalQueryText], true);
-          const queryVec = queryVecs[0];
+          const cfg = resolveEmbeddingRuntimeConfig();
+          const queryPromise = enqueueQueryEmbeddingForTurn(finalQueryText, cfg);
           const store = await loadEmbeddingCacheStore();
           const cardName = char?.name || "Character";
           const cardKey = await getActiveCardKey(char);
@@ -10337,54 +11319,54 @@ OUTPUT (STRICT):
             }
           }
           if (missingTexts.length > 0) {
-            const cfg = resolveEmbeddingRuntimeConfig();
-            const batchSize = getEmbeddingBatchSize(cfg.requestModel);
-            for (let i = 0; i < missingTexts.length; i += batchSize) {
-              const textsBatch = missingTexts.slice(i, i + batchSize);
-              const batchIndices = missingIndices.slice(i, i + batchSize);
-              await Risuai.log(
-                `${LOG} Agent: Running vector computation (${i + 1}~${Math.min(i + batchSize, missingTexts.length)}/${missingTexts.length})...`,
-              );
-              const remoteVecs = await fetchEmbeddingVectorsRemote(
-                textsBatch,
-                cfg,
-              );
-              let newlyAddedBatch = false;
-              for (let j = 0; j < textsBatch.length; j++) {
-                const vec = remoteVecs[j];
-                if (vec && vec.length) {
-                  const idx = batchIndices[j];
-                  vectors[idx] = vec;
-                  const chunk = vectorEligibleInactiveChunks[idx];
-                  if (!chunk.isDynamic) {
-                    upsertEmbeddingCacheEntry(
-                      store,
-                      cardKey,
-                      cardName,
-                      `chunk|${simpleHash(chunk.content)}`,
-                      {
-                        sourceType: "chunk",
-                        name: chunk.source,
-                        textHash: simpleHash(chunk.content),
-                        dims: vec.length,
-                        vector: vec,
-                      },
-                      cfg.requestModel,
-                    );
-                    newlyAddedBatch = true;
-                  } else {
-                    const memCacheKey = `${cfg.provider}|${cfg.format}|${cfg.url}|${cfg.requestModel}|${simpleHash(chunk.content)}`;
-                    embeddingVectorCache.set(memCacheKey, vec);
-                    if (embeddingVectorCache.size > 1000)
-                      embeddingVectorCache.delete(
-                        embeddingVectorCache.keys().next().value,
-                      );
-                  }
-                }
+            await Risuai.log(
+              `${LOG} Agent: Running vector computation (${missingTexts.length} chunk(s) in one batch)...`,
+            );
+            // Enqueue ALL miss texts at once so they are sent in a single API call.
+            const vecPromises = missingTexts.map((t) => _enqueueTurnEmbed(t, cfg));
+            // Accumulate token estimate before flushing so the panel badge updates immediately.
+            const _iMissTokens = missingTexts.reduce((sum, t) =>
+              sum + Math.min(Math.ceil(String(t || "").length / 3), getEmbeddingTokenLimit(cfg.requestModel)), 0);
+            _turnEmbedTokens += _iMissTokens;
+            try { ProgressPanel.setTokens("embed", _turnEmbedTokens); } catch (_ppErr) { }
+            // Flush fires ONE fetchEmbeddingVectorsRemote call for all enqueued texts.
+            await _flushTurnEmbedQueue();
+            const remoteVecs = await Promise.all(vecPromises.map((p) => p.catch(() => null)));
+            let newlyAddedBatch = false;
+            for (let j = 0; j < missingTexts.length; j++) {
+              const vec = remoteVecs[j];
+              if (!vec || !vec.length) continue;
+              const idx = missingIndices[j];
+              vectors[idx] = vec;
+              const chunk = vectorEligibleInactiveChunks[idx];
+              if (!chunk.isDynamic) {
+                upsertEmbeddingCacheEntry(
+                  store,
+                  cardKey,
+                  cardName,
+                  `chunk|${simpleHash(chunk.content)}`,
+                  {
+                    sourceType: "chunk",
+                    name: chunk.source,
+                    textHash: simpleHash(chunk.content),
+                    dims: vec.length,
+                    vector: vec,
+                  },
+                  cfg.requestModel,
+                );
+                newlyAddedBatch = true;
+              } else {
+                const memCacheKey = `${cfg.provider}|${cfg.format}|${cfg.url}|${cfg.requestModel}|${simpleHash(chunk.content)}`;
+                embeddingVectorCache.set(memCacheKey, vec);
+                if (embeddingVectorCache.size > 1000)
+                  embeddingVectorCache.delete(embeddingVectorCache.keys().next().value);
               }
-              if (newlyAddedBatch) await saveEmbeddingCacheStore();
             }
+            if (newlyAddedBatch) await saveEmbeddingCacheStore();
+          } else {
+            await _flushTurnEmbedQueue();
           }
+          const queryVec = await queryPromise;
           const scored = [];
           for (let i = 0; i < vectorEligibleInactiveChunks.length; i++) {
             if (vectors[i])
@@ -11504,7 +12486,21 @@ OUTPUT (STRICT):
         const personaErrMsg = personaErr?.message || String(personaErr);
         try {
           await Risuai.log(
-            `${LOG}  Persona extraction failed during Step 0 (will retry on next send): ${personaErrMsg}`,
+            `${LOG}  Persona extraction failed during Step 0: ${personaErrMsg}. Marking for retry on next send.`,
+          );
+        } catch { }
+        // Mark step0Pending so the next replacer invocation re-runs persona extraction.
+        // Without this, a transient API error would leave the persona cache permanently empty
+        // with no indication to the user and no automatic retry.
+        try {
+          await Risuai.pluginStorage.setItem(staticKeys.step0Pending, "persona_missing");
+        } catch { }
+        // Surface a non-blocking warning — persona failure does NOT abort the main model
+        // on the first occurrence; the retry mechanism handles it.
+        try {
+          await Risuai.safeLocalStorage.setItem(
+            LAST_SYNC_ERROR_KEY,
+            `[Step 0] Persona extraction failed (will retry): ${personaErrMsg}`,
           );
         } catch { }
       }
@@ -12446,7 +13442,7 @@ OUTPUT (STRICT):
  --pse-accent-orange:  #e07500;
  --pse-accent-yellow:  #a07e00;
  --pse-accent-greyblue:#2d7fad;
- --pse-accent-teal:    #007a70;
+ --pse-accent-teal:    #031c18;
  /* Typography scale */
  --pse-font-size-title:    20px;
  --pse-font-size-subtitle: 12px;
@@ -12818,7 +13814,7 @@ OUTPUT (STRICT):
  .pse-picker-chat-meta { font-size: 11px; color: var(--pse-muted); display: flex; align-items: center; gap: 10px; }
  .pse-picker-tag { font-size: 10px; padding: 3px 9px; border-radius: var(--pse-radius-pill); font-weight: 600; background: rgba(0,122,255,0.22); color:#001E4D; border: 1px solid rgba(0,122,255,0.38); }
  /* ── Entry Grid ─────────────────────────────────────────────────── */
- .pse-entry-grid { display:grid; grid-template-columns: 1fr minmax(110px, auto) minmax(90px, auto) auto; gap:9px; align-items:end; }
+ .pse-entry-grid { display:grid; grid-template-columns: 1fr minmax(110px, auto) minmax(90px, auto) auto auto; gap:9px; align-items:end; }
  .pse-entry-grid-row2 { margin-top:9px; display:grid; grid-template-columns: 1fr; gap:9px; }
  .pse-entry-format-input {
  width: 100%; min-height: 76px; padding: 10px; border: 1px solid var(--pse-input-border);
@@ -12863,6 +13859,30 @@ OUTPUT (STRICT):
       }
  .pse-entry-remove:hover { background: rgba(0,122,255,1); color: #fff; transform: scale(0.97); }
  .pse-entry-remove.compact { height: 30px; min-width: 30px; width: 30px; padding: 0; line-height: 1; display: flex; align-items: center; justify-content: center; border-radius: 8px; }
+ .pse-entry-vec-toggle {
+ border: none;
+ background: rgba(168, 168, 185, 0.88);
+ color: #000000 !important;
+ border-radius: var(--pse-radius-input);
+ height: 32px; min-width: 34px; cursor: pointer;
+ transition: all 0.18s; font-size: 14px; font-weight: 700;
+ padding: 0 12px;
+ box-shadow: 0 1px 0 rgba(255,255,255,0.55) inset;
+ display: inline-flex; align-items: center; justify-content: center;
+ }
+ .pse-entry-vec-toggle:hover { background: rgba(0,122,255,1); color: #fff; transform: scale(0.97); }
+ .pse-entry-vec-toggle.active { background: rgba(0,122,255,0.86); color: #fff !important; }
+ .pse-entry-vector-row {
+ margin-top: 8px;
+ display: grid;
+ grid-template-columns: repeat(3, minmax(120px, 1fr));
+ gap: 9px;
+ align-items: end;
+ padding: 8px;
+ border-radius: 8px;
+ border: 1px solid rgba(0,122,255,0.24);
+ background: rgba(0,122,255,0.07);
+ }
  /* ── API Key Multi Input Layout ─────────────────────────────────── */
  .pse-key-row {
     display: flex; gap: 6px; align-items: center; margin-bottom: 6px;
@@ -12939,8 +13959,9 @@ OUTPUT (STRICT):
  .pse-editor-close {
         width: 34px; height: 34px; border: none;
         background: rgba(168, 168, 185, 0.88);
-        color: var(--pse-card-text);
+        color: #111;
         border-radius: 17px; cursor: pointer; font-size: 15px; line-height: 1;
+        font-weight: 700;
         transition: all 0.18s; display: flex; align-items: center; justify-content: center;
         box-shadow: 0 1px 0 rgba(255,255,255,0.45) inset;
         backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
@@ -13046,6 +14067,7 @@ OUTPUT (STRICT):
  .pse-call-head { grid-template-columns: 1fr; }
  .pse-call-row2 { grid-template-columns: 1fr; }
  .pse-entry-grid { grid-template-columns: 1fr; }
+ .pse-entry-vector-row { grid-template-columns: 1fr; }
  .pse-rewrite-grid { grid-template-columns: 1fr; }
  .pse-json-tools { flex-direction: column; align-items: stretch; }
  .pse-json-tools-actions { width: 100%; }
@@ -13228,7 +14250,7 @@ OUTPUT (STRICT):
     overlayRoot.id = "pse-overlay-root";
     overlayRoot.style.cssText =
       "position:fixed;inset:0;z-index:9999;overflow:auto;opacity:0;transition:opacity 0.15s ease;";
-    overlayRoot.innerHTML = ` <div class="pse-body"> <div class="pse-card"> <h1 class="pse-title">👤 RisuAI Agent v5.1.3</h1> <div id="pse-status" class="pse-status"></div> ${renderModelDatalists()}
+    overlayRoot.innerHTML = ` <div class="pse-body"> <div class="pse-card"> <h1 class="pse-title">👤 RisuAI Agent v5.2</h1> <div id="pse-status" class="pse-status"></div> ${renderModelDatalists()}
  <div class="pse-tabs"> ${`<button class="pse-tab active" data-page="7">${_T.tab_help}</button> <button class="pse-tab" data-page="8">${_T.tab_enable}</button> <button class="pse-tab" data-page="1">${_T.tab_model}</button>`}
  </div> <div class="pse-tabs pse-tabs-secondary"> ${`<button class="pse-tab" data-page="6">${_T.tab_cache_open || _T.sec_cache}</button> <button class="pse-tab" data-page="2">${_T.tab_entry}</button> <button class="pse-tab" data-page="5">${_T.tab_vector_open || _T.sec_vec}</button>`}
  </div> <div class="pse-page active" data-page="7"> <div style="margin-bottom:14px;padding:10px 14px;border-radius:8px;background:rgba(192,120,0,0.14);border:1.5px solid rgba(192,120,0,0.40);font-size:12px;font-weight:700;color:#3D2300;display:flex;align-items:center;gap:8px;"> ⚠️ ${escapeHtml(_T.lore_warn)}</div> <!-- Language (Standalone) --> <div style="margin-bottom:16px;"> <label class="pse-label" style="margin-bottom:6px; color:var(--pse-text);"> Language / 語言 / 언어</label> <div style="display:flex;gap:8px;"> ${["en", "tc", "ko"]
@@ -13247,8 +14269,9 @@ OUTPUT (STRICT):
  </div> </details> </div> <!-- Classify & Mod Lorebook --> <div class="pse-section indigo"> <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:10px;padding-bottom:10px;border-bottom:1px dashed rgba(128,128,128,0.2);"> <label class="pse-label" style="margin:0;white-space:nowrap; color:var(--pse-text);">${_T.lbl_classify_model}</label> <select id="init_bootstrap_target_model" class="pse-input" style="flex:1;width:auto;min-width:0;"> <option value="A" ${safeTrim(configCache.init_bootstrap_target_model) === "B" ? "" : "selected"}>${_T.opt_main_model}</option> <option value="B" ${safeTrim(configCache.init_bootstrap_target_model) === "B" ? "selected" : ""}>${_T.opt_aux_model}</option> </select> </div> <label class="pse-label" for="read_mod_lorebook" style="display:flex;align-items:center;gap:8px;margin:0;cursor:pointer;white-space:nowrap; color:var(--pse-text);"> <input type="checkbox" id="read_mod_lorebook" ${Number(configCache.read_mod_lorebook) === 1 ? "checked" : ""} style="margin:0;flex-shrink:0;" /> <span>${_T.lbl_enable_mod_lorebook}</span> </label> </div> <!-- Card List (Blue) --> <div id="pse-card-enable-list" class="pse-entry-list" style="margin-top:8px;"> <div class="pse-assembly blue" style="color:var(--pse-muted);font-size:12px;">${_T.lbl_loading}</div> </div> </div> <div class="pse-page" data-page="1"> <!-- Recommendation (Amber) --> <div class="pse-section amber" style="padding: 0; overflow: hidden;"> <details id="pse-suggest-details" ${suggestDetailsOpen ? "open" : ""} style="width: 100%;"> <summary style="padding: 10px 12px; cursor: pointer; font-weight: bold; list-style: none; display: flex; align-items: center; justify-content: space-between; user-select: none;"> <span>${_T.sec_suggest}</span> <span style="font-size: 10px; opacity: 0.6;">${_T.mode_guide_click}</span> </summary> <div style="padding: 0 12px 12px 12px; font-size: 13px; line-height: 1.6; color: var(--pse-text);"> <div style="margin-bottom: 8px;"> <b style="color: var(--pse-text);">${_T.lbl_suggest_s1}</b><br/> • ${_T.lbl_suggest_s1_main}<br/> • ${_T.lbl_suggest_s1_aux}<br/> • ${_T.lbl_suggest_s1_embed}
  </div> <div> <b style="color: var(--pse-text);">${_T.lbl_suggest_s2}</b><br/> • ${_T.lbl_suggest_s2_main}<br/> • ${_T.lbl_suggest_s2_aux}<br/> • ${_T.lbl_suggest_s2_embed}
  </div> <div style="margin-top:12px;padding:8px 12px;border-radius:8px;background:rgba(0,150,136,0.15);border:1px solid rgba(0,150,136,0.30);font-size:12px;line-height:1.7;color:var(--pse-text);"> ${_T.lbl_api_key_rotation}
- </div> </div> </details> </div> <!-- Main Model (Indigo) --> <div class="pse-section indigo pse-model-section-a"> <div class="pse-section-title">${_T.sec_a}</div> <label class="pse-label" style="color:var(--pse-text);">${_T.lbl_provider}</label> <select id="extractor_a_provider" class="pse-input">${renderProviderOptions(configCache.extractor_a_provider)}</select> <label class="pse-label" style="color:var(--pse-text);">${_T.lbl_format}</label> <select id="extractor_a_format" class="pse-input">${renderFormatOptions(configCache.extractor_a_format)}</select> <label class="pse-label" style="color:var(--pse-text);">${_T.lbl_url}</label> <input id="extractor_a_url" class="pse-input" value="${String(configCache.extractor_a_url || "").replace(/"/g, "&quot;")}" /> <label class="pse-label" style="color:var(--pse-text);">${_T.lbl_key}</label> <div style="display:flex;align-items:flex-start;gap:10px;"> <div style="display:flex;flex-direction:column;gap:4px;flex-shrink:0;align-items:center;padding-top:2px;"> <button id="pse-key-add-a" type="button" title="Add another API key (keys rotate automatically)" class="pse-key-add-btn" style="--btn-color:var(--pse-accent,#5865f2);">+</button> <span id="pse-key-count-a" style="font-size:10px;color:var(--pse-muted);white-space:nowrap;">${(() => { const n = _parseKeys(configCache.extractor_a_key || "").length; return n > 1 ? "🔄 " + n : ""; })()}</span> </div> <div style="flex:1;min-width:0;"> <textarea id="extractor_a_key" class="pse-input" rows="1" style="display:none;white-space:pre;" spellcheck="false">${escapeHtml(String(configCache.extractor_a_key || ""))}</textarea> <div id="pse-key-list-a"></div> </div> </div> <label class="pse-label" style="color:var(--pse-text);">${_T.lbl_model}</label> <input id="extractor_a_model" class="pse-input" autocomplete="off" value="${String(configCache.extractor_a_model || "").replace(/"/g, "&quot;")}" /> <div id="extractor_a_model_suggestions" class="pse-model-suggestions"></div> <label class="pse-label" style="color:var(--pse-text);">${_T.lbl_temp}</label> <input id="extractor_a_temperature" class="pse-input" type="number" min="0" max="2" step="0.1" value="${escapeHtml(String(Number(configCache.extractor_a_temperature) || 0))}" /> <label class="pse-label" style="color:var(--pse-text);">${_T.lbl_concur}</label> <select id="extractor_a_concurrency" class="pse-input"> <option value="1" ${Number(configCache.extractor_a_concurrency) === 1 ? "selected" : ""}>${_T.opt_concurrent}</option> <option value="0" ${Number(configCache.extractor_a_concurrency) === 0 ? "selected" : ""}>${_T.opt_sequential}</option> </select> <div style="display:flex;align-items:center;gap:8px;margin-top:8px;flex-wrap:wrap;"> <input type="checkbox" id="extractor_a_thinking_enabled" ${Number(configCache.extractor_a_thinking_enabled) === 1 ? "checked" : ""} title="${_T.thinking_title}" style="margin:0;flex-shrink:0;" /> <label for="extractor_a_thinking_enabled" class="pse-label" style="margin:0;cursor:pointer;white-space:nowrap;color:var(--pse-text);">${_T.lbl_thinking}</label> <select id="extractor_a_thinking_level" class="pse-input" style="flex:1;min-width:120px;" ${Number(configCache.extractor_a_thinking_enabled) !== 1 ? "disabled" : ""}> <option value="low" ${configCache.extractor_a_thinking_level === "low" ? "selected" : ""}>${_T.opt_thinking_low}</option> <option value="medium" ${!configCache.extractor_a_thinking_level || configCache.extractor_a_thinking_level === "medium" ? "selected" : ""}>${_T.opt_thinking_medium}</option> <option value="high" ${configCache.extractor_a_thinking_level === "high" ? "selected" : ""}>${_T.opt_thinking_high}</option> </select> </div> <div id="extractor_a_thinking_hint" style="font-size:11px;color:var(--pse-muted);margin-top:4px;display:${Number(configCache.extractor_a_thinking_enabled) === 1 ? "block" : "none"};"></div> </div> <!-- Aux Model (Blue) --> <div class="pse-section blue pse-model-section-b"> <div class="pse-section-title">${_T.sec_b}</div> <label class="pse-label" style="color:var(--pse-text);">${_T.lbl_provider}</label> <select id="extractor_b_provider" class="pse-input">${renderProviderOptions(configCache.extractor_b_provider)}</select> <label class="pse-label" style="color:var(--pse-text);">${_T.lbl_format}</label> <select id="extractor_b_format" class="pse-input">${renderFormatOptions(configCache.extractor_b_format)}</select> <label class="pse-label" style="color:var(--pse-text);">${_T.lbl_url}</label> <input id="extractor_b_url" class="pse-input" value="${String(configCache.extractor_b_url || "").replace(/"/g, "&quot;")}" /> <label class="pse-label" style="color:var(--pse-text);">${_T.lbl_key}</label> <div style="display:flex;align-items:flex-start;gap:10px;"> <div style="display:flex;flex-direction:column;gap:4px;flex-shrink:0;align-items:center;padding-top:2px;"> <button id="pse-key-add-b" type="button" title="Add another API key (keys rotate automatically)" class="pse-key-add-btn" style="--btn-color:var(--pse-accent,#5865f2);">+</button> <span id="pse-key-count-b" style="font-size:10px;color:var(--pse-muted);white-space:nowrap;">${(() => { const n = _parseKeys(configCache.extractor_b_key || "").length; return n > 1 ? "🔄 " + n : ""; })()}</span> </div> <div style="flex:1;min-width:0;"> <textarea id="extractor_b_key" class="pse-input" rows="1" style="display:none;white-space:pre;" spellcheck="false">${escapeHtml(String(configCache.extractor_b_key || ""))}</textarea> <div id="pse-key-list-b"></div> </div> </div> <label class="pse-label" style="color:var(--pse-text);">${_T.lbl_model}</label> <input id="extractor_b_model" class="pse-input" autocomplete="off" value="${String(configCache.extractor_b_model || "").replace(/"/g, "&quot;")}" /> <div id="extractor_b_model_suggestions" class="pse-model-suggestions"></div> <label class="pse-label" style="color:var(--pse-text);">${_T.lbl_temp}</label> <input id="extractor_b_temperature" class="pse-input" type="number" min="0" max="2" step="0.1" value="${escapeHtml(String(Number(configCache.extractor_b_temperature) || 0))}" /> <label class="pse-label" style="color:var(--pse-text);">${_T.lbl_concur}</label> <select id="extractor_b_concurrency" class="pse-input"> <option value="1" ${Number(configCache.extractor_b_concurrency) === 1 ? "selected" : ""}>${_T.opt_concurrent}</option> <option value="0" ${Number(configCache.extractor_b_concurrency) === 0 ? "selected" : ""}>${_T.opt_sequential}</option> </select> <div style="display:flex;align-items:center;gap:8px;margin-top:8px;flex-wrap:wrap;"> <input type="checkbox" id="extractor_b_thinking_enabled" ${Number(configCache.extractor_b_thinking_enabled) === 1 ? "checked" : ""} title="${_T.thinking_title}" style="margin:0;flex-shrink:0;" /> <label for="extractor_b_thinking_enabled" class="pse-label" style="margin:0;cursor:pointer;white-space:nowrap;color:var(--pse-text);">${_T.lbl_thinking}</label> <select id="extractor_b_thinking_level" class="pse-input" style="flex:1;min-width:120px;" ${Number(configCache.extractor_b_thinking_enabled) !== 1 ? "disabled" : ""}> <option value="low" ${configCache.extractor_b_thinking_level === "low" ? "selected" : ""}>${_T.opt_thinking_low}</option> <option value="medium" ${!configCache.extractor_b_thinking_level || configCache.extractor_b_thinking_level === "medium" ? "selected" : ""}>${_T.opt_thinking_medium}</option> <option value="high" ${configCache.extractor_b_thinking_level === "high" ? "selected" : ""}>${_T.opt_thinking_high}</option> </select> </div> <div id="extractor_b_thinking_hint" style="font-size:11px;color:var(--pse-muted);margin-top:4px;display:${Number(configCache.extractor_b_thinking_enabled) === 1 ? "block" : "none"};"></div> </div> <!-- Embed Model (Green) --> <div class="pse-section green pse-model-section-embed"> <div class="pse-section-title"> ${_T.sec_embed_title}
- <span style="font-size:12px; color:var(--pse-muted); font-weight:normal; display:block; margin-top:4px;">${_T.embed_warn}</span> </div> <div> <label class="pse-label" style="color:var(--pse-text);">${_T.lbl_provider}</label> <select id="embedding_provider" class="pse-input">${renderEmbeddingProviderOptions(configCache.embedding_provider)}</select> <label class="pse-label" style="color:var(--pse-text);">${_T.lbl_format}</label> <select id="embedding_format" class="pse-input">${renderFormatOptions(configCache.embedding_format)}</select> <label class="pse-label" style="color:var(--pse-text);">${_T.lbl_url}</label> <input id="embedding_url" class="pse-input" value="${String(configCache.embedding_url || "").replace(/"/g, "&quot;")}" /> <label class="pse-label" style="color:var(--pse-text);">${_T.lbl_key}</label> <div style="display:flex;align-items:flex-start;gap:10px;"> <div style="display:flex;flex-direction:column;gap:4px;flex-shrink:0;align-items:center;padding-top:2px;"> <button id="pse-key-add-embed" type="button" title="Add another API key (keys rotate automatically)" class="pse-key-add-btn" style="--btn-color:rgba(0,170,90,1);">+</button> <span id="pse-key-count-embed" style="font-size:10px;color:var(--pse-muted);white-space:nowrap;">${(() => { const n = _parseKeys(configCache.embedding_key || "").length; return n > 1 ? "🔄 " + n : ""; })()}</span> </div> <div style="flex:1;min-width:0;"> <textarea id="embedding_key" class="pse-input" rows="1" style="display:none;white-space:pre;" spellcheck="false">${escapeHtml(String(configCache.embedding_key || ""))}</textarea> <div id="pse-key-list-embed"></div> </div> </div> <div id="embedding_model_row"> <label class="pse-label" style="color:var(--pse-text);">${_T.lbl_model}</label> <input id="embedding_model" class="pse-input" autocomplete="off" value="${escapeHtml(String(configCache.embedding_model || ""))}" /> <div id="embedding_model_suggestions" class="pse-model-suggestions"></div> </div> <input id="embedding_request_model" type="hidden" value="${String(configCache.embedding_request_model || "").replace(/"/g, "&quot;")}" /> </div> </div> </div> <div class="pse-page" data-page="2"> <!-- Extraction Guide (Amber) --> <div class="pse-section amber" style="padding: 0; overflow: hidden; margin-bottom: 12px;"> <details id="pse-extraction-details" ${extractionDetailsOpen ? "open" : ""} style="width: 100%;"> <summary style="padding: 10px 12px; cursor: pointer; font-weight: bold; list-style: none; display: flex; align-items: center; justify-content: space-between; user-select: none;"> <span>${_T.extraction_guide_title}</span> <span style="font-size: 10px; opacity: 0.6;">${_T.mode_guide_click}</span> </summary> <div style="padding: 0 12px 12px 12px; font-size: 13px; line-height: 1.6; color: var(--pse-text);"> ${_T.extraction_guide_content}
+</div> </div> </details> </div> <!-- Main Model (Indigo) --> <div class="pse-section indigo pse-model-section-a"> <div class="pse-section-title">${_T.sec_a}</div> <label class="pse-label" style="color:var(--pse-text);">${_T.lbl_provider}</label> <select id="extractor_a_provider" class="pse-input">${renderProviderOptions(configCache.extractor_a_provider)}</select> <label class="pse-label" style="color:var(--pse-text);">${_T.lbl_format}</label> <select id="extractor_a_format" class="pse-input">${renderFormatOptions(configCache.extractor_a_format)}</select> <label class="pse-label" style="color:var(--pse-text);">${_T.lbl_url}</label> <input id="extractor_a_url" class="pse-input" value="${String(configCache.extractor_a_url || "").replace(/"/g, "&quot;")}" /> <label class="pse-label" style="color:var(--pse-text);">${_T.lbl_key}</label> <div style="display:flex;align-items:flex-start;gap:10px;"> <div style="display:flex;flex-direction:column;gap:4px;flex-shrink:0;align-items:center;padding-top:2px;"> <button id="pse-key-add-a" type="button" title="Add another API key (keys rotate automatically)" class="pse-key-add-btn" style="--btn-color:var(--pse-accent,#5865f2);">+</button> <span id="pse-key-count-a" style="font-size:10px;color:var(--pse-muted);white-space:nowrap;"></span> </div> <div style="flex:1;min-width:0;"> <textarea id="extractor_a_key" class="pse-input" rows="1" style="display:none;white-space:pre;" spellcheck="false">${escapeHtml(String(configCache.extractor_a_key || ""))}</textarea> <div id="pse-key-list-a"></div> </div> </div> <label class="pse-label" style="color:var(--pse-text);">${_T.lbl_model}</label> <input id="extractor_a_model" class="pse-input" autocomplete="off" value="${String(configCache.extractor_a_model || "").replace(/"/g, "&quot;")}" /> <div id="extractor_a_model_suggestions" class="pse-model-suggestions"></div> <label class="pse-label" style="color:var(--pse-text);">${_T.lbl_temp}</label> <input id="extractor_a_temperature" class="pse-input" type="number" min="0" max="2" step="0.1" value="${escapeHtml(String(Number.isFinite(Number(configCache.extractor_a_temperature)) ? Number(configCache.extractor_a_temperature) : DEFAULTS.extractor_a_temperature))}" /> <label class="pse-label" style="color:var(--pse-text);">${_T.lbl_concur}</label> <select id="extractor_a_concurrency" class="pse-input"> <option value="1" ${Number(configCache.extractor_a_concurrency) === 1 ? "selected" : ""}>${_T.opt_concurrent}</option> <option value="0" ${Number(configCache.extractor_a_concurrency) === 0 ? "selected" : ""}>${_T.opt_sequential}</option> </select> <div style="display:flex;align-items:center;gap:8px;margin-top:8px;flex-wrap:wrap;"> <input type="checkbox" id="extractor_a_thinking_enabled" ${Number(configCache.extractor_a_thinking_enabled) === 1 ? "checked" : ""} title="${_T.thinking_title}" style="margin:0;flex-shrink:0;" /> <label for="extractor_a_thinking_enabled" class="pse-label" style="margin:0;cursor:pointer;white-space:nowrap;color:var(--pse-text);">${_T.lbl_thinking}</label> <select id="extractor_a_thinking_level" class="pse-input" style="flex:1;min-width:120px;" ${Number(configCache.extractor_a_thinking_enabled) !== 1 ? "disabled" : ""}> <option value="low" ${configCache.extractor_a_thinking_level === "low" ? "selected" : ""}>${_T.opt_thinking_low}</option> <option value="medium" ${!configCache.extractor_a_thinking_level || configCache.extractor_a_thinking_level === "medium" ? "selected" : ""}>${_T.opt_thinking_medium}</option> <option value="high" ${configCache.extractor_a_thinking_level === "high" ? "selected" : ""}>${_T.opt_thinking_high}</option> </select> </div> <div id="extractor_a_thinking_hint" style="font-size:11px;color:var(--pse-muted);margin-top:4px;display:${Number(configCache.extractor_a_thinking_enabled) === 1 ? "block" : "none"};"></div> </div> <!-- Aux Model (Blue) --> <div class="pse-section blue pse-model-section-b"> <div class="pse-section-title">${_T.sec_b}</div> <label class="pse-label" style="color:var(--pse-text);">${_T.lbl_provider}</label> <select id="extractor_b_provider" class="pse-input">${renderProviderOptions(configCache.extractor_b_provider)}</select> <label class="pse-label" style="color:var(--pse-text);">${_T.lbl_format}</label> <select id="extractor_b_format" class="pse-input">${renderFormatOptions(configCache.extractor_b_format)}</select> <label class="pse-label" style="color:var(--pse-text);">${_T.lbl_url}</label> <input id="extractor_b_url" class="pse-input" value="${String(configCache.extractor_b_url || "").replace(/"/g, "&quot;")}" /> <label class="pse-label" style="color:var(--pse-text);">${_T.lbl_key}</label> <div style="display:flex;align-items:flex-start;gap:10px;"> <div style="display:flex;flex-direction:column;gap:4px;flex-shrink:0;align-items:center;padding-top:2px;"> <button id="pse-key-add-b" type="button" title="Add another API key (keys rotate automatically)" class="pse-key-add-btn" style="--btn-color:var(--pse-accent,#5865f2);">+</button> <span id="pse-key-count-b" style="font-size:10px;color:var(--pse-muted);white-space:nowrap;"></span> </div> <div style="flex:1;min-width:0;"> <textarea id="extractor_b_key" class="pse-input" rows="1" style="display:none;white-space:pre;" spellcheck="false">${escapeHtml(String(configCache.extractor_b_key || ""))}</textarea> <div id="pse-key-list-b"></div> </div> </div> <label class="pse-label" style="color:var(--pse-text);">${_T.lbl_model}</label> <input id="extractor_b_model" class="pse-input" autocomplete="off" value="${String(configCache.extractor_b_model || "").replace(/"/g, "&quot;")}" /> <div id="extractor_b_model_suggestions" class="pse-model-suggestions"></div> <label class="pse-label" style="color:var(--pse-text);">${_T.lbl_temp}</label> <input id="extractor_b_temperature" class="pse-input" type="number" min="0" max="2" step="0.1" value="${escapeHtml(String(Number.isFinite(Number(configCache.extractor_b_temperature)) ? Number(configCache.extractor_b_temperature) : DEFAULTS.extractor_b_temperature))}" /> <label class="pse-label" style="color:var(--pse-text);">${_T.lbl_concur}</label> <select id="extractor_b_concurrency" class="pse-input"> <option value="1" ${Number(configCache.extractor_b_concurrency) === 1 ? "selected" : ""}>${_T.opt_concurrent}</option> <option value="0" ${Number(configCache.extractor_b_concurrency) === 0 ? "selected" : ""}>${_T.opt_sequential}</option> </select> <div style="display:flex;align-items:center;gap:8px;margin-top:8px;flex-wrap:wrap;"> <input type="checkbox" id="extractor_b_thinking_enabled" ${Number(configCache.extractor_b_thinking_enabled) === 1 ? "checked" : ""} title="${_T.thinking_title}" style="margin:0;flex-shrink:0;" /> <label for="extractor_b_thinking_enabled" class="pse-label" style="margin:0;cursor:pointer;white-space:nowrap;color:var(--pse-text);">${_T.lbl_thinking}</label> <select id="extractor_b_thinking_level" class="pse-input" style="flex:1;min-width:120px;" ${Number(configCache.extractor_b_thinking_enabled) !== 1 ? "disabled" : ""}> <option value="low" ${configCache.extractor_b_thinking_level === "low" ? "selected" : ""}>${_T.opt_thinking_low}</option> <option value="medium" ${!configCache.extractor_b_thinking_level || configCache.extractor_b_thinking_level === "medium" ? "selected" : ""}>${_T.opt_thinking_medium}</option> <option value="high" ${configCache.extractor_b_thinking_level === "high" ? "selected" : ""}>${_T.opt_thinking_high}</option> </select> </div> <div id="extractor_b_thinking_hint" style="font-size:11px;color:var(--pse-muted);margin-top:4px;display:${Number(configCache.extractor_b_thinking_enabled) === 1 ? "block" : "none"};"></div> </div> <!-- Embed Model (Green) --> <div class="pse-section green pse-model-section-embed"> <div class="pse-section-title"> ${_T.sec_embed_title}
+<span style="font-size:12px; color:var(--pse-muted); font-weight:normal; display:block; margin-top:4px;">${_T.embed_warn}</span> </div> <div> <label class="pse-label" style="color:var(--pse-text);">${_T.lbl_provider}</label> <select id="embedding_provider" class="pse-input">${renderEmbeddingProviderOptions(configCache.embedding_provider)}</select> <label class="pse-label" style="color:var(--pse-text);">${_T.lbl_format}</label> <select id="embedding_format" class="pse-input">${renderFormatOptions(configCache.embedding_format)}</select> <label class="pse-label" style="color:var(--pse-text);">${_T.lbl_url}</label> <input id="embedding_url" class="pse-input" value="${String(configCache.embedding_url || "").replace(/"/g, "&quot;")}" /> <label class="pse-label" style="color:var(--pse-text);">${_T.lbl_key}</label> <div style="display:flex;align-items:flex-start;gap:10px;"> <div style="display:flex;flex-direction:column;gap:4px;flex-shrink:0;align-items:center;padding-top:2px;"> <button id="pse-key-add-embed" type="button" title="Add another API key (keys rotate automatically)" class="pse-key-add-btn" style="--btn-color:rgba(0,170,90,1);">+</button> <span id="pse-key-count-embed" style="font-size:10px;color:var(--pse-muted);white-space:nowrap;"></span> </div> <div style="flex:1;min-width:0;"> <textarea id="embedding_key" class="pse-input" rows="1" style="display:none;white-space:pre;" spellcheck="false">${escapeHtml(String(configCache.embedding_key || ""))}</textarea> <div id="pse-key-list-embed"></div> </div> </div> <div id="embedding_model_row"> <label class="pse-label" style="color:var(--pse-text);">${_T.lbl_model}</label> <input id="embedding_model" class="pse-input" autocomplete="off" value="${escapeHtml(String(configCache.embedding_model || ""))}" /> <div id="embedding_model_suggestions" class="pse-model-suggestions"></div> </div> <input id="embedding_request_model" type="hidden" value="${String(configCache.embedding_request_model || "").replace(/"/g, "&quot;")}" /> </div> </div> </div> <div class="pse-page" data-page="2"> <!-- Extraction Guide (Amber) --> <div class="pse-section amber" style="padding: 0; overflow: hidden; margin-bottom: 12px;"> <details id="pse-extraction-details" ${extractionDetailsOpen ? "open" : ""} style="width: 100%;"> <summary style="padding: 10px 12px; cursor: pointer; font-weight: bold; list-style: none; display: flex; align-items: center; justify-content: space-between; user-select: none;"> <span>${_T.extraction_guide_title}</span> <span style="font-size: 10px; opacity: 0.6;">${_T.mode_guide_click}</span> </summary> <div style="padding: 0 12px 12px 12px; font-size: 13px; line-height: 1.6; color: var(--pse-text);"> ${_T.extraction_guide_content}
+${_T.extraction_vec_trigger_note || ""}
  </div> </details> </div> <div class="pse-section indigo" style=""> <div class="pse-row" style="margin-bottom:10px;"> <button id="pse-preset-common" class="pse-preset-btn" type="button">${_T.tab_common}</button> <button id="pse-preset-1" class="pse-preset-btn ${toInt(configCache.active_preset, 1) === 1 ? "active" : ""}" type="button">${_T.tab_preset1_old || _T.preset1}</button> <button id="pse-preset-2" class="pse-preset-btn ${toInt(configCache.active_preset, 1) === 2 ? "active" : ""}" type="button">${_T.tab_preset2_old || _T.preset2}</button> </div> <div class="pse-row" style="margin-bottom:10px;"> <button id="pse-preset-character" class="pse-preset-btn pse-subtab" type="button">${_T.tab_char_extract}</button> <button id="pse-preset-3" class="pse-preset-btn pse-subtab" type="button">${_T.tab_preset1_new || _T.tab_preset3}</button> <button id="pse-preset-4" class="pse-preset-btn pse-subtab" type="button">${_T.tab_preset2_new || _T.tab_preset4}</button> </div> <div id="pse-lore-presets-container"> <div class="pse-json-tools"> <div class="pse-json-tools-actions"> <button class="pse-btn cache pse-json-export-btn" type="button" style="flex:1;padding:7px 12px;font-size:12px;">${_T.btn_json_export}</button> <button class="pse-btn close pse-json-import-btn" type="button" style="flex:1;padding:7px 12px;font-size:12px;">${_T.btn_json_import}</button> <input class="pse-json-import-input" type="file" accept="${_T.json_file_accept}" style="display:none;" /> </div> </div> <div id="model_call_list" class="pse-entry-list"></div> <button id="add_model_call" class="pse-add-entry" type="button">${_T.btn_add_call}</button> </div> <div id="pse-common-prompts-container" style="display:none; flex-direction:column; border-top: 2px solid rgba(72,69,199,0.30); padding-top: 12px; margin-top: 12px;"> <label class="pse-label">${_T.lbl_anchor}</label> <div class="pse-textarea-wrap"> <textarea id="advanced_model_anchor_prompt" class="pse-textarea">${escapeHtml(configCache.advanced_model_anchor_prompt || "")}</textarea> <button id="advanced_model_anchor_prompt_expand" class="pse-expand-btn" type="button" aria-label="${_T.aria_expand}"> <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 4H5a1 1 0 0 0-1 1v3"/><path d="M16 4h3a1 1 0 0 1 1 1v3"/><path d="M20 16v3a1 1 0 0 1-1 1h-3"/><path d="M4 16v3a1 1 0 0 0 1 1h3"/></svg> </button> </div> <label class="pse-label">${_T.lbl_prefill}</label> <div class="pse-textarea-wrap"> <textarea id="advanced_prefill_prompt" class="pse-textarea">${escapeHtml(configCache.advanced_prefill_prompt || "")}</textarea> <button id="advanced_prefill_prompt_expand" class="pse-expand-btn" type="button" aria-label="${_T.aria_expand}"> <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 4H5a1 1 0 0 0-1 1v3"/><path d="M16 4h3a1 1 0 0 1 1 1v3"/><path d="M20 16v3a1 1 0 0 1-1 1h-3"/><path d="M4 16v3a1 1 0 0 0 1 1h3"/></svg> </button> </div> <label class="pse-label">${_T.lbl_prereply}</label> <div class="pse-textarea-wrap"> <textarea id="advanced_prereply_prompt" class="pse-textarea">${escapeHtml(configCache.advanced_prereply_prompt || "")}</textarea> <button id="advanced_prereply_prompt_expand" class="pse-expand-btn" type="button" aria-label="${_T.aria_expand}"> <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 4H5a1 1 0 0 0-1 1v3"/><path d="M16 4h3a1 1 0 0 1 1 1v3"/><path d="M20 16v3a1 1 0 0 1-1 1h-3"/><path d="M4 16v3a1 1 0 0 0 1 1h3"/></svg> </button> </div> </div> <div id="pse-persona-container" style="display:none; flex-direction:column; border-top: 2px solid rgba(0,160,80,0.28); padding-top: 12px; margin-top: 12px;"> <div class="pse-json-tools"> <div class="pse-json-tools-actions"> <button class="pse-btn cache pse-json-export-btn" type="button" style="flex:1;padding:7px 12px;font-size:12px;">${_T.btn_json_export}</button> <button class="pse-btn close pse-json-import-btn" type="button" style="flex:1;padding:7px 12px;font-size:12px;">${_T.btn_json_import}</button> <input class="pse-json-import-input" type="file" accept="${_T.json_file_accept}" style="display:none;" /> </div> </div> <div id="persona_call_list" class="pse-entry-list"></div> <button id="add_persona_call" class="pse-add-entry" type="button">${_T.btn_add_call}</button> </div> </div> </div> <div class="pse-page" data-page="5"> <!-- Vector Guide (Amber) --> <div class="pse-section amber" style="padding: 0; overflow: hidden; margin-bottom: 12px;"> <details id="pse-vector-details" ${vectorDetailsOpen ? "open" : ""} style="width: 100%;"> <summary style="padding: 10px 12px; cursor: pointer; font-weight: bold; list-style: none; display: flex; align-items: center; justify-content: space-between; user-select: none;"> <span>${_T.vector_guide_title}</span> <span style="font-size: 10px; opacity: 0.6;">${_T.mode_guide_click}</span> </summary> <div style="padding: 0 12px 12px 12px; font-size: 13px; line-height: 1.6; color: var(--pse-text);"> ${_T.vector_guide_content}
  </div> </details> </div> <div class="pse-section indigo"> <div class="pse-section-title">${_T.preset1}</div> <label class="pse-label" style="color:var(--pse-text);">${_T.lbl_query_rounds}</label> <input id="vector_search_query_dialogue_rounds" class="pse-input" type="number" min="1" value="${String(Math.max(1, toInt(configCache.vector_search_query_dialogue_rounds, DEFAULTS.vector_search_query_dialogue_rounds)))}" /> <label class="pse-label" style="color:var(--pse-text);">${_T.lbl_topk}</label> <input id="vector_search_top_k" class="pse-input" type="number" min="1" value="${String(Math.max(1, toInt(configCache.vector_search_top_k, DEFAULTS.vector_search_top_k)))}" /> <label class="pse-label" style="color:var(--pse-text);">${_T.lbl_minscore}</label> <input id="vector_search_min_score" class="pse-input" type="number" min="0" max="1" step="0.01" value="${String(clampUnitInterval(configCache.vector_search_min_score, DEFAULTS.vector_search_min_score))}" /> </div> <div class="pse-section green"> <div class="pse-section-title">${_T.preset2}</div> <label class="pse-label" style="color:var(--pse-text);">${_T.lbl_query_rounds}</label> <input id="vector_search_query_dialogue_rounds_2" class="pse-input" type="number" min="1" value="${String(Math.max(1, toInt(configCache.vector_search_query_dialogue_rounds_2, DEFAULTS.vector_search_query_dialogue_rounds_2)))}" /> <label class="pse-label" style="color:var(--pse-text);">${_T.lbl_topk}</label> <input id="vector_search_top_k_2" class="pse-input" type="number" min="1" value="${String(Math.max(1, toInt(configCache.vector_search_top_k_2, DEFAULTS.vector_search_top_k_2)))}" /> <label class="pse-label" style="color:var(--pse-text);">${_T.lbl_minscore}</label> <input id="vector_search_min_score_2" class="pse-input" type="number" min="0" max="1" step="0.01" value="${String(clampUnitInterval(configCache.vector_search_min_score_2, DEFAULTS.vector_search_min_score_2))}" /> </div> </div> <div class="pse-page" data-page="6"> <!-- Cache Guide (Amber) --> <div class="pse-section amber" style="padding: 0; overflow: hidden; margin-bottom: 12px;"> <details id="pse-cache-details" ${cacheDetailsOpen ? "open" : ""} style="width: 100%;"> <summary style="padding: 10px 12px; cursor: pointer; font-weight: bold; list-style: none; display: flex; align-items: center; justify-content: space-between; user-select: none;"> <span>${_T.cache_guide_title}</span> <span style="font-size: 10px; opacity: 0.6;">${_T.mode_guide_click}</span> </summary> <div style="padding: 0 12px 12px 12px; font-size: 13px; line-height: 1.6; color: var(--pse-text);"> ${_T.cache_guide_content}
  </div> </details> </div> <div style="display:flex;gap:8px;margin-bottom:10px;"> <button id="pse-clear-cache" class="pse-btn" type="button" style="flex:1;padding:7px 12px;font-size:12px;background:var(--pse-accent-rose);">${_T.btn_clear_cache}</button> </div> <div id="pse-embed-cache-list" class="pse-entry-list"></div> <textarea id="init_bootstrap_model_anchor_prompt" style="display:none;">${escapeHtml(String(configCache.init_bootstrap_model_anchor_prompt || DEFAULTS.init_bootstrap_model_anchor_prompt))}</textarea> </div> <div class="pse-btn-row"> <button id="pse-save" class="pse-btn save">${_T.btn_save}</button> <button id="pse-close" class="pse-btn close">${_T.btn_close}</button> </div> </div> </div> `;
@@ -13259,23 +14282,35 @@ OUTPUT (STRICT):
       overlayRoot.style.opacity = "1";
     });
     /* ── Bind close / overlay dismiss immediately so buttons work before heavy init ── */
+    const closeSettingsOverlay = async () => {
+      try {
+        await flushAutosaveBeforeClose();
+      } catch (e) {
+        showStatus(_T.st_save_fail + (e?.message || String(e)), "err");
+        return;
+      }
+      const overlay = document.getElementById("pse-overlay-root");
+      if (overlay) overlay.remove();
+      try {
+        await Risuai.hideContainer();
+      } catch { }
+    };
     document
       .getElementById("pse-close")
       ?.addEventListener("click", async () => {
-        const overlay = document.getElementById("pse-overlay-root");
-        if (overlay) overlay.remove();
-        try {
-          await Risuai.hideContainer();
-        } catch { }
+        await closeSettingsOverlay();
       });
     /* ── Bind save button immediately ── */
     document
       .getElementById("pse-save")
       ?.addEventListener("click", async () => {
         try {
-          const formData = collectFormData();
-          await saveConfigFromUI(formData);
-          showStatus(_T.st_saved, "ok");
+          if (autosaveTimer) {
+            clearTimeout(autosaveTimer);
+            autosaveTimer = null;
+          }
+          autosaveQueued = false;
+          await saveCurrentSettings({ showSuccess: true });
         } catch (e) {
           showStatus(_T.st_save_fail + (e?.message || String(e)), "err");
         }
@@ -13284,11 +14319,7 @@ OUTPUT (STRICT):
       if (e.target !== overlayRoot && !e.target?.classList?.contains("pse-body")) {
         return;
       }
-      const overlay = document.getElementById("pse-overlay-root");
-      if (overlay) overlay.remove();
-      try {
-        await Risuai.hideContainer();
-      } catch { }
+      await closeSettingsOverlay();
     });
     /* ── Bind instruction toggles persistence ── */
     document.getElementById("pse-extraction-details")?.addEventListener("toggle", (e) => {
@@ -14012,7 +15043,14 @@ OUTPUT (STRICT):
               }
             }
           } catch (_embedErr) {
-            try { await Risuai.log(`${LOG} Manual append: embed step failed: ${_embedErr?.message || String(_embedErr)}`); } catch { }
+            const _embedErrMsg = _embedErr?.message || String(_embedErr);
+            try { await Risuai.log(`${LOG} Manual append: embed step failed: ${_embedErrMsg}`); } catch { }
+            // Surface embed failure in the settings UI so the user knows embedding did not complete.
+            const _embedStatusMsg = typeof _T.warn_embed_settings_failed === "function"
+              ? _T.warn_embed_settings_failed(_embedErrMsg)
+              : `${_T.st_manual_append_failed || "Embed failed: "}${_embedErrMsg}`;
+            if (statusEl) { statusEl.style.color = "#cc0020"; statusEl.textContent = _embedStatusMsg; }
+            showStatus(_embedStatusMsg, "err");
           }
           await renderEmbeddingCacheList();
           if (typeof onSuccess === "function") { try { await onSuccess(cardKey, cache); } catch { } }
@@ -14256,7 +15294,14 @@ OUTPUT (STRICT):
                         await saveEmbeddingCacheStore(store, { replaceCardKeys: [cardKey] });
                       }
                     } catch (_embedErr) {
-                      try { await Risuai.log(`${LOG} Char edit: embed step failed: ${_embedErr?.message || String(_embedErr)}`); } catch { }
+                      const _charEditEmbedMsg = _embedErr?.message || String(_embedErr);
+                      try { await Risuai.log(`${LOG} Char edit: embed step failed: ${_charEditEmbedMsg}`); } catch { }
+                      // Surface embed failure so the user knows persona vectors were not updated.
+                      const _charEditEmbedStatus = typeof _T.warn_embed_settings_failed === "function"
+                        ? _T.warn_embed_settings_failed(_charEditEmbedMsg)
+                        : `${_T.st_manual_append_failed || "Embed failed: "}${_charEditEmbedMsg}`;
+                      if (statusEl) { statusEl.style.color = "#cc0020"; statusEl.textContent = _charEditEmbedStatus; }
+                      showStatus(_charEditEmbedStatus, "err");
                     }
                     // Refresh UI
                     await renderEmbeddingCacheList();
@@ -14494,7 +15539,7 @@ OUTPUT (STRICT):
       if (!src) return;
       const overlay = document.createElement("div");
       overlay.className = "pse-editor-overlay";
-      overlay.innerHTML = ` <div class="pse-editor-modal"> <div class="pse-editor-head"> <div class="pse-editor-title">${escapeHtml(title)}</div> <button id="pse-editor-close" class="pse-editor-close" type="button" aria-label="${_T.aria_close}"></button> </div> <textarea id="pse-editor-textarea" class="pse-editor-textarea"></textarea> <div class="pse-editor-actions"> <button id="pse-editor-cancel" class="pse-btn close" type="button" style="flex:0 0 auto">${_T.editor_cancel}</button> <button id="pse-editor-apply" class="pse-btn save" type="button" style="flex:0 0 auto">${_T.editor_apply}</button> </div> </div> `;
+      overlay.innerHTML = ` <div class="pse-editor-modal"> <div class="pse-editor-head"> <div class="pse-editor-title">${escapeHtml(title)}</div> <button id="pse-editor-close" class="pse-editor-close" type="button" aria-label="${_T.aria_close}">×</button> </div> <textarea id="pse-editor-textarea" class="pse-editor-textarea"></textarea> <div class="pse-editor-actions"> <button id="pse-editor-cancel" class="pse-btn close" type="button" style="flex:0 0 auto">${_T.editor_cancel}</button> <button id="pse-editor-apply" class="pse-btn save" type="button" style="flex:0 0 auto">${_T.editor_apply}</button> </div> </div> `;
       document.body.appendChild(overlay);
       const editor = overlay.querySelector("#pse-editor-textarea");
       if (editor) {
@@ -14655,6 +15700,7 @@ OUTPUT (STRICT):
       const showWriteMode = options.showWriteMode !== false;
       const showAlwaysActive = options.showAlwaysActive !== false;
       const showRetention = options.showRetention !== false;
+      const showVectorTrigger = options.showVectorTrigger !== false;
       const lbl_entry = options.lbl_entry || _T.lbl_lore_entry;
       const entries =
         Array.isArray(call.entries) && call.entries.length
@@ -14663,11 +15709,15 @@ OUTPUT (STRICT):
       return entries
         .map((entry, entryIndex) => {
           const e = normalizeOutputEntry(entry, call.target_model);
+          const vectorRowVisible = showVectorTrigger && !!e.vector_trigger_enabled;
+          const semanticVisible = e.vector_basis === "semantic_input";
           return ` <div class="pse-entry-block" data-entry-index="${entryIndex}"> <div class="pse-entry-grid"> <div class="pse-entry-col"><label class="pse-label">${lbl_entry}</label><input class="pse-input pse-entry-lore" value="${escapeHtml(e.lorebook_name)}" /></div> ${showWriteMode ? `<div class="pse-entry-col"><label class="pse-label">${_T.lbl_write_mode}</label><select class="pse-input pse-entry-mode">${renderSelectOptions(LORE_WRITE_MODE_OPTIONS, e.write_mode)}</select></div>` : ""}
  ${showAlwaysActive ? `<div class="pse-entry-col"><label class="pse-label">${_T.lbl_always_active}</label><select class="pse-input pse-entry-always-active"><option value="1" ${e.always_active ? "selected" : ""}>${_T.yes}</option><option value="0" ${!e.always_active ? "selected" : ""}>${_T.no}</option></select></div>` : ""}
+ ${showVectorTrigger ? `<button class="pse-entry-vec-toggle${vectorRowVisible ? " active" : ""}" type="button" data-vector-toggle="1" title="${escapeHtml(_T.lbl_vec_trigger_toggle || "Vector Trigger")}">⚙</button>` : ""}
  <button class="pse-entry-remove${options.compactRemove ? " compact" : ""}" type="button" data-remove-entry="1" data-call-index="${callIndex}" ${entries.length <= 1 ? "disabled" : ""}>×</button> </div> <div class="pse-entry-grid-row2"> <div class="pse-entry-col"> <label class="pse-label">${_T.lbl_output_format}</label> <div class="pse-textarea-wrap"> <textarea class="pse-entry-format-input pse-entry-format pse-textarea">${escapeHtml(String(e.output_format || ""))}</textarea> <button class="pse-expand-btn pse-entry-format-expand" type="button" aria-label="${_T.aria_expand}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 4H5a1 1 0 0 0-1 1v3"/><path d="M16 4h3a1 1 0 0 1 1 1v3"/><path d="M20 16v3a1 1 0 0 1-1 1h-3"/><path d="M4 16v3a1 1 0 0 0 1 1h3"/></svg></button> </div> </div> </div> ${showRetention
               ? `<div class="pse-entry-retention-row" style="display:${e.write_mode === "append" ? "flex" : "none"};align-items:center;gap:8px;flex-wrap:wrap;margin-top:4px;"> <input class="pse-entry-retention-enabled" type="checkbox" id="ret_${callIndex}_${entryIndex}" ${e.retention_enabled ? "checked" : ""}
  title="${_T.ret_enabled_title}" /> <label for="ret_${callIndex}_${entryIndex}" class="pse-label" style="cursor:pointer;user-select:none;">${_T.ret_after_lbl}</label> <input class="pse-input pse-entry-retention-after" type="number" min="0" value="${e.retention_after ?? 0}" style="width:60px;" title="${_T.ret_after_title}" ${e.retention_enabled ? "" : "disabled"} /> <label class="pse-label">${_T.ret_mid_lbl}</label> <input class="pse-input pse-entry-retention-keep" type="number" min="0" value="${e.retention_keep ?? 5}" style="width:60px;" title="${_T.ret_keep_title}" ${e.retention_enabled ? "" : "disabled"} /> <label class="pse-label">${_T.ret_end_lbl}</label> </div>` : ""}
+ ${showVectorTrigger ? `<div class="pse-entry-vector-row" style="display:${vectorRowVisible ? "grid" : "none"};"> <div class="pse-entry-col"><label class="pse-label">${_T.lbl_vec_basis}</label><select class="pse-input pse-entry-vector-basis"><option value="round_compare" ${e.vector_basis === "round_compare" ? "selected" : ""}>${_T.lbl_vec_basis_round}</option><option value="semantic_input" ${e.vector_basis === "semantic_input" ? "selected" : ""}>${_T.lbl_vec_basis_semantic}</option></select></div> <div class="pse-entry-col"><label class="pse-label">${_T.lbl_vec_threshold}</label><input class="pse-input pse-entry-vector-threshold" type="number" min="0" max="1" step="0.01" value="${String(clampUnitInterval(e.vector_threshold, 0.6))}" /></div> <div class="pse-entry-col"><label class="pse-label">${_T.lbl_vec_fallback_turns}</label><input class="pse-input pse-entry-vector-fallback" type="number" min="0" step="1" value="${String(Math.max(0, toInt(e.vector_fallback_turns, 10)))}" /></div> <div class="pse-entry-col pse-entry-vector-semantic-wrap" style="grid-column:1/-1;display:${semanticVisible ? "block" : "none"};"><label class="pse-label">${_T.lbl_vec_semantic_input}</label><input class="pse-input pse-entry-vector-semantic" value="${escapeHtml(String(e.vector_semantic_input || ""))}" /></div> </div>` : ""}
  </div> `;
         })
         .join("");
@@ -14704,6 +15754,7 @@ OUTPUT (STRICT):
       showWriteMode: false,
       showAlwaysActive: false,
       showRetention: false,
+      showVectorTrigger: false,
       showFreq: false,
       compactRemove: true,
       lbl_entry: _T.lbl_cache_entry,
@@ -14825,7 +15876,7 @@ OUTPUT (STRICT):
           Math.min(
             2,
             Number(
-              document.getElementById("extractor_a_temperature")?.value || 0,
+              document.getElementById("extractor_a_temperature")?.value || DEFAULTS.extractor_a_temperature,
             ),
           ),
         ),
@@ -14846,7 +15897,7 @@ OUTPUT (STRICT):
           Math.min(
             2,
             Number(
-              document.getElementById("extractor_b_temperature")?.value || 0,
+              document.getElementById("extractor_b_temperature")?.value || DEFAULTS.extractor_b_temperature,
             ),
           ),
         ),
@@ -14991,6 +16042,12 @@ OUTPUT (STRICT):
     let autosaveTimer = null;
     let autosaveInFlight = false;
     let autosaveQueued = false;
+    const waitAutosaveIdle = async (maxWaitMs = 4000) => {
+      const started = Date.now();
+      while (autosaveInFlight && Date.now() - started < maxWaitMs) {
+        await new Promise((r) => setTimeout(r, 25));
+      }
+    };
     const saveCurrentSettings = async (options = {}) => {
       const showSuccess = options.showSuccess === true;
       const successMessage = options.successMessage || _T.st_saved;
@@ -15025,6 +16082,15 @@ OUTPUT (STRICT):
         runAutosave().catch(() => { });
       }, delay);
     };
+    async function flushAutosaveBeforeClose() {
+      if (autosaveTimer) {
+        clearTimeout(autosaveTimer);
+        autosaveTimer = null;
+      }
+      autosaveQueued = false;
+      await waitAutosaveIdle();
+      await saveCurrentSettings();
+    }
     const readCallsFromContainer = (containerEl, existingCalls) => {
       const cards = Array.from(
         containerEl?.querySelectorAll?.(".pse-call-card") || [],
@@ -15059,6 +16125,24 @@ OUTPUT (STRICT):
             retention_keep: Math.max(
               0,
               toInt(block.querySelector(".pse-entry-retention-keep")?.value, 5),
+            ),
+            vector_trigger_enabled:
+              block.querySelector(".pse-entry-vector-row")?.style?.display !==
+              "none",
+            vector_basis: safeTrim(
+              block.querySelector(".pse-entry-vector-basis")?.value ||
+              "semantic_input",
+            ),
+            vector_threshold: clampUnitInterval(
+              block.querySelector(".pse-entry-vector-threshold")?.value,
+              0.6,
+            ),
+            vector_fallback_turns: Math.max(
+              0,
+              toInt(block.querySelector(".pse-entry-vector-fallback")?.value, 10),
+            ),
+            vector_semantic_input: String(
+              block.querySelector(".pse-entry-vector-semantic")?.value || "",
             ),
           }))
           .map((e) => normalizeOutputEntry(e, target))
@@ -15318,7 +16402,7 @@ OUTPUT (STRICT):
           .filter(v => v.length > 0);
         ta.value = keys.join("\n");
         if (countEl) {
-          countEl.textContent = keys.length > 1 ? "🔄 " + keys.length : "";
+          countEl.textContent = "";
         }
         ta.dispatchEvent(new Event("input", { bubbles: true }));
         scheduleAutosave(300);
@@ -15438,6 +16522,35 @@ OUTPUT (STRICT):
     ) => {
       if (!containerEl) return;
       containerEl.addEventListener("click", (e) => {
+        const vectorToggleBtn = e.target?.closest?.("[data-vector-toggle='1']");
+        if (vectorToggleBtn) {
+          const block = vectorToggleBtn.closest(".pse-entry-block");
+          const vectorRow = block?.querySelector(".pse-entry-vector-row");
+          if (vectorRow) {
+            const willShow = vectorRow.style.display === "none";
+            vectorRow.style.display = willShow ? "grid" : "none";
+            vectorToggleBtn.classList.toggle("active", willShow);
+            if (!willShow) {
+              const semanticWrap = block?.querySelector(
+                ".pse-entry-vector-semantic-wrap",
+              );
+              if (semanticWrap) semanticWrap.style.display = "none";
+            } else {
+              const basis = safeTrim(
+                block?.querySelector(".pse-entry-vector-basis")?.value ||
+                "semantic_input",
+              );
+              const semanticWrap = block?.querySelector(
+                ".pse-entry-vector-semantic-wrap",
+              );
+              if (semanticWrap)
+                semanticWrap.style.display =
+                  basis === "semantic_input" ? "block" : "none";
+            }
+            scheduleAutosave(0);
+          }
+          return;
+        }
         const addBtn = e.target?.closest?.("[data-add-entry='1']");
         if (addBtn) {
           syncFn();
@@ -15528,6 +16641,18 @@ OUTPUT (STRICT):
           const keepInput = block?.querySelector(".pse-entry-retention-keep");
           if (afterInput) afterInput.disabled = !retCheckbox.checked;
           if (keepInput) keepInput.disabled = !retCheckbox.checked;
+          return;
+        }
+        const basisSelect = e.target?.closest?.(".pse-entry-vector-basis");
+        if (basisSelect) {
+          const block = basisSelect.closest(".pse-entry-block");
+          const semanticWrap = block?.querySelector(
+            ".pse-entry-vector-semantic-wrap",
+          );
+          if (semanticWrap) {
+            semanticWrap.style.display =
+              safeTrim(basisSelect.value) === "semantic_input" ? "block" : "none";
+          }
         }
       });
     };
@@ -15869,10 +16994,78 @@ OUTPUT (STRICT):
       const modelEl = document.getElementById(modelId);
       const keyEl = document.getElementById(keyId);
       if (!providerEl || !modelEl) return;
+      // Helper: read the actual current key value from the visible key-list rows,
+      // falling back to the hidden textarea (which _flush() keeps in sync).
+      const _readCurrentKey = () => {
+        const listId = keyId === "extractor_a_key" ? "pse-key-list-a"
+          : keyId === "extractor_b_key" ? "pse-key-list-b"
+          : null;
+        if (listId) {
+          const listEl = document.getElementById(listId);
+          if (listEl) {
+            const inputs = listEl.querySelectorAll("input.pse-key-row-input");
+            const keys = Array.from(inputs)
+              .map(inp => inp.value.trim())
+              .filter(v => v.length > 0);
+            if (keys.length > 0) return keys.join("\n");
+          }
+        }
+        return safeTrim(keyEl?.value || "");
+      };
+      // Helper: write a key value into both the hidden textarea and the visible rows.
+      const _writeKeyToUI = (newKey) => {
+        if (!keyEl) return;
+        keyEl.value = newKey;
+        const listId = keyId === "extractor_a_key" ? "pse-key-list-a"
+          : keyId === "extractor_b_key" ? "pse-key-list-b"
+          : null;
+        if (listId) {
+          const listEl = document.getElementById(listId);
+          if (listEl) {
+            // Re-render rows from the new key string.
+            listEl.innerHTML = "";
+            const keys = newKey.split(/[\n\r]+/).map(k => k.trim()).filter(k => k.length > 0);
+            const rows = keys.length > 0 ? keys : [""];
+            rows.forEach(k => {
+              const row = document.createElement("div");
+              row.className = "pse-key-row";
+              const inp = document.createElement("input");
+              inp.type = "text";
+              inp.className = "pse-input pse-key-row-input";
+              inp.value = k;
+              inp.placeholder = "API Key";
+              inp.spellcheck = false;
+              inp.style.cssText = "flex:1;min-width:0;font-family:monospace;font-size:12px;border:none;background:transparent;box-shadow:none;height:24px;";
+              const _flush = () => {
+                const allInputs = listEl.querySelectorAll("input.pse-key-row-input");
+                const allKeys = Array.from(allInputs).map(i => i.value.trim()).filter(v => v.length > 0);
+                keyEl.value = allKeys.join("\n");
+                keyEl.dispatchEvent(new Event("input", { bubbles: true }));
+                scheduleAutosave(300);
+              };
+              inp.addEventListener("input", _flush);
+              inp.addEventListener("change", _flush);
+              const delBtn = document.createElement("button");
+              delBtn.type = "button";
+              delBtn.textContent = "×";
+              delBtn.className = "pse-key-del-btn";
+              delBtn.title = "Remove this key";
+              delBtn.addEventListener("click", () => {
+                const currentRows = listEl.querySelectorAll(".pse-key-row");
+                if (currentRows.length <= 1) { inp.value = ""; } else { row.remove(); }
+                _flush();
+              });
+              row.appendChild(inp);
+              row.appendChild(delBtn);
+              listEl.appendChild(row);
+            });
+          }
+        }
+      };
       providerEl.addEventListener("change", () => {
         const nextProvider = safeTrim(providerEl.value || "custom_api");
         const prevModel = safeTrim(modelEl.value || "");
-        const prevKey = safeTrim(keyEl?.value || "");
+        const prevKey = _readCurrentKey();
         if (side === "A") {
           if (currentExtractorAProvider && prevModel)
             uiExtractorAProviderModelMap[currentExtractorAProvider] = prevModel;
@@ -15882,10 +17075,7 @@ OUTPUT (STRICT):
             safeTrim(uiExtractorAProviderModelMap[nextProvider] || "") ||
             getDefaultModelForProvider(nextProvider) ||
             "";
-          if (keyEl)
-            keyEl.value = safeTrim(
-              uiExtractorAProviderKeyMap[nextProvider] || "",
-            );
+          _writeKeyToUI(safeTrim(uiExtractorAProviderKeyMap[nextProvider] || ""));
           currentExtractorAProvider = nextProvider;
         } else {
           if (currentExtractorBProvider && prevModel)
@@ -15896,10 +17086,7 @@ OUTPUT (STRICT):
             safeTrim(uiExtractorBProviderModelMap[nextProvider] || "") ||
             getDefaultModelForProvider(nextProvider) ||
             "";
-          if (keyEl)
-            keyEl.value = safeTrim(
-              uiExtractorBProviderKeyMap[nextProvider] || "",
-            );
+          _writeKeyToUI(safeTrim(uiExtractorBProviderKeyMap[nextProvider] || ""));
           currentExtractorBProvider = nextProvider;
         }
       });
@@ -16338,8 +17525,20 @@ OUTPUT (STRICT):
         existingMsgs.filter((m) => m?.role === "user").pop()?.data || "";
       const chatScopedKey = getChatScopedKey(chat, chatIndex);
       if (_lastProcessedChatScopedKey !== chatScopedKey) {
+        // Chat switched (new chat or character switch) — enter refresh protection.
         enterRefreshProtection();
         _lastProcessedChatScopedKey = chatScopedKey;
+        _lastProcessedTurnCount = userMsgCount;
+      } else if (userMsgCount < _lastProcessedTurnCount) {
+        // [Fix] Turn-back detected: user jumped to a previous turn (悔棋/歷史跳轉).
+        // Clear the regen-skip token so extraction is NOT skipped on this earlier turn,
+        // and enter refresh protection so lorebook cleanup runs with correct turn boundary.
+        console.log(`${LOG} [TurnBack] Turn count dropped ${_lastProcessedTurnCount} → ${userMsgCount}. Clearing regen-skip and entering refresh protection.`);
+        try { await Risuai.safeLocalStorage.removeItem(requestKeys.regenSkip); } catch { }
+        enterRefreshProtection();
+        _lastProcessedTurnCount = userMsgCount;
+      } else {
+        _lastProcessedTurnCount = userMsgCount;
       }
       const firstMessageHandledKey = getFirstMessageHandledKey(
         requestKeys.scopeId,
@@ -16580,22 +17779,22 @@ OUTPUT (STRICT):
           } catch { }
         }
         if (needsStep0) {
-          try {
-            // 當偵測到靜態資料改變時，清空分類快取與人格快取。
+          // Helper: clears classification + persona caches when step0Reason === "changed".
+          // MUST only be called AFTER the user confirms Run (or when auto-running without a
+          // confirm dialog). Calling it before waitForConfirm would permanently destroy the
+          // cache if the user presses Cancel.
+          const _clearChangedCaches = async () => {
+            if (step0Reason !== "changed") return;
+            await Risuai.log(`${LOG} Detected character data changes. Clearing classification and persona caches (chunk vectors will be diffed)...`);
+            // 清空靜態分類快取（需重新分類）
+            try { await Risuai.pluginStorage.removeItem(staticKeys.staticKnowledgeChunks); } catch { }
+            // 清空角色人格快取（persona 由 runPersonaExtraction 重建）
             // 注意：chunk 向量快取不在此全清——runStep0Classification 內部的
             // orphan cleanup 會刪除已消失的條目，missingChunks 過濾會跳過未改變的條目，
             // 達到真正的差異更新效果，避免全量重跑 embedding。
-            if (step0Reason === "changed") {
-              await Risuai.log(`${LOG} Detected character data changes. Clearing classification and persona caches (chunk vectors will be diffed)...`);
-
-              // 1. 清空靜態分類快取（需重新分類）
-              try { await Risuai.pluginStorage.removeItem(staticKeys.staticKnowledgeChunks); } catch { }
-
-              // 2. 清空角色人格快取（persona 由 runPersonaExtraction 重建）
-              const cardKey = await getActiveCardKey(char);
-              try { await Risuai.pluginStorage.removeItem(PCACHE_CARD_PREFIX + cardKey); } catch { }
-            }
-
+            try { await Risuai.pluginStorage.removeItem(PCACHE_CARD_PREFIX + (await getActiveCardKey(char))); } catch { }
+          };
+          try {
             const resumeMode =
               step0Reason === "incomplete" ||
               step0Reason === "persona_missing" ||
@@ -16747,6 +17946,8 @@ OUTPUT (STRICT):
                     { _ppCancelled: true },
                   );
                 }
+                // User confirmed Run — now safe to clear caches.
+                await _clearChangedCaches();
               } else if (shouldMergeStep0IntoExecutionPanel) {
                 mergedStep0IntoExecutionPanel = true;
                 mergedStep0MainCalls = step0MainCalls;
@@ -16796,6 +17997,9 @@ OUTPUT (STRICT):
             } else {
               await Risuai.log(`${LOG} ${_T.log_step0_start_keyword}`);
             }
+            // For auto-run paths (merged panel / no panel): clear caches now,
+            // after any confirm dialog has already been handled above.
+            if (!step0PanelReplaced) await _clearChangedCaches();
             await runStep0Classification(
               char,
               chat,
@@ -16806,6 +18010,15 @@ OUTPUT (STRICT):
               classifyDoneMode,
               reembedMode,
             );
+            if (isVectorEnabled) {
+              try {
+                await warmCallRoleVectorsForStep0(char, cardMemoryPreset);
+              } catch (warmErr) {
+                await Risuai.log(
+                  `${LOG} Step0 call-role vector warmup failed: ${warmErr?.message || String(warmErr)}`,
+                );
+              }
+            }
             if (mergedStep0IntoExecutionPanel) {
               try {
                 for (let i = 0; i < mergedStep0MainCalls; i++) {
@@ -16938,13 +18151,11 @@ OUTPUT (STRICT):
           await Risuai.log(
             `${LOG} beforeRequest: skipping extraction on first message.`,
           );
-          try { await ProgressPanel.markDone(); } catch (_ppErr) { }
-          return await mergeOrAbortOnEmbedError(
-            messages,
-            null,
-            lastUserContent,
-            cardMemoryPreset
-          );
+          {
+            const _r = await mergeOrAbortOnEmbedError(messages, null, lastUserContent, cardMemoryPreset);
+            try { await ProgressPanel.markDone(); } catch (_ppErr) { }
+            return _r;
+          }
         }
         const baseConversation = await getConversationFromCurrentChat(
           Math.max(1, toInt(configCache.context_messages, 10)),
@@ -16955,7 +18166,19 @@ OUTPUT (STRICT):
           if (pendingTurn) {
             await TurnRecoveryManager.attemptRecovery(pendingTurn, char, chat, chatIndex, baseConversation || []);
           }
-        } catch (recoveryErr) { console.warn(`${LOG} Turn recovery check failed:`, recoveryErr?.message); }
+        } catch (recoveryErr) {
+          const _recErrMsg = recoveryErr?.message || String(recoveryErr);
+          console.warn(`${LOG} Turn recovery check failed:`, _recErrMsg);
+          // Write a visible error so the user can tell that the recovery attempt failed,
+          // rather than silently continuing into the main extraction path.
+          try {
+            await Risuai.safeLocalStorage.setItem(
+              requestKeys?.lastSyncError || LAST_SYNC_ERROR_KEY,
+              `[TurnRecovery] Recovery check failed: ${_recErrMsg}`,
+            );
+            await Risuai.log(`${LOG}  [TurnRecovery] Recovery check failed: ${_recErrMsg}`);
+          } catch { }
+        }
         if (baseConversation.length === 0) {
           await Risuai.safeLocalStorage.setItem(
             requestKeys.lastExtractorMode,
@@ -16968,13 +18191,11 @@ OUTPUT (STRICT):
           await Risuai.log(
             `${LOG} beforeRequest: no usable conversation text.`,
           );
-          try { await ProgressPanel.markDone(); } catch (_ppErr) { }
-          return await mergeOrAbortOnEmbedError(
-            messages,
-            null,
-            lastUserContent,
-            cardMemoryPreset
-          );
+          {
+            const _r = await mergeOrAbortOnEmbedError(messages, null, lastUserContent, cardMemoryPreset);
+            try { await ProgressPanel.markDone(); } catch (_ppErr) { }
+            return _r;
+          }
         }
         if (
           _newPreset &&
@@ -17041,21 +18262,40 @@ OUTPUT (STRICT):
           await Risuai.log(
             `${LOG} beforeRequest: regenerate detected — skipping extraction (same turn, same user message).`,
           );
-          try { await ProgressPanel.markDone(); } catch (_ppErr) { }
-          return await mergeOrAbortOnEmbedError(
-            messages,
-            null,
-            lastUserContent,
-            cardMemoryPreset
-          );
+          {
+            const _r = await mergeOrAbortOnEmbedError(messages, null, lastUserContent, cardMemoryPreset);
+            try { await ProgressPanel.markDone(); } catch (_ppErr) { }
+            return _r;
+          }
         }
         await TurnRecoveryManager.registerPending(requestKeys.scopeId, chatScopedKey, userMsgCount, cardMemoryPreset);
         let extractedData = null;
         const roundIndex = userMsgCount;
         const resolved = resolveExtractorConfig();
         const memoryEnabled = true;
-        const dueCalls = getModelCallsByPreset(cardMemoryPreset).filter((c) => isModelCallDue(c, userMsgCount),
+        const baseDueCalls = getModelCallsByPreset(cardMemoryPreset).filter((c) =>
+          isModelCallDue(c, userMsgCount)
         );
+        let callVectorFilter = null;
+        try {
+          callVectorFilter = await filterDueCallsByVectorTrigger(
+            baseDueCalls,
+            userMsgCount,
+            requestKeys.scopeId,
+            chatScopedKey,
+            char,
+            chat,
+            baseConversation,
+          );
+        } catch (vectorTriggerErr) {
+          const errMsg =
+            vectorTriggerErr?.message || String(vectorTriggerErr);
+          await abortMainModelWithAuxError(
+            `Vector trigger failed before extraction:\n${errMsg}`,
+            requestKeys,
+          );
+        }
+        const dueCalls = callVectorFilter.filteredCalls;
         if (dueCalls.length > 0) {
           await Risuai.log(
             `${LOG} Agent: Calling auxiliary model for analysis and data extraction...`,
@@ -17081,20 +18321,74 @@ OUTPUT (STRICT):
             const modelAnchor = safeTrim(configCache.advanced_model_anchor_prompt);
             const prefillPrompt = safeTrim(configCache.advanced_prefill_prompt);
             const prereplyPrompt = safeTrim(configCache.advanced_prereply_prompt);
-            const overheadChars = (modelAnchor.length + prefillPrompt.length + prereplyPrompt.length);
+
             for (const call of dueCalls) {
+              const target = safeTrim(call.target_model) === "B" ? "B" : "A";
               const rounds = Math.max(0, toInt(call?.read_dialogue_rounds, 4));
               const scopedMsgs = limitConversationByRounds(baseConversation, rounds);
-              // Estimate conversation text tokens
-              let est = 0;
+              const blockEntries = call.entries || [];
+
+              // ── 1. Text tokens (including role overhead and static wrappers) ──
+              let totalChars = 0;
+              // "### Recent RP History:\n"
+              totalChars += 24;
               for (const m of scopedMsgs) {
-                est += Math.ceil(String(m?.content || "").length / 4) + 4;
+                const content = String(m?.content || "");
+                // prefix: "User: " (6) or "Assistant: " (11)
+                totalChars += content.length + (m?.role === "assistant" ? 11 : 6) + 1; // +1 for \n
               }
-              est += 3; // reply priming
-              // Add prompt overhead (anchor + prefill + entries)
-              const entriesText = (call.entries || []).map(e => String(e?.output_format || "") + String(e?.lorebook_name || "")).join("");
-              est += Math.ceil((overheadChars + entriesText.length) / 4);
-              if (safeTrim(call.target_model) === "B") {
+
+              // ── 2. System anchor prompt ──
+              totalChars += modelAnchor.length;
+
+              // ── 3. TASK structure overhead (blockText) ──
+              // Static instruction strings (~220 chars)
+              totalChars += 220;
+              // exampleStructure: { "key1": "...", "key2": "..." }
+              const allKeys = blockEntries.map((e) => safeTrim(e?.lorebook_name || "entry"));
+              totalChars += 4 + allKeys.map((k) => k.length + 9).reduce((a, b) => a + b, 0);
+
+              // Per-block structure text (~60 chars) + schema text
+              for (const e of blockEntries) {
+                totalChars += 60; // [BLOCK N]\n- lorebook_name: ...\n- write_mode: ...\n- VALUE_FORMAT:\n
+                totalChars += String(e?.output_format || "").length;
+                totalChars += String(e?.lorebook_name || "").length;
+              }
+
+              // ── 4. Lorebook context (heuristic estimation) ──
+              const loreNames = parseLorebookNames(call?.read_lorebook_names || "");
+              totalChars += loreNames.length * 800; // Heuristic: ~800 chars per lorebook entry
+              if (loreNames.length > 0) {
+                totalChars += 38; // "### Lorebook Context (Reference Only):\n"
+              }
+
+              // ── 5. Persona context (heuristic estimation) ──
+              const personaNames = parseLorebookNames(call?.read_persona_names || "");
+              if (personaNames.length > 0 && _newPreset) {
+                totalChars += personaNames.length * 600; // Heuristic: ~600 chars per persona entry
+                totalChars += 37; // "### Persona Cache (Vector Search):\n"
+              }
+
+              // ── 6. Prefill / prereply ──
+              totalChars += prefillPrompt.length + prereplyPrompt.length;
+
+              // ── 7. Reply priming overhead ──
+              totalChars += 20;
+
+              // ── 8. Token conversion (CJK adjustment) ──
+              let sampleText = "";
+              for (let si = 0; si < Math.min(3, scopedMsgs.length); si++) {
+                sampleText += String(scopedMsgs[si]?.content || "");
+              }
+              const cjkCount = (sampleText.match(/[\u3000-\u9FFF\uAC00-\uD7AF\uF900-\uFAFF]/g) || []).length;
+              const cjkRatio = sampleText.length > 0 ? cjkCount / sampleText.length : 0;
+              // Pure English: ~4 chars/token. Pure CJK: ~1.5 chars/token.
+              const divisor = 4 - (cjkRatio * 2.5);
+              const clampedDivisor = Math.max(1.5, Math.min(4, divisor));
+
+              const est = Math.ceil(totalChars / clampedDivisor);
+
+              if (target === "B") {
                 _preAuxTokens += est;
               } else {
                 _preMainTokens += est;
@@ -17201,6 +18495,13 @@ OUTPUT (STRICT):
                 roundIndex,
                 dueCalls,
               );
+              if (callVectorFilter.state) {
+                markCallVectorEntryTriggered(
+                  call,
+                  roundIndex,
+                  callVectorFilter.state,
+                );
+              }
               if (extractedData === null) extractedData = {};
             } catch (e) {
               const endpoint =
@@ -17225,6 +18526,9 @@ OUTPUT (STRICT):
               );
             }
           }
+        }
+        if (callVectorFilter.state) {
+          await saveCallVectorTriggerState(callVectorFilter.state);
         }
         await TurnRecoveryManager.markDone(requestKeys.scopeId);
         await Risuai.safeLocalStorage.setItem(
@@ -17256,23 +18560,32 @@ OUTPUT (STRICT):
             await Risuai.safeLocalStorage.setItem(regenSkipKey, regenSkipToken);
           } catch { }
         }
-        // Mark extract done → compose active → panel will close on markDone
+        // Mark extract done → compose active, but keep panel open until after
+        // mergeOrAbortOnEmbedError so the token badge stays visible through injection.
         try {
           ProgressPanel.step("extract", "done");
           ProgressPanel.step("compose", "active");
-          await ProgressPanel.markDone();
         } catch (_ppErr) { }
-        return await mergeOrAbortOnEmbedError(
+        const _mergeResult = await mergeOrAbortOnEmbedError(
           messages,
           null,
           lastUserContent,
           cardMemoryPreset
         );
+        // Close panel only after injection is complete so token estimates remain visible.
+        try { await ProgressPanel.markDone(); } catch (_ppErr) { }
+        return _mergeResult;
       } finally {
         Object.assign(configCache, vecBackup);
         _currentIsCardReorgEnabled = false;
         _currentIsCardReorgOnly = false;   // [Bug 1 Fix]
         _currentIsNewPreset = false;
+        // Reset turn-scoped query vector cache, embed token counter, and batch queue
+        _turnQueryVecCache.clear();
+        _turnQueryVecPending.clear();
+        _turnEmbedTokens = 0;
+        _turnEmbedQueue.clear();
+        _turnEmbedFlushPromise = null;
         // Always clean up the progress panel on any exit path (guard: only if still visible)
         try { if (ProgressPanel.visible) await ProgressPanel.hide(); } catch (_ppErr) { }
       }
@@ -17300,6 +18613,66 @@ OUTPUT (STRICT):
     return out.slice(-Math.max(1, limit));
   }
   console.log(`${LOG} INIT START`);
+  if (globalThis && globalThis.__RISU_AGENT_TEST__) {
+    globalThis.__RISU_AGENT_TEST_HOOKS__ = {
+      abortMainModelWithAuxError,
+      buildCallVectorQueryText,
+      buildVectorTriggerFailureMessage,
+      createReplacer,
+      enterRefreshProtection,
+      filterDueCallsByVectorTrigger,
+      getCallVectorTriggerStateStorageKey,
+      getEntryVectorTriggerConfig,
+      getModelCallsByPreset,
+      getReplacer: () => replacerFn,
+      getState: () => ({
+        configCache: deepCloneValue(configCache),
+        currentFlags: {
+          cardReorgEnabled: _currentIsCardReorgEnabled,
+          cardReorgOnly: _currentIsCardReorgOnly,
+          newPreset: _currentIsNewPreset,
+        },
+        refresh: {
+          stabilizeUntil: _refreshStabilizeUntil,
+          deleteBlockUntil: _refreshDeleteBlockUntil,
+        },
+        turnTracking: {
+          lastProcessedChatScopedKey: _lastProcessedChatScopedKey,
+          lastProcessedTurnCount: _lastProcessedTurnCount,
+        },
+      }),
+      isRefreshDeleteBlocked,
+      isRefreshStabilizing,
+      loadCallVectorTriggerState,
+      markCallVectorEntryTriggered,
+      performChatCleanup,
+      saveCallVectorTriggerState,
+      setConfig: (patch = {}) => {
+        Object.assign(configCache, deepCloneValue(patch || {}));
+        return deepCloneValue(configCache);
+      },
+      setModeFlags: (patch = {}) => {
+        if (Object.prototype.hasOwnProperty.call(patch, "cardReorgEnabled")) {
+          _currentIsCardReorgEnabled = !!patch.cardReorgEnabled;
+        }
+        if (Object.prototype.hasOwnProperty.call(patch, "cardReorgOnly")) {
+          _currentIsCardReorgOnly = !!patch.cardReorgOnly;
+        }
+        if (Object.prototype.hasOwnProperty.call(patch, "newPreset")) {
+          _currentIsNewPreset = !!patch.newPreset;
+        }
+      },
+      setTurnTracking: (patch = {}) => {
+        if (Object.prototype.hasOwnProperty.call(patch, "lastProcessedChatScopedKey")) {
+          _lastProcessedChatScopedKey = patch.lastProcessedChatScopedKey;
+        }
+        if (Object.prototype.hasOwnProperty.call(patch, "lastProcessedTurnCount")) {
+          _lastProcessedTurnCount = toInt(patch.lastProcessedTurnCount, -1);
+        }
+      },
+      TurnRecoveryManager,
+    };
+  }
   try {
     await refreshConfig();
     await ensureLangInitialized();
