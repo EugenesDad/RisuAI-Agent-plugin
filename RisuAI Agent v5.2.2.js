@@ -1,9 +1,9 @@
 //@name 👤 RisuAI Agent
-//@display-name 👤 RisuAI Agent v5.2.1
+//@display-name 👤 RisuAI Agent v5.2.2
 //@author penguineugene@protonmail.com
 //@link https://github.com/EugenesDad/RisuAI-Agent-plugin
 //@api 3.0
-//@version 5.2.1
+//@version 5.2.2
 
 (async () => {
   function _mapLangCode(raw) {
@@ -266,6 +266,7 @@
       warn_recovery_call_failed: (callName, reason) => `[TurnRecovery] Call "${callName}" failed during recovery: ${reason}`,
       warn_embed_settings_failed: (reason) => `Warning: persona vector index failed to update — embeddings not built.\nCause: ${reason}\nVector search may be degraded until Step 0 re-runs on the next send.`,
       warn_persona_step0_partial: (reason) => `Warning: persona extraction failed during Step 0 (will retry on next send).\nCause: ${reason}`,
+      warn_vec_warmup_failed: (reason) => `Warning: vector trigger role-vector warm-up failed during Step 0.\nCause: ${reason}\nVector-trigger entries using a custom semantic_input may not fire correctly until Step 0 re-runs on the next send.`,
       copilot_refresh: "Copilot token refresh",
       help_tab_main: "Home",
       help_tab_p1: "Preset 1",
@@ -702,6 +703,7 @@
       warn_recovery_call_failed: (callName, reason) => `[TurnRecovery] "${callName}" 호출이 복구 중 실패했습니다: ${reason}`,
       warn_embed_settings_failed: (reason) => `경고: 페르소나 벡터 인덱스 업데이트 실패 — 임베딩이 구축되지 않았습니다.\n원인: ${reason}\n다음 전송 시 Step 0이 재실행될 때까지 벡터 검색이 저하될 수 있습니다.`,
       warn_persona_step0_partial: (reason) => `경고: Step 0 중 페르소나 추출 실패 (다음 전송 시 재시도).\n원인: ${reason}`,
+      warn_vec_warmup_failed: (reason) => `경고: Step 0 중 벡터 트리거 역할 벡터 워밍업 실패.\n원인: ${reason}\ncustom semantic_input을 사용하는 벡터 트리거 항목은 다음 전송 시 Step 0이 재실행될 때까지 올바르게 동작하지 않을 수 있습니다.`,
       copilot_refresh: "Copilot 토큰 갱신",
       help_tab_main: "홈",
       help_tab_p1: "프리셋 1",
@@ -1124,6 +1126,7 @@
       warn_recovery_call_failed: (callName, reason) => `[TurnRecovery] 呼叫「${callName}」在回復期間失敗：${reason}`,
       warn_embed_settings_failed: (reason) => `警告：人格向量索引更新失敗 — 嵌入未建立。\n原因：${reason}\n向量搜尋功能可能受損，直到下次傳送觸發 Step 0 重跑。`,
       warn_persona_step0_partial: (reason) => `警告：Step 0 期間人格萃取失敗（將於下次傳送重試）。\n原因：${reason}`,
+      warn_vec_warmup_failed: (reason) => `警告：Step 0 期間向量觸發角色向量預熱失敗。\n原因：${reason}\n使用自訂 semantic_input 的向量觸發條目，在下次傳送觸發 Step 0 重跑之前，可能無法正確觸發。`,
       copilot_refresh: "Copilot token refresh",
       help_tab_main: "說明首頁",
       help_tab_p1: "預設設定1",
@@ -1333,7 +1336,7 @@
   let _T = _I18N.en;
   let _langInitialized = false;
   const PLUGIN_NAME = "👤 RisuAI Agent";
-  const PLUGIN_VER = "5.2.1";
+  const PLUGIN_VER = "5.2.2";
   const LOG = "[RisuAIAgent]";
   const SYSTEM_INJECT_TAG = "PLUGIN_PARALLEL_STATUS";
   const SYSTEM_REWRITE_TAG = "PLUGIN_PARALLEL_REWRITE";
@@ -3320,7 +3323,7 @@ OUTPUT (STRICT):
     let _counterEl = null;
     let _titleEl = null;
     let _spinnerEl = null;
-    let _state = { main: 0, aux: 0, embed: 0, doneMain: 0, doneAux: 0, doneEmbed: 0, mainTokens: 0, auxTokens: 0, embedTokens: 0 };
+    let _state = { main: 0, aux: 0, embed: 0, doneMain: 0, doneAux: 0, doneEmbed: 0, mainTokens: 0, auxTokens: 0, embedTokens: 0, approxCounts: false };
     let _visible = false;
     let _confirmResolve = null;
     // ── i18n helpers ──────────────────────────────────────────────────────────
@@ -3575,7 +3578,7 @@ OUTPUT (STRICT):
       document.head.appendChild(s);
     }
     // ── Render helpers ────────────────────────────────────────────────────────
-    function _buildCounterHTML(labelKey, cls, done, total, tokens) {
+    function _buildCounterHTML(labelKey, cls, done, total, tokens, approx) {
       const label = _L(labelKey);
       const pct = total > 0 ? Math.min(100, Math.round((done / total) * 100)) : 0;
       const icon = cls === "main" ? "" : cls === "aux" ? "" : "";
@@ -3584,8 +3587,11 @@ OUTPUT (STRICT):
         : null;
       const tokenBadge = (fmtTokens && (cls === "main" || cls === "aux" || cls === "embed"))
         ? `<div class="pp-token-badge"> ~${fmtTokens} ${_L("token_est_unit")}</div>` : "";
+      // [Bug 2 Fix] When approxCounts is true (vector trigger may skip some calls),
+      // prefix the total with ~ so the user understands the count is an upper bound.
+      const totalDisplay = approx ? `~${total}` : String(total);
       return ` <div class="pp-counter-card ${cls}" id="pp-card-${cls}"> <div class="pp-card-top"> <div class="pp-card-label-wrap"> <span class="pp-card-icon">${icon}</span> <span class="pp-counter-label">${label}</span> </div> ${tokenBadge}
- </div> <div class="pp-card-bottom"> <div class="pp-mini-bar-wrap"> <div class="pp-mini-bar" style="width: ${pct}%"></div> </div> <div class="pp-counter-info"> <span class="pp-counter-val">${done}</span> <span class="pp-counter-total">/ ${total}</span> </div> </div> </div>`;
+ </div> <div class="pp-card-bottom"> <div class="pp-mini-bar-wrap"> <div class="pp-mini-bar" style="width: ${pct}%"></div> </div> <div class="pp-counter-info"> <span class="pp-counter-val">${done}</span> <span class="pp-counter-total">/ ${totalDisplay}</span> </div> </div> </div>`;
     }
     function _buildStepHTML(id, labelKey, status) {
       const text = _L(labelKey);
@@ -3594,7 +3600,7 @@ OUTPUT (STRICT):
     }
     function _render() {
       if (!_panelEl) return;
-      const { main, aux, embed, doneMain, doneAux, doneEmbed, mainTokens, auxTokens, embedTokens } = _state;
+      const { main, aux, embed, doneMain, doneAux, doneEmbed, mainTokens, auxTokens, embedTokens, approxCounts } = _state;
       const totalAll = main + aux + embed;
       const doneAll = doneMain + doneAux + doneEmbed;
       const pct = totalAll > 0 ? Math.min(100, Math.round(doneAll / totalAll * 100)) : 0;
@@ -3602,9 +3608,9 @@ OUTPUT (STRICT):
       if (bar) bar.style.width = pct + "%";
       if (_counterEl) {
         _counterEl.innerHTML =
-          _buildCounterHTML("counter_main", "main", doneMain, main, mainTokens) +
-          _buildCounterHTML("counter_aux", "aux", doneAux, aux, auxTokens) +
-          _buildCounterHTML("counter_embed", "embed", doneEmbed, embed, embedTokens);
+          _buildCounterHTML("counter_main", "main", doneMain, main, mainTokens, approxCounts) +
+          _buildCounterHTML("counter_aux", "aux", doneAux, aux, auxTokens, approxCounts) +
+          _buildCounterHTML("counter_embed", "embed", doneEmbed, embed, embedTokens, false);
       }
     }
     // ── Public methods ────────────────────────────────────────────────────────
@@ -3668,6 +3674,7 @@ OUTPUT (STRICT):
         main: opts.main || 0, aux: opts.aux || 0, embed: opts.embed || 0,
         doneMain: 0, doneAux: 0, doneEmbed: 0,
         mainTokens: opts.mainTokens || 0, auxTokens: opts.auxTokens || 0, embedTokens: 0,
+        approxCounts: opts.approxCounts === true,
       };
       // Remove any stale panel
       const stale = document.getElementById("pse-pp-overlay");
@@ -3908,15 +3915,35 @@ OUTPUT (STRICT):
       }
       const calls = getModelCallsByPreset(preset);
       let dueCalls = calls.filter((c) => isModelCallDue(c, pendingData.userMsgCount));
-      const vectorFiltered = await filterDueCallsByVectorTrigger(
-        dueCalls,
-        pendingData.userMsgCount,
-        pendingData.scopeId,
-        pendingData.chatScopedKey,
-        char,
-        chat,
-        baseConversation,
-      );
+      // [Bug 5 Fix] Wrap vector trigger filter in try/catch so embedding failures surface
+      // to the user instead of being swallowed silently by the outer recoveryErr handler.
+      let vectorFiltered;
+      try {
+        vectorFiltered = await filterDueCallsByVectorTrigger(
+          dueCalls,
+          pendingData.userMsgCount,
+          pendingData.scopeId,
+          pendingData.chatScopedKey,
+          char,
+          chat,
+          baseConversation,
+        );
+      } catch (vecErr) {
+        const vecErrMsg = vecErr?.message || String(vecErr);
+        console.warn(`${LOG} [TurnRecovery] Vector trigger filter failed: ${vecErrMsg}`);
+        try {
+          const errKey = makeScopedStorageKey(LAST_SYNC_ERROR_KEY, pendingData.scopeId);
+          await Risuai.safeLocalStorage.setItem(errKey,
+            `[TurnRecovery] Vector trigger check failed — running recovery without filter: ${vecErrMsg}`);
+          await Risuai.log(`${LOG}  [TurnRecovery] Vector trigger failed: ${vecErrMsg}`);
+          if (typeof Risuai.alertError === "function")
+            await Risuai.alertError(
+              `[RisuAI Agent] Turn recovery: vector trigger check failed — running ALL due calls without vector filter (fallback).\nThis means entries that would normally be skipped by vector threshold may run this turn.\nCause: ${vecErrMsg}`
+            );
+        } catch { }
+        // Fall back: run all due calls without vector filtering to avoid silently losing recovery
+        vectorFiltered = { filteredCalls: dueCalls, state: null };
+      }
       dueCalls = vectorFiltered.filteredCalls;
       // 過濾掉已經寫入的 call，避免重複擷取浪費 token
       dueCalls = dueCalls.filter(call => !this.isCallAlreadyWritten(call, chat, pendingData.userMsgCount));
@@ -5642,10 +5669,14 @@ OUTPUT (STRICT):
     const bProvider = safeTrim(next.extractor_b_provider || "custom_api");
     const aRemembered = safeTrim(aProviderMap[aProvider]);
     const bRemembered = safeTrim(bProviderMap[bProvider]);
-    if (!safeTrim(next.extractor_a_model) && aRemembered)
-      next.extractor_a_model = aRemembered;
-    if (!safeTrim(next.extractor_b_model) && bRemembered)
-      next.extractor_b_model = bRemembered;
+    // Only restore the remembered model when the stored value is truly absent (undefined/null),
+    // NOT when the user explicitly saved an empty string — that means they want no model name.
+    if (next.extractor_a_model === undefined || next.extractor_a_model === null) {
+      if (aRemembered) next.extractor_a_model = aRemembered;
+    }
+    if (next.extractor_b_model === undefined || next.extractor_b_model === null) {
+      if (bRemembered) next.extractor_b_model = bRemembered;
+    }
     if (safeTrim(next.extractor_a_model))
       aProviderMap[aProvider] = safeTrim(next.extractor_a_model);
     if (safeTrim(next.extractor_b_model))
@@ -9276,6 +9307,13 @@ OUTPUT (STRICT):
     if (isCardReorgOnlyMode()) {
       return { filteredCalls: calls, state: null };
     }
+    // [Bug 3 Fix] Respect the global vector_search_enabled switch.
+    // Per-entry vector triggers require embedding calls; if the user has globally
+    // disabled vector search, skip the trigger check entirely so no embedding
+    // quota is consumed and no confusing errors are surfaced.
+    if (configCache.vector_search_enabled !== 1) {
+      return { filteredCalls: calls, state: null };
+    }
     const hasVectorConfigured = calls.some((call) =>
       Array.isArray(call?.entries) &&
       call.entries.some((entry) => getEntryVectorTriggerConfig(entry).enabled)
@@ -9290,12 +9328,11 @@ OUTPUT (STRICT):
       chat?.localLore,
     );
     let queryVec = [];
-    let queryVecFailed = false;
     try {
       queryVec = await getQueryEmbeddingForTurn(queryText);
     } catch (err) {
-      queryVec = [];
-      queryVecFailed = true;
+      // Throwing here exits filterDueCallsByVectorTrigger immediately;
+      // the caller (main replacer body) catches this and calls abortMainModelWithAuxError.
       throw new Error(
         buildVectorTriggerFailureMessage(
           err?.message || String(err),
@@ -9357,13 +9394,6 @@ OUTPUT (STRICT):
               );
             }
           }
-        } else if (queryVecFailed) {
-          throw new Error(
-            buildVectorTriggerFailureMessage(
-              _lastEmbedErrorMsg || "query embedding unavailable",
-              `round_compare:${safeTrim(entry?.lorebook_name || `entry_${i}`)}`,
-            ),
-          );
         } else if (Array.isArray(prevVec) && prevVec.length > 0) {
           score = cosineSimilarity(queryVec, prevVec);
         }
@@ -14258,7 +14288,7 @@ OUTPUT (STRICT):
     overlayRoot.id = "pse-overlay-root";
     overlayRoot.style.cssText =
       "position:fixed;inset:0;z-index:9999;overflow:auto;opacity:0;transition:opacity 0.15s ease;";
-    overlayRoot.innerHTML = ` <div class="pse-body"> <div class="pse-card"> <h1 class="pse-title">👤 RisuAI Agent v5.2.1</h1> <div id="pse-status" class="pse-status"></div> ${renderModelDatalists()}
+    overlayRoot.innerHTML = ` <div class="pse-body"> <div class="pse-card"> <h1 class="pse-title">👤 RisuAI Agent v5.2.2</h1> <div id="pse-status" class="pse-status"></div> ${renderModelDatalists()}
  <div class="pse-tabs"> ${`<button class="pse-tab active" data-page="7">${_T.tab_help}</button> <button class="pse-tab" data-page="8">${_T.tab_enable}</button> <button class="pse-tab" data-page="1">${_T.tab_model}</button>`}
  </div> <div class="pse-tabs pse-tabs-secondary"> ${`<button class="pse-tab" data-page="6">${_T.tab_cache_open || _T.sec_cache}</button> <button class="pse-tab" data-page="2">${_T.tab_entry}</button> <button class="pse-tab" data-page="5">${_T.tab_vector_open || _T.sec_vec}</button>`}
  </div> <div class="pse-page active" data-page="7"> <div style="margin-bottom:14px;padding:10px 14px;border-radius:8px;background:rgba(192,120,0,0.14);border:1.5px solid rgba(192,120,0,0.40);font-size:12px;font-weight:700;color:#3D2300;display:flex;align-items:center;gap:8px;"> ⚠️ ${escapeHtml(_T.lore_warn)}</div> <!-- Language (Standalone) --> <div style="margin-bottom:16px;"> <label class="pse-label" style="margin-bottom:6px; color:var(--pse-text);"> Language / 語言 / 언어</label> <div style="display:flex;gap:8px;"> ${["en", "tc", "ko"]
@@ -15841,6 +15871,7 @@ ${_T.extraction_vec_trigger_note || ""}
       const exAMod = safeTrim(_domStr("extractor_a_model", "extractor_a_model"));
       const exAKey = safeTrim(_domStr("extractor_a_key", "extractor_a_key"));
       if (exAProv && exAMod) uiExtractorAProviderModelMap[exAProv] = exAMod;
+      else if (exAProv) delete uiExtractorAProviderModelMap[exAProv]; // user cleared model — forget remembered value
       if (exAProv && exAKey) uiExtractorAProviderKeyMap[exAProv] = exAKey;
       const exBProv = safeTrim(
         document.getElementById("extractor_b_provider")?.value || configCache.extractor_b_provider || "custom_api",
@@ -15848,6 +15879,7 @@ ${_T.extraction_vec_trigger_note || ""}
       const exBMod = safeTrim(_domStr("extractor_b_model", "extractor_b_model"));
       const exBKey = safeTrim(_domStr("extractor_b_key", "extractor_b_key"));
       if (exBProv && exBMod) uiExtractorBProviderModelMap[exBProv] = exBMod;
+      else if (exBProv) delete uiExtractorBProviderModelMap[exBProv]; // user cleared model — forget remembered value
       if (exBProv && exBKey) uiExtractorBProviderKeyMap[exBProv] = exBKey;
       const embProv = safeTrim(
         document.getElementById("embedding_provider")?.value || configCache.embedding_provider || "custom_api",
@@ -17509,15 +17541,16 @@ ${_T.extraction_vec_trigger_note || ""}
           );
         } catch (mergeErr) {
           const errMsg = mergeErr?.message || String(mergeErr);
+          // [Bug A Fix] All merge failures (embedding, vector search, CBS render, lore read, etc.)
+          // must surface via abortMainModelWithAuxError so the user always sees an alertError
+          // with the "main model intercepted to save quota" suffix — never a silent re-throw.
+          // abortMainModelWithAuxError always throws, so no additional throw is needed.
           const isEmbeddingFailure =
             /embedding/i.test(errMsg) || /vector search/i.test(errMsg);
-          if (isEmbeddingFailure) {
-            await abortMainModelWithAuxError(
-              `Embedding model call or processing failed:\n${errMsg}`,
-              requestKeys,
-            );
-          }
-          throw mergeErr;
+          const abortMsg = isEmbeddingFailure
+            ? `Embedding model call or processing failed:\n${errMsg}`
+            : `Knowledge injection (merge) failed:\n${errMsg}`;
+          await abortMainModelWithAuxError(abortMsg, requestKeys);
         }
       };
       await Risuai.safeLocalStorage.setItem(
@@ -17543,6 +17576,13 @@ ${_T.extraction_vec_trigger_note || ""}
         // and enter refresh protection so lorebook cleanup runs with correct turn boundary.
         console.log(`${LOG} [TurnBack] Turn count dropped ${_lastProcessedTurnCount} → ${userMsgCount}. Clearing regen-skip and entering refresh protection.`);
         try { await Risuai.safeLocalStorage.removeItem(requestKeys.regenSkip); } catch { }
+        // [Bug 4 Fix] Also clear the call vector trigger state so entryLastTriggered values
+        // from future turns don't cause incorrect turnsSince calculations (e.g. negative),
+        // which could suppress vector-triggered entries that should fire on the replayed turn.
+        try {
+          const vtKey = getCallVectorTriggerStateStorageKey(requestKeys.scopeId, chatScopedKey);
+          await Risuai.pluginStorage.removeItem(vtKey);
+        } catch { }
         enterRefreshProtection();
         _lastProcessedTurnCount = userMsgCount;
       } else {
@@ -17663,6 +17703,11 @@ ${_T.extraction_vec_trigger_note || ""}
         try {
           const _previewCalls = cardMemoryPreset !== "off" ? getModelCallsByPreset(cardMemoryPreset).filter(c => isModelCallDue(c, userMsgCount))
             : [];
+          // [Bug 2 Fix] If any entries have vector triggers, mark count as approximate (~)
+          // since the actual number of calls run depends on embedding similarity at runtime.
+          const _previewHasVecTrigger = isVectorEnabled && _previewCalls.some(c =>
+            Array.isArray(c?.entries) && c.entries.some(e => getEntryVectorTriggerConfig(e).enabled)
+          );
           const _previewMain = _previewCalls.filter(c => safeTrim(c.target_model) !== "B").length;
           const _previewAux = _previewCalls.filter(c => safeTrim(c.target_model) === "B").length;
           const _previewEmbed = isVectorEnabled ? 1 : 0;
@@ -17670,6 +17715,7 @@ ${_T.extraction_vec_trigger_note || ""}
             main: _previewMain, aux: _previewAux, embed: _previewEmbed,
             mainTokens: 0, auxTokens: 0,
             isStep0: false,
+            approxCounts: _previewHasVecTrigger, // hint to panel that counts may decrease after vec filter
           });
           ProgressPanel.step("extract", _previewCalls.length > 0 ? "pending" : "done");
           ProgressPanel.step("compose", "pending");
@@ -17963,6 +18009,10 @@ ${_T.extraction_vec_trigger_note || ""}
                 try {
                   const _mergedExecCalls = cardMemoryPreset !== "off" ? getModelCallsByPreset(cardMemoryPreset).filter(c => isModelCallDue(c, userMsgCount))
                     : [];
+                  // [Bug 2 Fix] Flag approx counts when vector triggers may filter some calls
+                  const _mergedHasVecTrigger = isVectorEnabled && _mergedExecCalls.some(c =>
+                    Array.isArray(c?.entries) && c.entries.some(e => getEntryVectorTriggerConfig(e).enabled)
+                  );
                   const _mergedExecMain = _mergedExecCalls.filter(c => safeTrim(c.target_model) !== "B").length;
                   const _mergedExecAux = _mergedExecCalls.filter(c => safeTrim(c.target_model) === "B").length;
                   const _mergedExecEmbed = isVectorEnabled ? 1 : 0;
@@ -17973,6 +18023,7 @@ ${_T.extraction_vec_trigger_note || ""}
                     mainTokens: step0MainTokens,
                     auxTokens: step0AuxTokens,
                     isStep0: false,
+                    approxCounts: _mergedHasVecTrigger,
                   });
                   ProgressPanel.step("extract", _mergedExecCalls.length > 0 ? "pending" : "done");
                   ProgressPanel.step("compose", "pending");
@@ -18022,9 +18073,23 @@ ${_T.extraction_vec_trigger_note || ""}
               try {
                 await warmCallRoleVectorsForStep0(char, cardMemoryPreset);
               } catch (warmErr) {
+                const warmErrMsg = warmErr?.message || String(warmErr);
                 await Risuai.log(
-                  `${LOG} Step0 call-role vector warmup failed: ${warmErr?.message || String(warmErr)}`,
+                  `${LOG} Step0 call-role vector warmup failed: ${warmErrMsg}`,
                 );
+                // [Bug B Fix] Surface warm-up failure so the user understands why
+                // vector-trigger entries with custom semantic_input may not fire correctly.
+                // This is non-fatal (Step 0 itself succeeded), so we warn rather than abort.
+                try {
+                  const warnMsg = typeof _T.warn_vec_warmup_failed === "function"
+                    ? _T.warn_vec_warmup_failed(warmErrMsg)
+                    : `Warning: vector trigger role-vector warm-up failed during Step 0.\nCause: ${warmErrMsg}\nVector-trigger entries using a custom semantic_input may not fire correctly until Step 0 re-runs.`;
+                  if (typeof Risuai.alertError === "function") {
+                    await Risuai.alertError(`[RisuAI Agent] ${warnMsg}`);
+                  } else if (typeof Risuai.alert === "function") {
+                    await Risuai.alert(`[RisuAI Agent] ${warnMsg}`);
+                  }
+                } catch { }
               }
             }
             if (mergedStep0IntoExecutionPanel) {
@@ -18051,6 +18116,10 @@ ${_T.extraction_vec_trigger_note || ""}
               try {
                 const _postStep0Calls = cardMemoryPreset !== "off" ? getModelCallsByPreset(cardMemoryPreset).filter(c => isModelCallDue(c, userMsgCount))
                   : [];
+                // [Bug 2 Fix] Flag approx counts when vector triggers may reduce call count
+                const _postHasVecTrigger = isVectorEnabled && _postStep0Calls.some(c =>
+                  Array.isArray(c?.entries) && c.entries.some(e => getEntryVectorTriggerConfig(e).enabled)
+                );
                 const _postMain = _postStep0Calls.filter(c => safeTrim(c.target_model) !== "B").length;
                 const _postAux = _postStep0Calls.filter(c => safeTrim(c.target_model) === "B").length;
                 const _postEmbed = isVectorEnabled ? 1 : 0;
@@ -18062,6 +18131,7 @@ ${_T.extraction_vec_trigger_note || ""}
                   auxTokens: 0,
                   isStep0: false,
                   preserveContainer: true,
+                  approxCounts: _postHasVecTrigger,
                 });
                 ProgressPanel.step("extract", _postStep0Calls.length > 0 ? "pending" : "done");
                 ProgressPanel.step("compose", "pending");
@@ -18146,30 +18216,24 @@ ${_T.extraction_vec_trigger_note || ""}
         await ensureExecutionPanelVisible();
         const loreModified = await performChatCleanup(userMsgCount);
         if (isFirstMessage) {
+          // Mark first-message handled so downstream logic can detect it.
           try {
             await Risuai.safeLocalStorage.setItem(
               firstMessageHandledKey,
               firstMessageMarker,
             );
           } catch { }
-          await Risuai.safeLocalStorage.setItem(
-            requestKeys.lastExtractorMode,
-            "skipped_first_message",
-          );
           await Risuai.log(
-            `${LOG} beforeRequest: skipping extraction on first message.`,
+            `${LOG} beforeRequest: first message — running full extraction pipeline with CBS-rendered greeting.`,
           );
-          {
-            const _r = await mergeOrAbortOnEmbedError(messages, null, lastUserContent, cardMemoryPreset);
-            try { await ProgressPanel.markDone(); } catch (_ppErr) { }
-            return _r;
-          }
         }
+        // On the first message, include the CBS-rendered greeting as context so the
+        // extraction pipeline can read it.  On subsequent turns use normal behaviour.
         const baseConversation = await getConversationFromCurrentChat(
           Math.max(1, toInt(configCache.context_messages, 10)),
           chat,
-        );
-        try {
+          { includeGreeting: isFirstMessage },
+        );        try {
           const pendingTurn = await TurnRecoveryManager.checkPending(requestKeys.scopeId);
           if (pendingTurn) {
             await TurnRecoveryManager.attemptRecovery(pendingTurn, char, chat, chatIndex, baseConversation || []);
@@ -18177,14 +18241,20 @@ ${_T.extraction_vec_trigger_note || ""}
         } catch (recoveryErr) {
           const _recErrMsg = recoveryErr?.message || String(recoveryErr);
           console.warn(`${LOG} Turn recovery check failed:`, _recErrMsg);
-          // Write a visible error so the user can tell that the recovery attempt failed,
-          // rather than silently continuing into the main extraction path.
           try {
             await Risuai.safeLocalStorage.setItem(
               requestKeys?.lastSyncError || LAST_SYNC_ERROR_KEY,
               `[TurnRecovery] Recovery check failed: ${_recErrMsg}`,
             );
             await Risuai.log(`${LOG}  [TurnRecovery] Recovery check failed: ${_recErrMsg}`);
+            // [Bug 5 Fix] Surface recovery failure visibly — writing only to lastSyncError
+            // is silent; the user needs an alertError so they know previous-turn data may
+            // be incomplete and can decide whether to regenerate.
+            if (typeof Risuai.alertError === "function") {
+              await Risuai.alertError(
+                `[RisuAI Agent] Turn recovery failed — previous turn data may be incomplete.\n${_recErrMsg}`,
+              );
+            }
           } catch { }
         }
         if (baseConversation.length === 0) {
@@ -18302,8 +18372,12 @@ ${_T.extraction_vec_trigger_note || ""}
             `Vector trigger failed before extraction:\n${errMsg}`,
             requestKeys,
           );
+          return messages; // [Bug 1 Fix] abortMainModelWithAuxError always throws, but this
+          // defensive return prevents a null-deref on callVectorFilter if it ever doesn't.
         }
-        const dueCalls = callVectorFilter.filteredCalls;
+        // [Bug 1 Fix] Null-safe: callVectorFilter is always set if we reach this line,
+        // but guard defensively to avoid a confusing TypeError if invariants change.
+        const dueCalls = callVectorFilter?.filteredCalls ?? [];
         if (dueCalls.length > 0) {
           await Risuai.log(
             `${LOG} Agent: Calling auxiliary model for analysis and data extraction...`,
@@ -18521,6 +18595,12 @@ ${_T.extraction_vec_trigger_note || ""}
             }
           }
           if (hasAuxErrors) {
+            // [Bug 4 Fix] Save vector trigger state before aborting so prevQueryVec and
+            // entryLastTriggered are persisted even on partial failure — otherwise the next
+            // turn's round_compare gets a stale vector and fallbackTurns counts drift.
+            if (callVectorFilter?.state) {
+              try { await saveCallVectorTriggerState(callVectorFilter.state); } catch { }
+            }
             const errs = auxErrors.join("\n");
             if (allAuxFailed) {
               await abortMainModelWithAuxError(
@@ -18599,7 +18679,7 @@ ${_T.extraction_vec_trigger_note || ""}
       }
     })(messages, type);
   }
-  async function getConversationFromCurrentChat(limit, existingChat) {
+  async function getConversationFromCurrentChat(limit, existingChat, { includeGreeting = false } = {}) {
     let chatData = existingChat;
     if (!chatData) {
       const { chat } = await getCurrentChatContextSafe();
@@ -18612,10 +18692,22 @@ ${_T.extraction_vec_trigger_note || ""}
       const role =
         m?.role === "char" ? "assistant" : m?.role === "user" ? "user" : null;
       if (!role) continue;
+      // When includeGreeting=true, include char messages before the first user message
+      // (CBS-rendered greeting/first-message) so the extraction pipeline can read them.
+      if (role === "assistant" && !firstUserSeen) {
+        if (!includeGreeting) continue;
+        // CBS-render the greeting text so template variables are resolved before extraction.
+        const rawText = m?.data || m?.content || "";
+        const renderedText = await normalizeAgentCbsText(
+          normalizeChatPayloadText(rawText)
+        );
+        if (!renderedText) continue;
+        out.push({ role, content: renderedText, isGreeting: true });
+        continue;
+      }
+      if (role === "user") firstUserSeen = true;
       const content = normalizeChatPayloadText(m?.data || m?.content);
       if (!content) continue;
-      if (role === "assistant" && !firstUserSeen) continue;
-      if (role === "user") firstUserSeen = true;
       out.push({ role, content });
     }
     return out.slice(-Math.max(1, limit));
