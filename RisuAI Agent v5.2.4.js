@@ -1,9 +1,9 @@
 //@name 👤 RisuAI Agent
-//@display-name 👤 RisuAI Agent v5.2.3
+//@display-name 👤 RisuAI Agent v5.2.4
 //@author penguineugene@protonmail.com
 //@link https://github.com/EugenesDad/RisuAI-Agent-plugin
 //@api 3.0
-//@version 5.2.3
+//@version 5.2.4
 
 (async () => {
   function _mapLangCode(raw) {
@@ -1336,7 +1336,7 @@
   let _T = _I18N.en;
   let _langInitialized = false;
   const PLUGIN_NAME = "👤 RisuAI Agent";
-  const PLUGIN_VER = "5.2.3";
+  const PLUGIN_VER = "5.2.4";
   const LOG = "[RisuAIAgent]";
   const SYSTEM_INJECT_TAG = "PLUGIN_PARALLEL_STATUS";
   const SYSTEM_REWRITE_TAG = "PLUGIN_PARALLEL_REWRITE";
@@ -1476,7 +1476,7 @@
         {
           "lorebook_name": "ra_turn_trace",
           "write_mode": "append",
-          "always_active": false,
+          "always_active": true,
           "output_format": "CALL ROLE: Read recent dialogue and listed memory, then write the current scene continuity layers.\n{\n  \"ra_turn_trace\": {\n    \"scene_context\": \"<location + immediate situation, short phrase>\",\n    \"time_anchor\": \"<explicit in-story time | null>\",\n    \"elapsed_since_prev\": \"<same moment | +10m | +1h | +1d | unspecified>\",\n    \"user_move\": \"<main player action, <=12 words>\",\n    \"narrative_event\": \"<story result, <=15 words>\",\n    \"user_scene_change\": false,\n    \"shift\": \"<tone/stakes change, <=8 words | null>\"\n  }\n}\nFIELD RULES:\n- Keep all strings short. Keywords preferred over full sentences.\n- user_scene_change: true only when player explicitly moves to a new location or skips significant time.\n- shift: null if tone and stakes are unchanged.",
           "retention_enabled": true,
           "retention_after": 10,
@@ -1490,7 +1490,7 @@
         {
           "lorebook_name": "ra_scene_state",
           "write_mode": "append",
-          "always_active": false,
+          "always_active": true,
           "output_format": "{\n  \"ra_scene_state\": {\n    \"scene_type\": \"<casual|conflict|transition|recovery|social|tense>\",\n    \"location\": \"<place + one detail, <=10 words>\",\n    \"player_state\": \"<condition + key items, <=15 words>\",\n    \"npcs\": [\"<Name: posture. true motive. stance toward player>\"]\n  }\n}\nFIELD RULES:\n- npcs: one string per NPC. Format \"Name: physical. motive. stance.\" <=18 words. [] if none.\n- True motives even if hidden. Keywords only.",
           "retention_enabled": true,
           "retention_after": 10,
@@ -1582,7 +1582,7 @@
         {
           "lorebook_name": "ra_world_log",
           "write_mode": "append",
-          "always_active": false,
+          "always_active": true,
           "output_format": "CALL ROLE: Record new world facts.\nTEMPORAL NOTE: You are writing entries for THIS batch of turns.\n{\n  \"ra_world_log\": {\n    \"entries\": [\"<Name. Key fact. <=20 words.\"]\n  }\n}\nFIELD RULES:\n- One string per entry: name first, then the key fact. <=20 words total per entry.\n- Recording anything that helps LLM for future immersive narrating.\n- entries: [] if nothing new.\nOUTPUT: schema into one JSON object. Single line, no markdown fences, no explanation.",
           "retention_enabled": true,
           "retention_after": 15,
@@ -1715,7 +1715,7 @@
         {
           "lorebook_name": "ra_turn_trace",
           "write_mode": "append",
-          "always_active": false,
+          "always_active": true,
           "output_format": "CALL ROLE: Read recent dialogue and listed memory, then write the current scene continuity layers.\n{\n  \"ra_turn_trace\": {\n    \"scene_context\": \"<location + immediate situation, short phrase>\",\n    \"time_anchor\": \"<explicit in-story time | null>\",\n    \"elapsed_since_prev\": \"<same moment | +10m | +1h | +1d | unspecified>\",\n    \"user_move\": \"<main player action, <=12 words>\",\n    \"narrative_event\": \"<story result, <=15 words>\",\n    \"user_scene_change\": false,\n    \"shift\": \"<tone/stakes change, <=8 words | null>\"\n  }\n}\nFIELD RULES:\n- Keep all strings short. Keywords preferred over full sentences.\n- user_scene_change: true only when player explicitly moves to a new location or skips significant time.\n- shift: null if tone and stakes are unchanged.",
           "retention_enabled": true,
           "retention_after": 10,
@@ -1729,7 +1729,7 @@
         {
           "lorebook_name": "ra_scene_state",
           "write_mode": "append",
-          "always_active": false,
+          "always_active": true,
           "output_format": "{\n  \"ra_scene_state\": {\n    \"scene_type\": \"<casual|conflict|transition|recovery|social|tense>\",\n    \"location\": \"<place + one detail, <=10 words>\",\n    \"player_state\": \"<condition + key items, <=15 words>\",\n    \"npcs\": [\"<Name: posture. true motive. stance toward player>\"]\n  }\n}\nFIELD RULES:\n- npcs: one string per NPC. Format \"Name: physical. motive. stance.\" <=18 words. [] if none.\n- True motives even if hidden. Keywords only.",
           "retention_enabled": true,
           "retention_after": 10,
@@ -1941,7 +1941,7 @@
         {
           "lorebook_name": "ra_world_log",
           "write_mode": "append",
-          "always_active": false,
+          "always_active": true,
           "output_format": "CALL ROLE: Record new world facts.\n{\n  \"ra_world_log\": {\n    \"entries\": [\"<Name. Key fact. <=20 words.\"]\n  }\n}\nFIELD RULES:\n- One string per entry: name first, then the key fact. <=20 words total per entry.\n- Recording anything that helps LLM for future immersive narrating.\n- entries: [] if nothing new.",
           "retention_enabled": true,
           "retention_after": 15,
@@ -2060,7 +2060,7 @@
         {
           "lorebook_name": "ra_turn_trace",
           "write_mode": "append",
-          "always_active": false,
+          "always_active": true,
           "output_format": "CALL ROLE: Read recent dialogue and listed memory, then write the current scene continuity layers.\n{\n  \"ra_turn_trace\": {\n    \"scene_context\": \"<location + current tension, short phrase>\",\n    \"time_anchor\": \"<explicit in-story time | null>\",\n    \"elapsed_since_prev\": \"<same moment | +10m | +1h | +1d | unspecified>\",\n    \"user_move\": \"<main player action or line, <=12 words>\",\n    \"character_reaction\": \"<main character response, <=15 words>\",\n    \"shift_in_dynamic\": \"<relationship or tension change | null>\"\n  }\n}\nFIELD RULES:\n- Keep every field short. Prefer action/result phrasing over interpretation.\n- scene_context should remain meaningful if retrieved much later.\n- Capture only the single most important move and reaction from THIS turn.\n- shift_in_dynamic: null if nothing meaningfully changed.",
           "retention_enabled": true,
           "retention_after": 10,
@@ -2074,7 +2074,7 @@
         {
           "lorebook_name": "ra_scene_state",
           "write_mode": "append",
-          "always_active": false,
+          "always_active": true,
           "output_format": "{\n  \"ra_scene_state\": {\n    \"scene_type\": \"<casual|emotional|conflict|recovery|transition|intimate|combat|debrief|ceremony|political>\",\n    \"stakes_level\": 0,\n    \"characters\": {\n      \"CharName\": {\n        \"current_emotion\": \"<dominant feeling>\",\n        \"surface_expression\": \"<outward presentation, observable only>\",\n        \"hidden_drive\": \"<best-supported inference | null>\",\n        \"drive_confidence\": \"<low|medium|high>\",\n        \"vulnerability_level\": 0,\n        \"approach_tendency\": \"<lean_in|hold_back|test|defend|evade>\"\n      }\n    }\n  }\n}\nFIELD RULES:\n- Include only characters currently active in scene. Prior to use names from ra_character_core.\n- scene_type: single best-fit label. Prefer specific over generic.\n- surface_expression: observable behavior only. No internal projection.\n- hidden_drive: supported inference only. drive_confidence reflects evidence strength.\n- If uncertain, stay conservative. Short phrases only.",
           "retention_enabled": true,
           "retention_after": 10,
@@ -2244,7 +2244,7 @@
         {
           "lorebook_name": "ra_world_log",
           "write_mode": "append",
-          "always_active": false,
+          "always_active": true,
           "output_format": "CALL ROLE: Record new world facts.\nTEMPORAL NOTE: You are writing entries for THIS batch of turns.\n{\n  \"ra_world_log\": {\n    \"entries\": [\"<Name. Key fact. <=20 words.\"]\n  }\n}\nFIELD RULES:\n- One string per entry: name first, then the key fact. <=20 words total per entry.\n- Recording anything that helps LLM for future immersive narrating.\n- entries: [] if nothing new.\nOUTPUT: schema into one JSON object. Single line, no markdown fences, no explanation.",
           "retention_enabled": true,
           "retention_after": 15,
@@ -2376,7 +2376,7 @@
         {
           "lorebook_name": "ra_turn_trace",
           "write_mode": "append",
-          "always_active": false,
+          "always_active": true,
           "output_format": "CALL ROLE: Read recent dialogue and listed memory, then write the current scene context, continuity, and strategic effect layers.\nTEMPORAL NOTE: The ra_turn_trace entry in the lorebook is from T-1. You are writing the CURRENT turn.\n{\n  \"ra_turn_trace\": {\n    \"scene_context\": \"<location + current tension, short phrase>\",\n    \"time_anchor\": \"<explicit in-story time | null>\",\n    \"elapsed_since_prev\": \"<same moment | +10m | +1h | +1d | unspecified>\",\n    \"user_move\": \"<main player action or line, <=12 words>\",\n    \"character_reaction\": \"<main character response, <=15 words>\",\n    \"turn_effect\": \"<political/leverage/relation shift this turn | null>\"\n  }\n}\nFIELD RULES:\n- Keep every field short. Prefer action/result phrasing.\n- character_reaction: the single most important NPC response this turn.\n- turn_effect: focus on leverage gained/lost, alliances tested, secrets risked, or positional shifts. null if none.\n- scene_context should remain meaningful if retrieved much later.",
           "retention_enabled": true,
           "retention_after": 10,
@@ -2390,7 +2390,7 @@
         {
           "lorebook_name": "ra_scene_state",
           "write_mode": "append",
-          "always_active": false,
+          "always_active": true,
           "output_format": "TEMPORAL NOTE: The ra_scene_state in the lorebook is from T-1. You are writing the CURRENT turn.\n{\n  \"ra_scene_state\": {\n    \"scene_type\": \"<casual|emotional|conflict|recovery|transition|intimate|combat|debrief|ceremony|political>\",\n    \"location\": \"<place + one atmospheric detail, <=10 words>\",\n    \"player_state\": \"<condition + key items, <=15 words>\",\n    \"stakes_level\": 0,\n    \"characters\": {\n      \"CharName\": {\n        \"physical_state\": \"<appearance, position or posture, <=12 words>\",\n        \"current_emotion\": \"<dominant feeling>\",\n        \"surface_expression\": \"<outward presentation, observable only>\",\n        \"hidden_drive\": \"<best-supported inference | null>\",\n        \"drive_confidence\": \"<low|medium|high>\",\n        \"vulnerability_level\": 0,\n        \"approach_tendency\": \"<lean_in|hold_back|test|defend|evade>\"\n      }\n    }\n  }\n}\nFIELD RULES:\n- Include only characters currently active in scene. Prior to use names from ra_character_core.\n- physical_state: observable position or attire nuance. Drive and emotion are tracked in separate fields below.\n- surface_expression: observable behavior only. No internal projection.\n- hidden_drive: supported inference only. drive_confidence reflects evidence strength.\n- If uncertain, stay conservative. Short phrases only.",
           "retention_enabled": true,
           "retention_after": 10,
@@ -2667,7 +2667,7 @@
         {
           "lorebook_name": "ra_world_log",
           "write_mode": "append",
-          "always_active": false,
+          "always_active": true,
           "output_format": "CALL ROLE: Record new world facts and canon-locking turning points from this batch of turns.\nTEMPORAL NOTE: You are writing entries for THIS batch of turns.\n{\n  \"ra_world_log\": {\n    \"entries\": [\"<Name. Key fact. <=20 words.\"]\n  }\n}\nFIELD RULES:\n- One string per entry: name first, then the key fact. <=20 words total per entry.\n- Recording anything that helps LLM for future immersive narrating.\n- entries: [] if nothing new.",
           "retention_enabled": true,
           "retention_after": 15,
@@ -14383,7 +14383,7 @@ OUTPUT (STRICT):
     overlayRoot.id = "pse-overlay-root";
     overlayRoot.style.cssText =
       "position:fixed;inset:0;z-index:9999;overflow:auto;opacity:0;transition:opacity 0.15s ease;";
-    overlayRoot.innerHTML = ` <div class="pse-body"> <div class="pse-card"> <h1 class="pse-title">👤 RisuAI Agent v5.2.3</h1> <div id="pse-status" class="pse-status"></div> ${renderModelDatalists()}
+    overlayRoot.innerHTML = ` <div class="pse-body"> <div class="pse-card"> <h1 class="pse-title">👤 RisuAI Agent v5.2.4</h1> <div id="pse-status" class="pse-status"></div> ${renderModelDatalists()}
  <div class="pse-tabs"> ${`<button class="pse-tab active" data-page="7">${_T.tab_help}</button> <button class="pse-tab" data-page="8">${_T.tab_enable}</button> <button class="pse-tab" data-page="1">${_T.tab_model}</button>`}
  </div> <div class="pse-tabs pse-tabs-secondary"> ${`<button class="pse-tab" data-page="6">${_T.tab_cache_open || _T.sec_cache}</button> <button class="pse-tab" data-page="2">${_T.tab_entry}</button> <button class="pse-tab" data-page="5">${_T.tab_vector_open || _T.sec_vec}</button>`}
  </div> <div class="pse-page active" data-page="7"> <div style="margin-bottom:14px;padding:10px 14px;border-radius:8px;background:rgba(192,120,0,0.14);border:1.5px solid rgba(192,120,0,0.40);font-size:12px;font-weight:700;color:#3D2300;display:flex;align-items:center;gap:8px;"> ⚠️ ${escapeHtml(_T.lore_warn)}</div> <!-- Language (Standalone) --> <div style="margin-bottom:16px;"> <label class="pse-label" style="margin-bottom:6px; color:var(--pse-text);"> Language / 語言 / 언어</label> <div style="display:flex;gap:8px;"> ${["en", "tc", "ko"]
