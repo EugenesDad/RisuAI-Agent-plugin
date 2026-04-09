@@ -1688,7 +1688,7 @@
         {
           "lorebook_name": "ra_world_encyclopedia",
           "write_mode": "overwrite",
-          "always_active": false,
+          "always_active": true,
           "output_format": "CALL ROLE: Merge durable world facts into stable reference memory.\n{\n  \"ra_world_encyclopedia\": {\n    \"geography\": [\"<Place: description. why it matters>\"],\n    \"npcs\": [\"<Name (role, status): profile note>\"],\n    \"factions\": [\"<Faction: purpose. stance toward player/others>\"],\n    \"lore\": [\"<Topic: compact durable fact>\"]\n  }\n}\nFIELD RULES:\n- Use prior encyclopedia as baseline. Add only durable, stable facts. Remove clear duplicates.\n- Do not write short-term scene noise. Keep entries reference-oriented.\n- Each category: one string per entry. [] if empty.\nOUTPUT: Single valid JSON: {\"ra_world_encyclopedia\": {...}}. Single line, no markdown fences, no explanation.",
           "retention_enabled": false,
           "retention_after": 0,
@@ -2033,7 +2033,7 @@
         {
           "lorebook_name": "ra_world_encyclopedia",
           "write_mode": "overwrite",
-          "always_active": false,
+          "always_active": true,
           "output_format": "CALL ROLE: Merge durable world facts into stable reference memory.\n{\n  \"ra_world_encyclopedia\": {\n    \"geography\": [\"<Place: description. why it matters>\"],\n    \"npcs\": [\"<Name (role, status): profile note>\"],\n    \"factions\": [\"<Faction: purpose. stance toward player/others>\"],\n    \"lore\": [\"<Topic: compact durable fact>\"]\n  }\n}\nFIELD RULES:\n- Use prior encyclopedia as baseline. Add only durable, stable facts. Remove clear duplicates.\n- Do not write short-term scene noise. Keep entries reference-oriented.\n- Each category: one string per entry. [] if empty.\nOUTPUT: Single valid JSON: {\"ra_world_encyclopedia\": {...}}. Single line, no markdown fences, no explanation.",
           "retention_enabled": false,
           "retention_after": 0,
@@ -2350,7 +2350,7 @@
         {
           "lorebook_name": "ra_world_encyclopedia",
           "write_mode": "overwrite",
-          "always_active": false,
+          "always_active": true,
           "output_format": "CALL ROLE: Merge durable world facts into stable reference memory.\n{\n  \"ra_world_encyclopedia\": {\n    \"geography\": [\"<Place: description. why it matters>\"],\n    \"npcs\": [\"<Name (role, status): profile note>\"],\n    \"factions\": [\"<Faction: purpose. stance toward player/others>\"],\n    \"lore\": [\"<Topic: compact durable fact>\"]\n  }\n}\nFIELD RULES:\n- Use prior encyclopedia as baseline. Add only durable, stable facts. Remove clear duplicates.\n- Do not write short-term scene noise. Keep entries reference-oriented.\n- Each category: one string per entry. [] if empty.\nOUTPUT: Single valid JSON: {\"ra_world_encyclopedia\": {...}}. Single line, no markdown fences, no explanation.",
           "retention_enabled": false,
           "retention_after": 0,
@@ -2816,7 +2816,7 @@
         {
           "lorebook_name": "ra_world_encyclopedia",
           "write_mode": "overwrite",
-          "always_active": false,
+          "always_active": true,
           "output_format": "CALL ROLE: Merge durable world facts into stable reference memory.\n{\n  \"ra_world_encyclopedia\": {\n    \"geography\": [\"<Place: description. why it matters>\"],\n    \"npcs\": [\"<Name (role, status): profile note>\"],\n    \"factions\": [\"<Faction: purpose. stance toward player/others>\"],\n    \"lore\": [\"<Topic: compact durable fact>\"]\n  }\n}\nFIELD RULES:\n- Use prior encyclopedia as baseline. Add only durable, stable facts. Remove clear duplicates.\n- Do not write short-term scene noise. Keep entries reference-oriented.\n- Each category: one string per entry. [] if empty.\nOUTPUT: Single valid JSON: {\"ra_world_encyclopedia\": {...}}. Single line, no markdown fences, no explanation.",
           "retention_enabled": false,
           "retention_after": 0,
