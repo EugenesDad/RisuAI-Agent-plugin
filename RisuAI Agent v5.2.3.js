@@ -1,9 +1,9 @@
 //@name 👤 RisuAI Agent
-//@display-name 👤 RisuAI Agent v5.2.2
+//@display-name 👤 RisuAI Agent v5.2.3
 //@author penguineugene@protonmail.com
 //@link https://github.com/EugenesDad/RisuAI-Agent-plugin
 //@api 3.0
-//@version 5.2.2
+//@version 5.2.3
 
 (async () => {
   function _mapLangCode(raw) {
@@ -1336,7 +1336,7 @@
   let _T = _I18N.en;
   let _langInitialized = false;
   const PLUGIN_NAME = "👤 RisuAI Agent";
-  const PLUGIN_VER = "5.2.2";
+  const PLUGIN_VER = "5.2.3";
   const LOG = "[RisuAIAgent]";
   const SYSTEM_INJECT_TAG = "PLUGIN_PARALLEL_STATUS";
   const SYSTEM_REWRITE_TAG = "PLUGIN_PARALLEL_REWRITE";
@@ -11558,13 +11558,108 @@ OUTPUT (STRICT):
       getScopeId(char),
     );
   }
+  function normalizeCommaList(value) {
+    return String(value ?? "")
+      .split(",")
+      .map((x) => safeTrim(x))
+      .filter(Boolean)
+      .join(", ");
+  }
+  function normalizePromptText(value) {
+    return String(value ?? "").replace(/\r\n?/g, "\n").trim();
+  }
+  function canonicalizeOutputEntry(entry, target) {
+    const normalized = normalizeOutputEntry(entry, target);
+    return {
+      lorebook_name: safeTrim(normalized.lorebook_name),
+      write_mode:
+        safeTrim(normalized.write_mode) === "overwrite" ? "overwrite" : "append",
+      always_active:
+        normalized.always_active === true ||
+        normalized.always_active === "1" ||
+        normalized.always_active === 1 ||
+        String(normalized.always_active) === "true",
+      output_format: normalizePromptText(normalized.output_format),
+      retention_enabled: !!normalized.retention_enabled,
+      retention_after: Math.max(0, toInt(normalized.retention_after, 0)),
+      retention_keep: Math.max(0, toInt(normalized.retention_keep, 0)),
+      vector_trigger_enabled: !!normalized.vector_trigger_enabled,
+      vector_basis:
+        safeTrim(normalized.vector_basis) === "round_compare"
+          ? "round_compare"
+          : "semantic_input",
+      vector_threshold: clampUnitInterval(normalized.vector_threshold, 0.6),
+      vector_fallback_turns: Math.max(
+        0,
+        toInt(normalized.vector_fallback_turns, 10),
+      ),
+      vector_semantic_input: normalizePromptText(normalized.vector_semantic_input),
+    };
+  }
+  function canonicalizeModelCall(call, index = 0) {
+    const normalized = normalizeModelCall(call, index);
+    const target =
+      safeTrim(normalized.target_model) === "B" ? "B" : "A";
+    const entries = Array.isArray(normalized.entries) && normalized.entries.length
+      ? normalized.entries
+      : [defaultOutputEntry(target)];
+    return {
+      target_model: target,
+      every_n_turns: Math.max(1, toInt(normalized.every_n_turns, 1)),
+      read_dialogue_rounds: Math.max(
+        0,
+        toInt(normalized.read_dialogue_rounds, 4),
+      ),
+      read_lorebook_names: normalizeCommaList(normalized.read_lorebook_names),
+      read_persona_names: normalizeCommaList(normalized.read_persona_names),
+      entries: entries.map((entry) => canonicalizeOutputEntry(entry, target)),
+    };
+  }
+  function canonicalizeModelCalls(raw) {
+    return parseModelCalls(raw).map((call, index) =>
+      canonicalizeModelCall(call, index),
+    );
+  }
+  function canonicalizePersonaCalls(raw) {
+    return parsePersonaCalls(raw).map((call, index) =>
+      canonicalizeModelCall(call, index),
+    );
+  }
+  function isCanonicalEqual(left, right) {
+    return JSON.stringify(left) === JSON.stringify(right);
+  }
   function isDefaultExtractionSettings(presetId) {
     if (!configCache) return false;
-    if (presetId === "1") return configCache.model_calls === JSON.stringify(DEFAULT_MODEL_CALLS_1);
-    if (presetId === "2") return configCache.model_calls_2 === JSON.stringify(DEFAULT_MODEL_CALLS_2);
-    const isPersonaDefault = configCache.persona_calls === JSON.stringify(DEFAULT_PERSONA_CALLS);
-    if (presetId === "3") return isPersonaDefault && configCache.model_calls_3 === JSON.stringify(DEFAULT_MODEL_CALLS_3);
-    if (presetId === "4") return isPersonaDefault && configCache.model_calls_4 === JSON.stringify(DEFAULT_MODEL_CALLS_4);
+    const isPersonaDefault = isCanonicalEqual(
+      canonicalizePersonaCalls(configCache.persona_calls),
+      canonicalizePersonaCalls(DEFAULT_PERSONA_CALLS),
+    );
+    if (presetId === "1")
+      return isCanonicalEqual(
+        canonicalizeModelCalls(configCache.model_calls),
+        canonicalizeModelCalls(DEFAULT_MODEL_CALLS_1),
+      );
+    if (presetId === "2")
+      return isCanonicalEqual(
+        canonicalizeModelCalls(configCache.model_calls_2),
+        canonicalizeModelCalls(DEFAULT_MODEL_CALLS_2),
+      );
+    if (presetId === "3")
+      return (
+        isPersonaDefault &&
+        isCanonicalEqual(
+          canonicalizeModelCalls(configCache.model_calls_3),
+          canonicalizeModelCalls(DEFAULT_MODEL_CALLS_3),
+        )
+      );
+    if (presetId === "4")
+      return (
+        isPersonaDefault &&
+        isCanonicalEqual(
+          canonicalizeModelCalls(configCache.model_calls_4),
+          canonicalizeModelCalls(DEFAULT_MODEL_CALLS_4),
+        )
+      );
     return false;
   }
   async function mergeToSystemPromptWithRewrite(messages, payload, queryText, cardMemoryPreset) {
@@ -14288,7 +14383,7 @@ OUTPUT (STRICT):
     overlayRoot.id = "pse-overlay-root";
     overlayRoot.style.cssText =
       "position:fixed;inset:0;z-index:9999;overflow:auto;opacity:0;transition:opacity 0.15s ease;";
-    overlayRoot.innerHTML = ` <div class="pse-body"> <div class="pse-card"> <h1 class="pse-title">👤 RisuAI Agent v5.2.2</h1> <div id="pse-status" class="pse-status"></div> ${renderModelDatalists()}
+    overlayRoot.innerHTML = ` <div class="pse-body"> <div class="pse-card"> <h1 class="pse-title">👤 RisuAI Agent v5.2.3</h1> <div id="pse-status" class="pse-status"></div> ${renderModelDatalists()}
  <div class="pse-tabs"> ${`<button class="pse-tab active" data-page="7">${_T.tab_help}</button> <button class="pse-tab" data-page="8">${_T.tab_enable}</button> <button class="pse-tab" data-page="1">${_T.tab_model}</button>`}
  </div> <div class="pse-tabs pse-tabs-secondary"> ${`<button class="pse-tab" data-page="6">${_T.tab_cache_open || _T.sec_cache}</button> <button class="pse-tab" data-page="2">${_T.tab_entry}</button> <button class="pse-tab" data-page="5">${_T.tab_vector_open || _T.sec_vec}</button>`}
  </div> <div class="pse-page active" data-page="7"> <div style="margin-bottom:14px;padding:10px 14px;border-radius:8px;background:rgba(192,120,0,0.14);border:1.5px solid rgba(192,120,0,0.40);font-size:12px;font-weight:700;color:#3D2300;display:flex;align-items:center;gap:8px;"> ⚠️ ${escapeHtml(_T.lore_warn)}</div> <!-- Language (Standalone) --> <div style="margin-bottom:16px;"> <label class="pse-label" style="margin-bottom:6px; color:var(--pse-text);"> Language / 語言 / 언어</label> <div style="display:flex;gap:8px;"> ${["en", "tc", "ko"]
