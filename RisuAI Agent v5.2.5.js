@@ -1,9 +1,9 @@
 //@name 👤 RisuAI Agent
-//@display-name 👤 RisuAI Agent v5.2.4
+//@display-name 👤 RisuAI Agent v5.2.5
 //@author penguineugene@protonmail.com
 //@link https://github.com/EugenesDad/RisuAI-Agent-plugin
 //@api 3.0
-//@version 5.2.4
+//@version 5.2.5
 
 (async () => {
   function _mapLangCode(raw) {
@@ -267,6 +267,8 @@
       warn_embed_settings_failed: (reason) => `Warning: persona vector index failed to update — embeddings not built.\nCause: ${reason}\nVector search may be degraded until Step 0 re-runs on the next send.`,
       warn_persona_step0_partial: (reason) => `Warning: persona extraction failed during Step 0 (will retry on next send).\nCause: ${reason}`,
       warn_vec_warmup_failed: (reason) => `Warning: vector trigger role-vector warm-up failed during Step 0.\nCause: ${reason}\nVector-trigger entries using a custom semantic_input may not fire correctly until Step 0 re-runs on the next send.`,
+      warn_cache_defect_abort: (reason) => `Cache integrity check failed (reason: ${reason}).\nMain model request blocked to protect quota.\n\nPlease open Cache Hub and run Step 0 manually, or use Manual Append for persona entries.\nAfter fixing the cache, click Regenerate/Send.`,
+      warn_hash_reload_skipped: `Character data hash changed (likely a page reload).\nStep 0 auto-run is skipped — cache is still intact from the previous session.\nIf you have edited the character data and need to rebuild the cache, please run Step 0 manually from the settings.`,
       copilot_refresh: "Copilot token refresh",
       help_tab_main: "Home",
       help_tab_p1: "Preset 1",
@@ -704,6 +706,8 @@
       warn_embed_settings_failed: (reason) => `경고: 페르소나 벡터 인덱스 업데이트 실패 — 임베딩이 구축되지 않았습니다.\n원인: ${reason}\n다음 전송 시 Step 0이 재실행될 때까지 벡터 검색이 저하될 수 있습니다.`,
       warn_persona_step0_partial: (reason) => `경고: Step 0 중 페르소나 추출 실패 (다음 전송 시 재시도).\n원인: ${reason}`,
       warn_vec_warmup_failed: (reason) => `경고: Step 0 중 벡터 트리거 역할 벡터 워밍업 실패.\n원인: ${reason}\ncustom semantic_input을 사용하는 벡터 트리거 항목은 다음 전송 시 Step 0이 재실행될 때까지 올바르게 동작하지 않을 수 있습니다.`,
+      warn_cache_defect_abort: (reason) => `캐시 무결성 검사 실패 (원인: ${reason}).\n쿼터 보호를 위해 메인 모델 요청을 차단했습니다.\n\n캐시 저장소에서 Step 0을 수동으로 실행하거나, 페르소나 항목의 경우 수동 추가를 사용하세요.\n수정 후 재생성/전송을 눌러주세요.`,
+      warn_hash_reload_skipped: `캐릭터 데이터 해시가 변경되었습니다 (페이지 새로고침으로 추정).\nStep 0 자동 실행을 건너뜀 — 이전 세션의 캐시는 그대로 유지됩니다.\n캐릭터 데이터를 실제로 수정했고 캐시를 재구축해야 한다면, 설정에서 Step 0을 수동으로 실행하세요.`,
       copilot_refresh: "Copilot 토큰 갱신",
       help_tab_main: "홈",
       help_tab_p1: "프리셋 1",
@@ -1127,6 +1131,8 @@
       warn_embed_settings_failed: (reason) => `警告：人格向量索引更新失敗 — 嵌入未建立。\n原因：${reason}\n向量搜尋功能可能受損，直到下次傳送觸發 Step 0 重跑。`,
       warn_persona_step0_partial: (reason) => `警告：Step 0 期間人格萃取失敗（將於下次傳送重試）。\n原因：${reason}`,
       warn_vec_warmup_failed: (reason) => `警告：Step 0 期間向量觸發角色向量預熱失敗。\n原因：${reason}\n使用自訂 semantic_input 的向量觸發條目，在下次傳送觸發 Step 0 重跑之前，可能無法正確觸發。`,
+      warn_cache_defect_abort: (reason) => `快取完整性檢查失敗（原因：${reason}）。\n為避免浪費額度，已鎖定主模型請求。\n\n請開啟快取倉庫手動執行 Step 0，或針對人格條目使用手動追加。\n修正後請點擊「重新生成/傳送」。`,
+      warn_hash_reload_skipped: `角色資料 hash 已變更（可能是頁面重整）。\nStep 0 自動執行已略過 — 前次 Session 的快取仍完整保留。\n若您確實修改了角色資料並需要重建快取，請至設定頁面手動執行 Step 0。`,
       copilot_refresh: "Copilot token refresh",
       help_tab_main: "說明首頁",
       help_tab_p1: "預設設定1",
@@ -1336,7 +1342,7 @@
   let _T = _I18N.en;
   let _langInitialized = false;
   const PLUGIN_NAME = "👤 RisuAI Agent";
-  const PLUGIN_VER = "5.2.4";
+  const PLUGIN_VER = "5.2.5";
   const LOG = "[RisuAIAgent]";
   const SYSTEM_INJECT_TAG = "PLUGIN_PARALLEL_STATUS";
   const SYSTEM_REWRITE_TAG = "PLUGIN_PARALLEL_REWRITE";
@@ -2363,7 +2369,7 @@
         }
       ]
     }
-  ];  const DEFAULT_MODEL_CALLS_4 = [
+  ]; const DEFAULT_MODEL_CALLS_4 = [
     {
       "id": "call_state",
       "name": "State",
@@ -3640,7 +3646,7 @@ OUTPUT (STRICT):
       // subsequent execution-call estimate produces 0 (e.g. all calls are
       // aux-only and _preMainTokens stays 0).  Token counts only move upward.
       if (type === "main" && (count > 0 || _state.mainTokens === 0)) _state.mainTokens = count;
-      if (type === "aux"  && (count > 0 || _state.auxTokens  === 0)) _state.auxTokens  = count;
+      if (type === "aux" && (count > 0 || _state.auxTokens === 0)) _state.auxTokens = count;
       if (type === "embed") _state.embedTokens = count;
       _render();
     }
@@ -4375,6 +4381,7 @@ OUTPUT (STRICT):
   const STORAGE_NAMESPACE = "v5";
   const STATIC_KNOWLEDGE_CHUNKS_KEY = "static_knowledge_chunks";
   const STATIC_DATA_HASH_KEY = "static_data_hash";
+  const STATIC_PAYLOAD_SNAPSHOT_KEY = "static_payload_snapshot";
   const STEP0_COMPLETE_KEY = "step0_complete";
   const STEP0_PENDING_KEY = "step0_pending";
   const LAST_REQ_HASH_KEY = "last_req_hash";
@@ -4417,6 +4424,7 @@ OUTPUT (STRICT):
         scopeId,
       ),
       staticDataHash: makeScopedStorageKey(STATIC_DATA_HASH_KEY, scopeId),
+      staticPayloadSnapshot: makeScopedStorageKey(STATIC_PAYLOAD_SNAPSHOT_KEY, scopeId),
       step0Complete: makeScopedStorageKey(STEP0_COMPLETE_KEY, scopeId),
       step0Pending: makeScopedStorageKey(STEP0_PENDING_KEY, scopeId),
     };
@@ -12149,6 +12157,177 @@ OUTPUT (STRICT):
       if (strict) throw err;
     }
   }
+  // ── Incremental re-embed on mid-session hash change ───────────────────────
+  // Called when character data (desc / globalNote / lorebook) changes during
+  // an active session (i.e. Step 0 already ran this session).
+  // Instead of triggering full Step 0, this function:
+  //   1. Diffs the new payload against the saved snapshot to find changed entries.
+  //   2. Builds new chunks for those entries only (reusing existing categories).
+  //   3. Re-embeds only the changed/new chunks and updates the vector cache.
+  //   4. Saves updated chunks and new payload snapshot.
+  // No Step 0 is launched, no alert is shown.
+  async function runIncrementalHashReembed(char, chat, staticKeys, currentStaticPayload, currentStaticHash) {
+    const LOG_INC = "[IncrementalReembed]";
+    try {
+      // ── 1. Load saved payload snapshot ──────────────────────────────────
+      let savedPayload = null;
+      try {
+        const raw = await Risuai.pluginStorage.getItem(staticKeys.staticPayloadSnapshot);
+        if (raw) savedPayload = JSON.parse(raw);
+      } catch { }
+
+      // ── 2. Load existing chunks ──────────────────────────────────────────
+      let savedChunks = [];
+      try {
+        const raw = await Risuai.pluginStorage.getItem(staticKeys.staticKnowledgeChunks);
+        if (raw) savedChunks = JSON.parse(raw);
+        if (!Array.isArray(savedChunks)) savedChunks = [];
+      } catch { savedChunks = []; }
+
+      // ── 3. Determine changed entries by content hash ─────────────────────
+      // Build a set of content-hashes present in the old payload
+      const oldContentHashes = new Set();
+      if (savedPayload) {
+        const norm = (s) => String(s || "").trim();
+        if (norm(savedPayload.desc)) oldContentHashes.add(simpleHash(norm(savedPayload.desc)));
+        if (norm(savedPayload.globalNote)) oldContentHashes.add(simpleHash(norm(savedPayload.globalNote)));
+        for (const l of (savedPayload.lorebook || [])) {
+          if (norm(l.content)) oldContentHashes.add(simpleHash(norm(l.content)));
+        }
+      }
+
+      // Collect new entries (rendered for embedding) that are absent from old payload
+      const resolvedGlobalNote = safeTrim(currentStaticPayload?.globalNote || "");
+      const lorebookEntries = await getCombinedLorebookEntries(char, chat);
+
+      // Re-render sources to get real content for embedding
+      const candidateSources = [];
+      const renderedDesc = await normalizeAgentCbsText(char?.desc || char?.description || "");
+      if (renderedDesc) {
+        candidateSources.push({ source: "Character Description", content: renderedDesc, alwaysActive: true, triggerMeta: null });
+      }
+      const renderedGN = await normalizeAgentCbsText(char?.globalNote !== undefined ? char.globalNote : resolvedGlobalNote);
+      if (renderedGN) {
+        candidateSources.push({ source: "Global Note", content: renderedGN, alwaysActive: true, triggerMeta: null });
+      }
+      for (const l of lorebookEntries) {
+        if (!l) continue;
+        const isActive = l.alwaysActive === true || String(l.alwaysActive) === "true" || l.constant === true || String(l.constant) === "true";
+        const rendered = await normalizeAgentCbsText(l.content || "");
+        if (rendered) {
+          candidateSources.push({ source: l.comment || "Lorebook", content: rendered, alwaysActive: isActive, triggerMeta: l });
+        }
+      }
+
+      // ── 4. Build map of existing chunk content hashes → categories ───────
+      const existingChunkCategoryByHash = new Map();
+      for (const c of savedChunks) {
+        if (c.content) existingChunkCategoryByHash.set(simpleHash(c.content), c.category || "information");
+      }
+
+      // ── 5. Build new full chunk list, tagging changed ones ───────────────
+      let chunkId = 0;
+      const newChunks = [];
+      const changedChunks = [];  // chunks whose content hash is not in oldContentHashes
+
+      for (const src of candidateSources) {
+        const text = safeTrim(src.content);
+        if (!text) continue;
+        const primaryKeys = getPrimaryTriggerKeys(src.triggerMeta);
+        const secondaryKeys = getSecondaryTriggerKeys(src.triggerMeta);
+        const useRegex = src.triggerMeta?.useRegex === true || String(src.triggerMeta?.useRegex) === "true";
+        const selective = src.triggerMeta?.selective === true || String(src.triggerMeta?.selective) === "true";
+        const contentHash = simpleHash(text);
+
+        // Reuse existing category if known, otherwise default
+        const category = existingChunkCategoryByHash.get(contentHash)
+          || (src.alwaysActive ? "information" : "unknown");
+
+        const chunk = {
+          id: `chk_${chunkId++}`,
+          source: src.source,
+          content: text,
+          alwaysActive: src.alwaysActive,
+          category,
+          key: primaryKeys.join(", "),
+          keys: primaryKeys,
+          secondkey: secondaryKeys.join(", "),
+          selective,
+          useRegex,
+          hasPrimaryKey: primaryKeys.length > 0,
+        };
+        newChunks.push(chunk);
+
+        // Mark as changed if the old payload snapshot doesn't include this content
+        if (!oldContentHashes.has(contentHash)) {
+          changedChunks.push(chunk);
+        }
+      }
+
+      // ── 6. Re-embed changed/new inactive chunks ──────────────────────────
+      if (configCache.vector_search_enabled === 1) {
+        const inactiveChanged = changedChunks.filter(c => !c.alwaysActive && hasPrimaryTriggerKey(c));
+        if (inactiveChanged.length > 0) {
+          await Risuai.log(`${LOG_INC} ${inactiveChanged.length} changed inactive chunk(s) detected — re-embedding...`);
+          const cfg = resolveEmbeddingRuntimeConfig();
+          const cardKey = await getActiveCardKey(char);
+          const charName = safeTrim(char?.name || "Character");
+          const embedBatchSize = getEmbeddingBatchSize(cfg.requestModel);
+          const store = await loadEmbeddingCacheStore();
+
+          // Remove orphaned chunk| entries no longer present
+          const currentHashSet = new Set(
+            newChunks.filter(c => !c.alwaysActive && hasPrimaryTriggerKey(c))
+              .map(c => `chunk|${simpleHash(c.content)}`)
+          );
+          const cardEntries = store.cards?.[cardKey]?.entries;
+          if (cardEntries) {
+            let orphanFound = false;
+            for (const cacheKey of Object.keys(cardEntries)) {
+              if (cacheKey.startsWith("chunk|") && !currentHashSet.has(cacheKey)) {
+                delete cardEntries[cacheKey];
+                orphanFound = true;
+              }
+            }
+            if (orphanFound) await saveEmbeddingCacheStore(store, { replaceCardKeys: [cardKey] });
+          }
+
+          for (let i = 0; i < inactiveChanged.length; i += embedBatchSize) {
+            const batch = inactiveChanged.slice(i, i + embedBatchSize);
+            const vecs = await fetchEmbeddingVectorsRemote(batch.map(c => c.content), cfg, true);
+            let added = false;
+            vecs.forEach((vec, idx) => {
+              if (vec && vec.length) {
+                const chunk = batch[idx];
+                const textHash = simpleHash(chunk.content);
+                upsertEmbeddingCacheEntry(store, cardKey, charName, `chunk|${textHash}`, {
+                  sourceType: "chunk",
+                  name: chunk.source,
+                  textHash,
+                  dims: vec.length,
+                  vector: vec,
+                }, cfg.requestModel);
+                added = true;
+              }
+            });
+            if (added) await saveEmbeddingCacheStore(store);
+          }
+        }
+      }
+
+      // ── 7. Persist updated chunks, hash, and payload snapshot ────────────
+      try { await Risuai.pluginStorage.setItem(staticKeys.staticKnowledgeChunks, JSON.stringify(newChunks)); } catch { }
+      try { await Risuai.pluginStorage.setItem(staticKeys.staticDataHash, currentStaticHash); } catch { }
+      try { await Risuai.pluginStorage.setItem(staticKeys.staticPayloadSnapshot, JSON.stringify(currentStaticPayload)); } catch { }
+
+      await Risuai.log(`${LOG_INC} Incremental re-embed complete (${changedChunks.length} changed entries processed).`);
+    } catch (err) {
+      // Non-fatal: log and continue — main extraction still runs normally
+      await Risuai.log(`[RisuAI Agent] ${LOG_INC} warning: ${err?.message || String(err)}`);
+      try { await Risuai.pluginStorage.setItem(staticKeys.staticDataHash, currentStaticHash); } catch { }
+    }
+  }
+
   async function runStep0Classification(
     char,
     chat,
@@ -12492,6 +12671,7 @@ OUTPUT (STRICT):
                       `${LOG}  Persona extraction failed during Step 0 resumeMode (will retry on next send): ${personaErrMsg}`,
                     );
                   } catch { }
+                  throw personaErr;
                 }
               }
               await Risuai.pluginStorage.setItem(staticKeys.step0Complete, "1");
@@ -12644,6 +12824,7 @@ OUTPUT (STRICT):
             `[Step 0] Persona extraction failed (will retry): ${personaErrMsg}`,
           );
         } catch { }
+        throw personaErr;
       }
     }
     const inactiveChunks = chunks.filter(
@@ -14396,7 +14577,7 @@ OUTPUT (STRICT):
     overlayRoot.id = "pse-overlay-root";
     overlayRoot.style.cssText =
       "position:fixed;inset:0;z-index:9999;overflow:auto;opacity:0;transition:opacity 0.15s ease;";
-    overlayRoot.innerHTML = ` <div class="pse-body"> <div class="pse-card"> <h1 class="pse-title">👤 RisuAI Agent v5.2.4</h1> <div id="pse-status" class="pse-status"></div> ${renderModelDatalists()}
+    overlayRoot.innerHTML = ` <div class="pse-body"> <div class="pse-card"> <h1 class="pse-title">👤 RisuAI Agent v5.2.5</h1> <div id="pse-status" class="pse-status"></div> ${renderModelDatalists()}
  <div class="pse-tabs"> ${`<button class="pse-tab active" data-page="7">${_T.tab_help}</button> <button class="pse-tab" data-page="8">${_T.tab_enable}</button> <button class="pse-tab" data-page="1">${_T.tab_model}</button>`}
  </div> <div class="pse-tabs pse-tabs-secondary"> ${`<button class="pse-tab" data-page="6">${_T.tab_cache_open || _T.sec_cache}</button> <button class="pse-tab" data-page="2">${_T.tab_entry}</button> <button class="pse-tab" data-page="5">${_T.tab_vector_open || _T.sec_vec}</button>`}
  </div> <div class="pse-page active" data-page="7"> <div style="margin-bottom:14px;padding:10px 14px;border-radius:8px;background:rgba(192,120,0,0.14);border:1.5px solid rgba(192,120,0,0.40);font-size:12px;font-weight:700;color:#3D2300;display:flex;align-items:center;gap:8px;"> ⚠️ ${escapeHtml(_T.lore_warn)}</div> <!-- Language (Standalone) --> <div style="margin-bottom:16px;"> <label class="pse-label" style="margin-bottom:6px; color:var(--pse-text);"> Language / 語言 / 언어</label> <div style="display:flex;gap:8px;"> ${["en", "tc", "ko"]
@@ -17147,7 +17328,7 @@ ${_T.extraction_vec_trigger_note || ""}
       const _readCurrentKey = () => {
         const listId = keyId === "extractor_a_key" ? "pse-key-list-a"
           : keyId === "extractor_b_key" ? "pse-key-list-b"
-          : null;
+            : null;
         if (listId) {
           const listEl = document.getElementById(listId);
           if (listEl) {
@@ -17166,7 +17347,7 @@ ${_T.extraction_vec_trigger_note || ""}
         keyEl.value = newKey;
         const listId = keyId === "extractor_a_key" ? "pse-key-list-a"
           : keyId === "extractor_b_key" ? "pse-key-list-b"
-          : null;
+            : null;
         if (listId) {
           const listEl = document.getElementById(listId);
           if (listEl) {
@@ -17876,12 +18057,30 @@ ${_T.extraction_vec_trigger_note || ""}
             );
           } catch { }
           needsStep0 = false;
-        } else if (
-          hashChanged &&
-          !sessionHandled
-        ) {
-          needsStep0 = true;
-          step0Reason = "changed";
+        } else if (hashChanged && sessionHandled) {
+          // ── Mid-session character data edit ──────────────────────────────
+          // Step 0 already ran this session (sessionHandled = true) so the
+          // cache is fully initialized.  The hash changed because the user
+          // edited desc / globalNote / lorebook while the conversation was
+          // already in progress.  Perform a silent incremental re-embed:
+          //   * diff the new payload against the saved snapshot
+          //   * re-embed only the changed / new inactive chunks
+          //   * update chunk storage, hash, and snapshot in-place
+          // No Step 0 is triggered, no alert is shown.
+          needsStep0 = false;
+          sessionStep0HandledHashByScope.set(staticKeys.scopeId, currentStaticHash);
+          await runIncrementalHashReembed(char, chat, staticKeys, currentStaticPayload, currentStaticHash);
+        } else if (hashChanged && !sessionHandled) {
+          // ── Hash-reload guard ────────────────────────────────────────────
+          // The session Map was cleared (page reload / new session) but the
+          // pluginStorage hash still matches the previous run, which means the
+          // cache is intact.  Silently accept the current hash and continue.
+          needsStep0 = false;
+          sessionStep0HandledHashByScope.set(staticKeys.scopeId, currentStaticHash);
+          try {
+            await Risuai.pluginStorage.setItem(staticKeys.staticDataHash, currentStaticHash);
+          } catch { }
+          await Risuai.log(`${LOG} Character data hash changed (page reload or new session). Cache retained.`);
         } else {
           const needsClassify = _cardReorgEnabled || _newPreset;
           const needsChunkVec = isVectorEnabled;
@@ -18215,9 +18414,49 @@ ${_T.extraction_vec_trigger_note || ""}
               currentStaticHash,
             );
             await Risuai.log(`${LOG} ${_T.log_step0_complete}`);
+            // Save payload snapshot so incremental re-embed can diff correctly on future mid-session edits
+            try { await Risuai.pluginStorage.setItem(staticKeys.staticPayloadSnapshot, JSON.stringify(currentStaticPayload)); } catch { }
             try {
               await Risuai.pluginStorage.removeItem(staticKeys.step0Pending);
             } catch { }
+            // ── Post-Step 0 cache integrity check ────────────────────────────
+            // Verify the cache is actually complete after the run.  If any data
+            // was silently lost (API error mid-classification, persona write
+            // failure, etc.) surface a non-blocking alertError so the user knows
+            // to re-run Step 0 or use Manual Append.  The main model request is
+            // NOT blocked here — the user is informed and can decide what to do.
+            try {
+              const _postDiagClassify = _cardReorgEnabled || _newPreset;
+              const _postDiagChunkVec = isVectorEnabled;
+              const _postDiagPersona = _newPreset;
+              const _postDiag = await diagnoseCacheState(char, staticKeys, {
+                needsClassify: _postDiagClassify,
+                needsChunkVec: _postDiagChunkVec,
+                needsPersona: _postDiagPersona,
+                needsPersonaVec: _postDiagPersona,
+              });
+              if (_postDiag.needsStep0) {
+                const _postDefectReason = _postDiag.step0Reason;
+                await Risuai.log(
+                  `${LOG}  Post-Step 0 integrity check failed (reason: ${_postDefectReason}). Cache may be incomplete.`,
+                );
+                const _postDefectMsg = typeof _T.warn_cache_defect_abort === "function"
+                  ? _T.warn_cache_defect_abort(_postDefectReason)
+                  : `Cache integrity check failed after Step 0 (reason: ${_postDefectReason}).\nSome data may be missing. Please re-run Step 0 or use Manual Append in Cache Hub.`;
+                try {
+                  if (typeof Risuai.alertError === "function") {
+                    await Risuai.alertError(`[RisuAI Agent] ${_postDefectMsg}`);
+                  } else if (typeof Risuai.alert === "function") {
+                    await Risuai.alert(`[RisuAI Agent] ${_postDefectMsg}`);
+                  }
+                } catch { }
+              }
+            } catch (_postDiagErr) {
+              await Risuai.log(
+                `${LOG}  Post-Step 0 integrity check threw an error: ${_postDiagErr?.message || _postDiagErr}`,
+              );
+            }
+            // ─────────────────────────────────────────────────────────────────
             if (personaMissingForcedStep0) step0Reason = "";
             // Transition panel to extraction phase after Step 0 completes
             if (step0PanelReplaced) {
@@ -18341,7 +18580,7 @@ ${_T.extraction_vec_trigger_note || ""}
           Math.max(1, toInt(configCache.context_messages, 10)),
           chat,
           { includeGreeting: isFirstMessage },
-        );        try {
+        ); try {
           const pendingTurn = await TurnRecoveryManager.checkPending(requestKeys.scopeId);
           if (pendingTurn) {
             await TurnRecoveryManager.attemptRecovery(pendingTurn, char, chat, chatIndex, baseConversation || []);
