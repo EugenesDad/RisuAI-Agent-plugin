@@ -6164,19 +6164,27 @@ OUTPUT (STRICT):
       }),
     );
     const unsignedToken = `${header}.${claim}`;
-    const privateKey = await crypto.subtle.importKey(
+    const subtleCrypto = (typeof globalThis !== "undefined" && globalThis.crypto?.subtle)
+      ? globalThis.crypto.subtle
+      : (typeof window !== "undefined" && window.crypto?.subtle)
+        ? window.crypto.subtle
+        : crypto.subtle;
+    const privateKey = await subtleCrypto.importKey(
       "pkcs8",
       pemToArrayBuffer(svc.private_key),
       { name: "RSASSA-PKCS1-v1_5", hash: "SHA-256" },
       false,
       ["sign"],
     );
-    const signature = await crypto.subtle.sign(
+    const signature = await subtleCrypto.sign(
       "RSASSA-PKCS1-v1_5",
       privateKey,
       new TextEncoder().encode(unsignedToken),
     );
-    const jwt = `${unsignedToken}.${btoa(String.fromCharCode(...new Uint8Array(signature)))
+    const sigBytes = new Uint8Array(signature);
+    let sigBinary = "";
+    for (let i = 0; i < sigBytes.length; i++) sigBinary += String.fromCharCode(sigBytes[i]);
+    const jwt = `${unsignedToken}.${btoa(sigBinary)
       .replace(/\+/g, "-")
       .replace(/\//g, "_")
       .replace(/=+$/g, "")}`;
@@ -13536,11 +13544,16 @@ OUTPUT (STRICT):
     ta.style.position = "fixed";
     ta.style.opacity = "0";
     document.body.appendChild(ta);
+    // Android WebView: ta.select() alone is unreliable; setSelectionRange is required
+    ta.focus();
     ta.select();
+    try { ta.setSelectionRange(0, 99999); } catch (_) { }
+    let copied = false;
     try {
-      document.execCommand("copy");
+      copied = document.execCommand("copy");
     } catch (e) { }
     document.body.removeChild(ta);
+    return copied;
   }
   function injectStyles() {
     if (document.getElementById("pse-styles")) return;
@@ -14409,8 +14422,8 @@ ${_T.extraction_vec_trigger_note || ""}
  </div> </details> </div> <div class="pse-section indigo"> <div class="pse-section-title">${_T.preset1}</div> <label class="pse-label" style="color:var(--pse-text);">${_T.lbl_query_rounds}</label> <input id="vector_search_query_dialogue_rounds" class="pse-input" type="number" min="1" value="${String(Math.max(1, toInt(configCache.vector_search_query_dialogue_rounds, DEFAULTS.vector_search_query_dialogue_rounds)))}" /> <label class="pse-label" style="color:var(--pse-text);">${_T.lbl_topk}</label> <input id="vector_search_top_k" class="pse-input" type="number" min="1" value="${String(Math.max(1, toInt(configCache.vector_search_top_k, DEFAULTS.vector_search_top_k)))}" /> <label class="pse-label" style="color:var(--pse-text);">${_T.lbl_minscore}</label> <input id="vector_search_min_score" class="pse-input" type="number" min="0" max="1" step="0.01" value="${String(clampUnitInterval(configCache.vector_search_min_score, DEFAULTS.vector_search_min_score))}" /> </div> <div class="pse-section green"> <div class="pse-section-title">${_T.preset2}</div> <label class="pse-label" style="color:var(--pse-text);">${_T.lbl_query_rounds}</label> <input id="vector_search_query_dialogue_rounds_2" class="pse-input" type="number" min="1" value="${String(Math.max(1, toInt(configCache.vector_search_query_dialogue_rounds_2, DEFAULTS.vector_search_query_dialogue_rounds_2)))}" /> <label class="pse-label" style="color:var(--pse-text);">${_T.lbl_topk}</label> <input id="vector_search_top_k_2" class="pse-input" type="number" min="1" value="${String(Math.max(1, toInt(configCache.vector_search_top_k_2, DEFAULTS.vector_search_top_k_2)))}" /> <label class="pse-label" style="color:var(--pse-text);">${_T.lbl_minscore}</label> <input id="vector_search_min_score_2" class="pse-input" type="number" min="0" max="1" step="0.01" value="${String(clampUnitInterval(configCache.vector_search_min_score_2, DEFAULTS.vector_search_min_score_2))}" /> </div> </div> <div class="pse-page" data-page="6"> <!-- Cache Guide (Amber) --> <div class="pse-section amber" style="padding: 0; overflow: hidden; margin-bottom: 12px;"> <details id="pse-cache-details" ${cacheDetailsOpen ? "open" : ""} style="width: 100%;"> <summary style="padding: 10px 12px; cursor: pointer; font-weight: bold; list-style: none; display: flex; align-items: center; justify-content: space-between; user-select: none;"> <span>${_T.cache_guide_title}</span> <span style="font-size: 10px; opacity: 0.6;">${_T.mode_guide_click}</span> </summary> <div style="padding: 0 12px 12px 12px; font-size: 13px; line-height: 1.6; color: var(--pse-text);"> ${_T.cache_guide_content}
  </div> </details> </div> <div style="display:flex;gap:8px;margin-bottom:10px;"> <button id="pse-clear-cache" class="pse-btn" type="button" style="flex:1;padding:7px 12px;font-size:12px;background:var(--pse-accent-rose);">${_T.btn_clear_cache}</button> </div> <div id="pse-embed-cache-list" class="pse-entry-list"></div> <textarea id="init_bootstrap_model_anchor_prompt" style="display:none;">${escapeHtml(String(configCache.init_bootstrap_model_anchor_prompt || DEFAULTS.init_bootstrap_model_anchor_prompt))}</textarea> </div> <div class="pse-btn-row"> <button id="pse-save" class="pse-btn save">${_T.btn_save}</button> <button id="pse-close" class="pse-btn close">${_T.btn_close}</button> </div> </div> </div> `;
     const _existingOverlay = document.getElementById("pse-overlay-root");
-    document.body.appendChild(overlayRoot);
     if (_existingOverlay) _existingOverlay.remove();
+    document.body.appendChild(overlayRoot);
     requestAnimationFrame(() => {
       overlayRoot.style.opacity = "1";
     });
