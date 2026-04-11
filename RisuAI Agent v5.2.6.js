@@ -1,9 +1,9 @@
 //@name 👤 RisuAI Agent
-//@display-name 👤 RisuAI Agent v5.2.5
+//@display-name 👤 RisuAI Agent v5.2.6
 //@author penguineugene@protonmail.com
 //@link https://github.com/EugenesDad/RisuAI-Agent-plugin
 //@api 3.0
-//@version 5.2.5
+//@version 5.2.6
 
 (async () => {
   function _mapLangCode(raw) {
@@ -1342,7 +1342,7 @@
   let _T = _I18N.en;
   let _langInitialized = false;
   const PLUGIN_NAME = "👤 RisuAI Agent";
-  const PLUGIN_VER = "5.2.5";
+  const PLUGIN_VER = "5.2.6";
   const LOG = "[RisuAIAgent]";
   const SYSTEM_INJECT_TAG = "PLUGIN_PARALLEL_STATUS";
   const SYSTEM_REWRITE_TAG = "PLUGIN_PARALLEL_REWRITE";
@@ -12827,6 +12827,72 @@ OUTPUT (STRICT):
         throw personaErr;
       }
     }
+    // ── Persona vector indexing (normal Step 0 path) ──────────────────────
+    // reembedMode has its own persona-embed block above.  For the normal
+    // (first-run / classify_done) path we must also pre-embed persona vectors
+    // so that diagnoseCacheState finds them complete and does not loop with
+    // step0Reason = "classify_done" on the very next send.
+    if (isNewPresetEnabled() && configCache.vector_search_enabled === 1 && !reembedMode) {
+      try {
+        const cardKey = await getActiveCardKey(char);
+        const cardName = safeTrim(char?.name || "Character");
+        const cfg = resolveEmbeddingRuntimeConfig();
+        const store = await loadEmbeddingCacheStore();
+        const personaCache = await loadPersonaCache(cardKey);
+        const personaEntries = Object.values(personaCache?.entries || {});
+        const missingPersonaEntries = personaEntries.filter((entry) => {
+          const cacheKey = `persona|${entry?.textHash || ""}`;
+          const hit = store.cards?.[cardKey]?.entries?.[cacheKey];
+          return !hit || !Array.isArray(hit.vector) || !hit.vector.length;
+        });
+        if (missingPersonaEntries.length > 0) {
+          await Risuai.log(
+            `${LOG} Step 0: indexing ${missingPersonaEntries.length} persona vector(s)...`,
+          );
+          const embedBatchSize = getEmbeddingBatchSize(cfg.requestModel);
+          const freshStore = await loadEmbeddingCacheStore();
+          for (let i = 0; i < missingPersonaEntries.length; i += embedBatchSize) {
+            const batch = missingPersonaEntries.slice(i, i + embedBatchSize);
+            const vecs = await fetchEmbeddingVectorsRemote(
+              batch.map((e) => e.text),
+              cfg,
+              true,
+            );
+            let added = false;
+            vecs.forEach((vec, idx) => {
+              if (vec && vec.length) {
+                const entry = batch[idx];
+                upsertEmbeddingCacheEntry(
+                  freshStore,
+                  cardKey,
+                  cardName,
+                  `persona|${entry.textHash}`,
+                  {
+                    sourceType: "persona",
+                    name: entry.name,
+                    textHash: entry.textHash,
+                    dims: vec.length,
+                    vector: vec,
+                    text: entry.text,
+                  },
+                  cfg.requestModel,
+                );
+                added = true;
+              }
+            });
+            if (added) await saveEmbeddingCacheStore(freshStore);
+          }
+        }
+      } catch (personaVecErr) {
+        // Non-fatal: log and continue. The vectors will be built on-demand
+        // during the first semantic search query.
+        try {
+          await Risuai.log(
+            `${LOG}  Step 0 persona vector indexing failed (non-fatal): ${personaVecErr?.message || String(personaVecErr)}`,
+          );
+        } catch { }
+      }
+    }
     const inactiveChunks = chunks.filter(
       (c) => !c.alwaysActive && hasPrimaryTriggerKey(c),
     );
@@ -14577,7 +14643,7 @@ OUTPUT (STRICT):
     overlayRoot.id = "pse-overlay-root";
     overlayRoot.style.cssText =
       "position:fixed;inset:0;z-index:9999;overflow:auto;opacity:0;transition:opacity 0.15s ease;";
-    overlayRoot.innerHTML = ` <div class="pse-body"> <div class="pse-card"> <h1 class="pse-title">👤 RisuAI Agent v5.2.5</h1> <div id="pse-status" class="pse-status"></div> ${renderModelDatalists()}
+    overlayRoot.innerHTML = ` <div class="pse-body"> <div class="pse-card"> <h1 class="pse-title">👤 RisuAI Agent v5.2.6</h1> <div id="pse-status" class="pse-status"></div> ${renderModelDatalists()}
  <div class="pse-tabs"> ${`<button class="pse-tab active" data-page="7">${_T.tab_help}</button> <button class="pse-tab" data-page="8">${_T.tab_enable}</button> <button class="pse-tab" data-page="1">${_T.tab_model}</button>`}
  </div> <div class="pse-tabs pse-tabs-secondary"> ${`<button class="pse-tab" data-page="6">${_T.tab_cache_open || _T.sec_cache}</button> <button class="pse-tab" data-page="2">${_T.tab_entry}</button> <button class="pse-tab" data-page="5">${_T.tab_vector_open || _T.sec_vec}</button>`}
  </div> <div class="pse-page active" data-page="7"> <div style="margin-bottom:14px;padding:10px 14px;border-radius:8px;background:rgba(192,120,0,0.14);border:1.5px solid rgba(192,120,0,0.40);font-size:12px;font-weight:700;color:#3D2300;display:flex;align-items:center;gap:8px;"> ⚠️ ${escapeHtml(_T.lore_warn)}</div> <!-- Language (Standalone) --> <div style="margin-bottom:16px;"> <label class="pse-label" style="margin-bottom:6px; color:var(--pse-text);"> Language / 語言 / 언어</label> <div style="display:flex;gap:8px;"> ${["en", "tc", "ko"]
@@ -18085,7 +18151,7 @@ ${_T.extraction_vec_trigger_note || ""}
           const needsClassify = _cardReorgEnabled || _newPreset;
           const needsChunkVec = isVectorEnabled;
           const needsPersona = _newPreset;
-          const needsPersonaVec = _newPreset;
+          const needsPersonaVec = _newPreset && isVectorEnabled;
           const diag = await diagnoseCacheState(char, staticKeys, {
             needsClassify,
             needsChunkVec,
@@ -18433,23 +18499,13 @@ ${_T.extraction_vec_trigger_note || ""}
                 needsClassify: _postDiagClassify,
                 needsChunkVec: _postDiagChunkVec,
                 needsPersona: _postDiagPersona,
-                needsPersonaVec: _postDiagPersona,
+                needsPersonaVec: _postDiagPersona && isVectorEnabled,
               });
               if (_postDiag.needsStep0) {
                 const _postDefectReason = _postDiag.step0Reason;
                 await Risuai.log(
                   `${LOG}  Post-Step 0 integrity check failed (reason: ${_postDefectReason}). Cache may be incomplete.`,
                 );
-                const _postDefectMsg = typeof _T.warn_cache_defect_abort === "function"
-                  ? _T.warn_cache_defect_abort(_postDefectReason)
-                  : `Cache integrity check failed after Step 0 (reason: ${_postDefectReason}).\nSome data may be missing. Please re-run Step 0 or use Manual Append in Cache Hub.`;
-                try {
-                  if (typeof Risuai.alertError === "function") {
-                    await Risuai.alertError(`[RisuAI Agent] ${_postDefectMsg}`);
-                  } else if (typeof Risuai.alert === "function") {
-                    await Risuai.alert(`[RisuAI Agent] ${_postDefectMsg}`);
-                  }
-                } catch { }
               }
             } catch (_postDiagErr) {
               await Risuai.log(
