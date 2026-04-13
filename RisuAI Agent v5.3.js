@@ -1,9 +1,9 @@
 //@name 👤 RisuAI Agent
-//@display-name 👤 RisuAI Agent v5.2.6
+//@display-name 👤 RisuAI Agent v5.3
 //@author penguineugene@protonmail.com
 //@link https://github.com/EugenesDad/RisuAI-Agent-plugin
 //@api 3.0
-//@version 5.2.6
+//@version 5.3
 
 (async () => {
   function _mapLangCode(raw) {
@@ -34,7 +34,79 @@
     } catch { }
     return "en";
   }
-  const _I18N = {
+  const AUTO_INJECT_PROMPT_1 = `# UPSTREAM MEMORY USAGE GUIDE
+
+## Boundary Constraints
+- You are an actor and scene narrator. Do not direct plot twists, environmental changes unless explicitly triggered by ra_director or ra_logic_state.
+- Do not explain or summarize the JSON structures in narrative output.
+- Do not invent unlisted items, locations, or history.
+
+## Priorities (P1 > P5)
+### P1: Hard Constraints
+- ra_logic_state: Strictly execute strict_directive first.
+- ra_response_guard (if present): Highest-priority override. Apply before all other constraints.
+- ra_pattern_guard: banned_phrases are strictly forbidden. Follow variation_hint.
+### P2: Scene Ground Truth
+- ra_scene_state: Authoritative for location, atmosphere, and present characters.
+- ra_inventory: Enforce exact listed equipment and clothing.
+- ra_turn_trace: Continue strictly from this exact beat.
+- ra_director: Organically integrate environment_intervention if present.
+### P3: Active Plot & Strategy
+- ra_quest_log: Honor next_step. Do not summon characters marked requires_absent.
+- ra_knowledge_matrix (if present): Enforce info-boundaries (knowers vs unknown_to). exploit_risk is for internal reasoning.
+- ra_knowledge_annotations (if present): Apply additional knowledge constraints and annotations.
+- ra_relation_web (if present): Reflect established relationship dynamics between characters.
+- ra_strategy_analysis (if present): Apply analyst_strategy_overrides. Avoid cognition_violations.
+- ra_strategy_layer (if present): Base NPC behaviors on operations, leverage, and risk.
+### P4: Persistent Continuity
+- ra_persistent_memory: Enforce identity_nonnegotiables, signature_addressing, and actor_rule.
+- ra_reentry_guard: When returning is true, enforce restore_now. Avoid do_not_introduce.
+- ra_arc_memory / ra_turning_point_log: Must remain true. Contradictions are continuity errors.
+### P5: Reference Archives
+- ra_world_encyclopedia / ra_world_log: Consult only when necessary.`;
+  const AUTO_INJECT_PROMPT_2 = `# UPSTREAM MEMORY USAGE GUIDE
+
+## Boundary Constraints
+- You are an actor and scene narrator, not a director. Do not invent plot twists, scene changes without authorization from ra_director or ra_logic_state.
+- Do not resolve threads ahead of ra_quest_log.next_step.
+- Do not summarize JSON in your output.
+
+## Execution Tiers
+### Tier 1: Hard Constraints
+- ra_response_guard (if present) > ra_logic_state.strict_directive > ra_turn_advice.response_guard.
+- Obey strict_directive and fix any logic_violation.
+### Tier 2: Current Portrayal
+- ra_turn_advice.character_routing: Core actor brief for current turn (primary_facet, reply_strategy, portrayal_goal, micro_repair, evolution_nudge, mask_note, reentry_restore).
+- ra_persona_importance: Use priority rankings to weight character focus for this turn.
+- ra_facet_audit: Check recent facet expression; avoid repeating facets flagged as stale.
+- ra_scene_state: scene_type, stakes_level, surface_expression, approach_tendency. Do not reveal hidden_drive in dialogue.
+- ra_director: Organically integrate environment_intervention if present.
+- Cast Check: Use ra_scene_state.characters. Do not include absent characters.
+- ra_inventory: Adhere exactly to listed items and clothing.
+- ra_mask_state (if present): Enforce mask and hidden-layer state for relevant characters.
+- ra_scene_principles (if present): Apply scene-level behavioral constraints.
+### Tier 3: Durable Continuity
+- ra_persistent_memory: Never contradict identity_nonnegotiables and signature_addressing. Apply reentry_anchors.
+- ra_reentry_guard: On returning is true, apply restore_now and avoid do_not_introduce.
+- ra_persona_evolution: Reflect any confirmed evolution deltas in current portrayal.
+- ra_knowledge_matrix (if present): Strict info-boundaries (knowers vs unknown_to). When absent, infer conservatively.
+- ra_knowledge_annotations (if present): Apply additional knowledge constraints and annotations.
+- ra_relation_web (if present): Reflect established relationship dynamics between characters.
+- ra_strategy_analysis / ra_strategy_layer (if present): Integrate NPC strategic behavior.
+- ra_quest_log: Track active_threads context. Progress only by next_step.
+- ra_pattern_guard: Apply variation_hint if staleness_level >= 6. Never use banned_phrases.
+- Reference: ra_turn_trace, ra_arc_memory, ra_turning_point_log, ra_world_log, ra_world_encyclopedia.
+
+## Execution Checklist
+1. Apply Tier 1 constraints.
+2. Read ra_turn_advice + ra_persona_importance for active cast priorities.
+3. Validate presence via ra_logic_state or Cast Check.
+4. Check ra_facet_audit; correct stale expression before writing.
+5. Verify ra_inventory for object/clothing continuity.
+6. Verify ra_knowledge_matrix facts and secrets (if present).
+7. Check ra_pattern_guard for forbidden tokens.
+8. Write output. Express only one dominant facet per character.`;
+    const _I18N = {
     en: {
       append: "Append",
       overwrite: "Overwrite",
@@ -333,67 +405,10 @@
       lbl_custom_preset_guide: " For Custom Preset Users",
       auto_inject_title: " Auto-Injection Enabled",
       auto_inject_desc: "Default settings detected. The system will <b>automatically</b> inject the System Prompts. No manual setup required!",
-      help_p1_html: `<div style=" background: rgba(255, 171, 0, 0.22); padding: 12px; border-radius: 8px;"> <b style="color:var(--pse-muted); font-size: 14px;"> Preset Adjustment Guide</b> <div style="margin-top: 8px; font-size: 13px; line-height: 1.6; color: var(--pse-text);"> <div style="margin-bottom: 4px;">1. <b>Delete fields:</b> Character Description, Lorebook, Global Note, Supa/HypaMemory.</div> <div style="margin-bottom: 12px;">2. <b>Advanced Settings:</b> Enter Chat > Check "Advanced", then set <b>Range Start</b> to <b>-10</b>.</div> <b style="color:var(--pse-muted); font-size: 14px;"> For Custom Preset Users</b> <div style="margin-top: 8px;"> <div style="margin-bottom: 4px;">3. Refer to the following system prompt and modify it to your own version.</div> <div style="margin-bottom: 4px;">4. Go to Bot > Prompts page, open the <b>top-most System Prompt</b>, and insert the prompt.</div> <div>5. To achieve 100% performance of this plugin, further edit the system prompt to demote the AI's identity to an <b>Actor</b>.</div> </div> </div> <div style="margin-top:12px;"> <textarea class="pse-code-window" readonly># UPSTREAM MEMORY USAGE GUIDE
-
-## Boundary Constraints
-- You are an actor and scene narrator. Do not direct plot twists, environmental changes unless explicitly triggered by ra_director or ra_logic_state.entrance_signal.
-- Do not explain or summarize the JSON structures in narrative output.
-- Do not invent unlisted items, locations, or history.
-
-## Priorities (P1 > P5)
-### P1: Hard Constraints
-- ra_logic_state: Strictly execute strict_directive first.
-- ra_strategy_analysis: Apply analyst_strategy_overrides. Avoid cognition_violations.
-- ra_pattern_guard: banned_phrases are strictly forbidden. Follow variation_hint.
-### P2: Scene Ground Truth
-- ra_scene_state: Authoritative for location, atmosphere, and present characters.
-- ra_inventory: Enforce exact listed equipment and clothing.
-- ra_turn_trace: Continue strictly from this exact beat.
-- ra_director: Organically integrate environment_intervention if present.
-### P3: Active Plot & Strategy
-- ra_quest_log: Honor next_step. Do not summon characters marked requires_absent.
-- ra_knowledge_matrix: Enforce info-boundaries (knowers vs unknown_to). exploit_risk is for internal reasoning.
-- ra_strategy_layer: Base NPC behaviors on operations, leverage, and risk.
-### P4: Persistent Continuity
-- ra_persistent_memory: Enforce identity_nonnegotiables, signature_addressing, and actor_rule.
-- ra_reentry_guard: When returning is true, enforce restore_now. Avoid do_not_introduce.
-- ra_arc_memory / ra_turning_point_log: Must remain true. Contradictions are continuity errors.
-### P5: Reference Archives
-- ra_world_encyclopedia / ra_world_log / ra_knowledge_archive / ra_strategy_archive: Consult only when necessary.</textarea> <button class="pse-btn pse-copy-sql-btn" type="button" style="width:100%;padding:6px;font-size:12px;background:var(--pse-accent-greyblue);"> Copy System Prompt</button> </div> </div>`,
+      help_p1_html: `<div style=" background: rgba(255, 171, 0, 0.22); padding: 12px; border-radius: 8px;"> <b style="color:var(--pse-muted); font-size: 14px;"> Preset Adjustment Guide</b> <div style="margin-top: 8px; font-size: 13px; line-height: 1.6; color: var(--pse-text);"> <div style="margin-bottom: 4px;">1. <b>Delete fields:</b> Character Description, Lorebook, Global Note, Supa/HypaMemory.</div> <div style="margin-bottom: 12px;">2. <b>Advanced Settings:</b> Enter Chat > Check "Advanced", then set <b>Range Start</b> to <b>-10</b>.</div> <b style="color:var(--pse-muted); font-size: 14px;"> For Custom Preset Users</b> <div style="margin-top: 8px;"> <div style="margin-bottom: 4px;">3. Refer to the following system prompt and modify it to your own version.</div> <div style="margin-bottom: 4px;">4. Go to Bot > Prompts page, open the <b>top-most System Prompt</b>, and insert the prompt.</div> <div>5. To achieve 100% performance of this plugin, further edit the system prompt to demote the AI's identity to an <b>Actor</b>.</div> </div> </div> <div style="margin-top:12px;"> <textarea class="pse-code-window" readonly>${AUTO_INJECT_PROMPT_1}</textarea> <button class="pse-btn pse-copy-sql-btn" type="button" style="width:100%;padding:6px;font-size:12px;background:var(--pse-accent-greyblue);"> Copy System Prompt</button> </div> </div>`,
       help_p1_html_auto: `<div style=" background: rgba(255, 171, 0, 0.22); padding: 12px; border-radius: 8px;"> <b style="color:var(--pse-muted); font-size: 14px;"> Preset Adjustment Guide</b> <div style="margin-top: 8px; font-size: 13px; line-height: 1.6; color: var(--pse-text);"> <div style="margin-bottom: 4px;">1. <b>Delete fields:</b> Character Description, Lorebook, Global Note, Supa/HypaMemory.</div> <div style="margin-bottom: 4px;">2. <b>Advanced Settings:</b> Enter Chat > Check "Advanced", then set <b>Range Start</b> to <b>-10</b>.</div> </div> <div style="margin-top:12px; padding: 12px; border-radius: 8px; background: rgba(0, 150, 136, 0.20);"> <b style="color: var(--pse-accent-teal); font-size: 14px;"> Auto-Injection Enabled</b> <div style="margin-top: 8px; font-size: 13px; line-height: 1.6; color: var(--pse-text);"> Default settings detected. The system will <b>automatically</b> inject the System Prompts. No manual setup required!
  </div> </div> </div>`,
-      help_p2_html: `<div style=" background: rgba(255, 23, 68, 0.20); padding: 12px; border-radius: 8px;"> <b style="color:var(--pse-muted); font-size: 14px;"> Preset Adjustment Guide</b> <div style="margin-top: 8px; font-size: 13px; line-height: 1.6; color: var(--pse-text);"> <div style="margin-bottom: 4px;">1. <b>Delete fields:</b> Character Description, Lorebook, Global Note, Supa/HypaMemory.</div> <div style="margin-bottom: 12px;">2. <b>Advanced Settings:</b> Enter Chat > Check "Advanced", then set <b>Range Start</b> to <b>-10</b>.</div> <b style="color:var(--pse-muted); font-size: 14px;"> For Custom Preset Users</b> <div style="margin-top: 8px;"> <div style="margin-bottom: 4px;">3. Refer to the following system prompt and modify it to your own version.</div> <div style="margin-bottom: 4px;">4. Go to Bot > Prompts page, open the <b>top-most System Prompt</b>, and insert the prompt.</div> <div>5. To achieve 100% performance of this plugin, further edit the system prompt to demote the AI's identity to an <b>Actor</b>.</div> </div> </div> <div style="margin-top:12px;"> <textarea class="pse-code-window" readonly># UPSTREAM MEMORY USAGE GUIDE
-
-## Boundary Constraints
-- You are an actor and scene narrator, not a director. Do not invent plot twists, scene changes without authorization from ra_logic_state.entrance_signal.
-- Do not resolve threads ahead of ra_quest_log.next_step.
-- Do not summarize JSON in your output.
-
-## Execution Tiers
-### Tier 1: Hard Constraints
-- ra_response_guard (if present) > ra_logic_state.strict_directive > ra_turn_advice.response_guard.
-- Obey strict_directive and fix any logic_violation.
-### Tier 2: Current Portrayal
-- ra_turn_advice.character_routing: Core actor brief for current turn (primary_facet, reply_strategy, portrayal_goal, micro_repair, evolution_nudge, mask_note, reentry_restore).
-- ra_scene_state: scene_type, stakes_level, surface_expression, approach_tendency. Do not reveal hidden_drive in dialogue.
-- Cast Check: Use ra_scene_state.characters. Do not include absent characters.
-- ra_inventory: Adhere exactly to listed items and clothing.
-### Tier 3: Durable Continuity
-- ra_persistent_memory: Never contradict identity_nonnegotiables and signature_addressing. Apply reentry_anchors.
-- ra_reentry_guard: On returning is true, apply restore_now and avoid do_not_introduce.
-- ra_knowledge_matrix: Strict info-boundaries (knowers vs unknown_to). When absent, infer conservatively.
-- ra_quest_log: Track active_threads context. Progress only by next_step.
-- ra_pattern_guard: Apply variation_hint if staleness_level >= 6. Never use banned_phrases.
-- Reference: ra_turn_trace, ra_arc_memory, ra_turning_point_log, ra_world_log, ra_world_encyclopedia.
-
-## Execution Checklist
-1. Apply Tier 1 constraints.
-2. Read ra_turn_advice for active cast.
-3. Validate presence via ra_logic_state.entrance_signal or Cast Check.
-4. Verify ra_inventory for object/clothing continuity.
-5. Verify ra_knowledge_matrix facts and secrets.
-6. Check ra_pattern_guard for forbidden tokens.
-7. Write output. Express only one dominant facet per character.</textarea> <button class="pse-btn pse-copy-sql-btn" type="button" style="width:100%;padding:6px;font-size:12px;background:var(--pse-accent-greyblue);"> Copy System Prompt</button> </div> </div>`,
+      help_p2_html: `<div style=" background: rgba(255, 23, 68, 0.20); padding: 12px; border-radius: 8px;"> <b style="color:var(--pse-muted); font-size: 14px;"> Preset Adjustment Guide</b> <div style="margin-top: 8px; font-size: 13px; line-height: 1.6; color: var(--pse-text);"> <div style="margin-bottom: 4px;">1. <b>Delete fields:</b> Character Description, Lorebook, Global Note, Supa/HypaMemory.</div> <div style="margin-bottom: 12px;">2. <b>Advanced Settings:</b> Enter Chat > Check "Advanced", then set <b>Range Start</b> to <b>-10</b>.</div> <b style="color:var(--pse-muted); font-size: 14px;"> For Custom Preset Users</b> <div style="margin-top: 8px;"> <div style="margin-bottom: 4px;">3. Refer to the following system prompt and modify it to your own version.</div> <div style="margin-bottom: 4px;">4. Go to Bot > Prompts page, open the <b>top-most System Prompt</b>, and insert the prompt.</div> <div>5. To achieve 100% performance of this plugin, further edit the system prompt to demote the AI's identity to an <b>Actor</b>.</div> </div> </div> <div style="margin-top:12px;"> <textarea class="pse-code-window" readonly>${AUTO_INJECT_PROMPT_2}</textarea> <button class="pse-btn pse-copy-sql-btn" type="button" style="width:100%;padding:6px;font-size:12px;background:var(--pse-accent-greyblue);"> Copy System Prompt</button> </div> </div>`,
       help_p2_html_auto: `<div style=" background: rgba(255, 23, 68, 0.20); padding: 12px; border-radius: 8px;"> <b style="color:var(--pse-muted); font-size: 14px;"> Preset Adjustment Guide</b> <div style="margin-top: 8px; font-size: 13px; line-height: 1.6; color: var(--pse-text);"> <div style="margin-bottom: 4px;">1. <b>Delete fields:</b> Character Description, Lorebook, Global Note, Supa/HypaMemory.</div> <div style="margin-bottom: 4px;">2. <b>Advanced Settings:</b> Enter Chat > Check "Advanced", then set <b>Range Start</b> to <b>-10</b>.</div> </div> <div style="margin-top:12px; padding: 12px; border-radius: 8px; background: rgba(0, 150, 136, 0.20);"> <b style="color: var(--pse-accent-teal); font-size: 14px;"> Auto-Injection Enabled</b> <div style="margin-top: 8px; font-size: 13px; line-height: 1.6; color: var(--pse-text);"> Default settings detected. The system will <b>automatically</b> inject the System Prompts. No manual setup required!
  </div> </div> </div>`,
       extraction_vec_trigger_note: `<div style="margin-top:8px;padding:8px 10px;border-radius:8px;background:rgba(255,152,0,0.16);font-size:12px;color:var(--pse-text);">• <b>Call Vector Trigger:</b> In each entry, click <b>⚙</b> (left of <b>×</b>) to enable vector-trigger settings. You can set match basis, threshold, and fallback turns. In <b>Bot Reorg only</b>, entries run by the call schedule (<code>every_n_turns</code>).</div>`,
@@ -771,65 +786,8 @@
         "설정 2: 메인은 보통 2, 4, 10, 15턴 전후, 보조는 턴당 기본 4회 + 2, 3턴 전후 조건부 추가 호출",
       auto_inject_title: " 자동 주입 활성화됨",
       auto_inject_desc: "기본 설정이 감지되었습니다. 발송 시 시스템이 지정된 System Prompts를 <b>자동으로</b> 주입합니다. 수동 설정은 필요하지 않습니다!",
-      help_p1_html: `<div style=" background: rgba(255, 171, 0, 0.22); padding: 12px; border-radius: 8px;"> <b style="color:var(--pse-muted); font-size: 14px;"> 프리셋 조정 가이드</b> <div style="margin-top: 8px; font-size: 13px; line-height: 1.6; color: var(--pse-text);"> <div style="margin-bottom: 4px;">1. <b>삭제 항목:</b> 캐릭터 설명(Character Description), 로어북(Lorebook), 글로벌 노트(Global Note), Supa/HypaMemory.</div> <div style="margin-bottom: 4px;">2. <b>고급 설정:</b> 채팅 진입 > 「고급」 체크 후 「범위 시작」을 <b>-10</b>으로 설정.</div> <div>3. 아래의 시스템 프롬프트를 복사한 후, 봇 > 프롬프트 페이지로 이동하여 <b>최상단 시스템 프롬프트</b>를 열고 프롬프트를 <b>가장 마지막에</b> 삽입하십시오.</div> </div> <div style="margin-top:12px;"> <textarea class="pse-code-window" readonly># UPSTREAM MEMORY USAGE GUIDE
-
-## Boundary Constraints
-- You are an actor and scene narrator. Do not direct plot twists, environmental changes unless explicitly triggered by ra_director or ra_logic_state.entrance_signal.
-- Do not explain or summarize the JSON structures in narrative output.
-- Do not invent unlisted items, locations, or history.
-
-## Priorities (P1 > P5)
-### P1: Hard Constraints
-- ra_logic_state: Strictly execute strict_directive first.
-- ra_strategy_analysis: Apply analyst_strategy_overrides. Avoid cognition_violations.
-- ra_pattern_guard: banned_phrases are strictly forbidden. Follow variation_hint.
-### P2: Scene Ground Truth
-- ra_scene_state: Authoritative for location, atmosphere, and present characters.
-- ra_inventory: Enforce exact listed equipment and clothing.
-- ra_turn_trace: Continue strictly from this exact beat.
-- ra_director: Organically integrate environment_intervention if present.
-### P3: Active Plot & Strategy
-- ra_quest_log: Honor next_step. Do not summon characters marked requires_absent.
-- ra_knowledge_matrix: Enforce info-boundaries (knowers vs unknown_to). exploit_risk is for internal reasoning.
-- ra_strategy_layer: Base NPC behaviors on operations, leverage, and risk.
-### P4: Persistent Continuity
-- ra_persistent_memory: Enforce identity_nonnegotiables, signature_addressing, and actor_rule.
-- ra_reentry_guard: When returning is true, enforce restore_now. Avoid do_not_introduce.
-- ra_arc_memory / ra_turning_point_log: Must remain true. Contradictions are continuity errors.
-### P5: Reference Archives
-- ra_world_encyclopedia / ra_world_log / ra_knowledge_archive / ra_strategy_archive: Consult only when necessary.</textarea> <button class="pse-btn pse-copy-sql-btn" type="button" style="width:100%;padding:6px;font-size:12px;background:var(--pse-accent-greyblue);"> 시스템 프롬프트 복사</button> </div> </div>`,
-      help_p2_html: `<div style=" background: rgba(255, 23, 68, 0.20); padding: 12px; border-radius: 8px;"> <b style="color:var(--pse-muted); font-size: 14px;"> 프리셋 조정 가이드</b> <div style="margin-top: 8px; font-size: 13px; line-height: 1.6; color: var(--pse-text);"> <div style="margin-bottom: 4px;">1. <b>삭제 항목:</b> 캐릭터 설명(Character Description), 로어북(Lorebook), 글로벌 노트(Global Note), Supa/HypaMemory.</div> <div style="margin-bottom: 4px;">2. <b>고급 설정:</b> 채팅 진입 > 「고급」 체크 후 「범위 시작」을 <b>-10</b>으로 설정.</div> <div>3. 아래의 시스템 프롬프트를 복사한 후, 봇 > 프롬프트 페이지로 이동하여 <b>최상단 시스템 프롬프트</b>를 열고 프롬프트를 삽입한 다음, <b style="color:var(--pse-muted); font-size: 13px;">시스템 프롬프트 안에서 AI의 신분을 배우(Actor)로 강등</b>시키세요.</div> <div>기존 프롬프트의 <b style="color:var(--pse-muted); font-size: 13px;">Director</b>, <b style="color:var(--pse-muted); font-size: 13px;">Planner</b>, <b style="color:var(--pse-muted); font-size: 13px;">Narrator</b>, <b style="color:var(--pse-muted); font-size: 13px;">Storyteller</b> 계층 관련 내용을 <b style="color:var(--pse-muted); font-size: 13px;">Actor</b>, <b style="color:var(--pse-muted); font-size: 13px;">Executor</b> 계층으로 강등시키십시오.</div> </div> <div style="margin-top:12px;"> <textarea class="pse-code-window" readonly># UPSTREAM MEMORY USAGE GUIDE
-
-## Boundary Constraints
-- You are an actor and scene narrator, not a director. Do not invent plot twists, scene changes without authorization from ra_logic_state.entrance_signal.
-- Do not resolve threads ahead of ra_quest_log.next_step.
-- Do not summarize JSON in your output.
-
-## Execution Tiers
-### Tier 1: Hard Constraints
-- ra_response_guard (if present) > ra_logic_state.strict_directive > ra_turn_advice.response_guard.
-- Obey strict_directive and fix any logic_violation.
-### Tier 2: Current Portrayal
-- ra_turn_advice.character_routing: Core actor brief for current turn (primary_facet, reply_strategy, portrayal_goal, micro_repair, evolution_nudge, mask_note, reentry_restore).
-- ra_scene_state: scene_type, stakes_level, surface_expression, approach_tendency. Do not reveal hidden_drive in dialogue.
-- Cast Check: Use ra_scene_state.characters. Do not include absent characters.
-- ra_inventory: Adhere exactly to listed items and clothing.
-### Tier 3: Durable Continuity
-- ra_persistent_memory: Never contradict identity_nonnegotiables and signature_addressing. Apply reentry_anchors.
-- ra_reentry_guard: On returning is true, apply restore_now and avoid do_not_introduce.
-- ra_knowledge_matrix: Strict info-boundaries (knowers vs unknown_to). When absent, infer conservatively.
-- ra_quest_log: Track active_threads context. Progress only by next_step.
-- ra_pattern_guard: Apply variation_hint if staleness_level >= 6. Never use banned_phrases.
-- Reference: ra_turn_trace, ra_arc_memory, ra_turning_point_log, ra_world_log, ra_world_encyclopedia.
-
-## Execution Checklist
-1. Apply Tier 1 constraints.
-2. Read ra_turn_advice for active cast.
-3. Validate presence via ra_logic_state.entrance_signal or Cast Check.
-4. Verify ra_inventory for object/clothing continuity.
-5. Verify ra_knowledge_matrix facts and secrets.
-6. Check ra_pattern_guard for forbidden tokens.
-7. Write output. Express only one dominant facet per character.</textarea> <button class="pse-btn pse-copy-sql-btn" type="button" style="width:100%;padding:6px;font-size:12px;background:var(--pse-accent-greyblue);"> 시스템 프롬프트 복사</button> </div> </div>`,
+      help_p1_html: `<div style=" background: rgba(255, 171, 0, 0.22); padding: 12px; border-radius: 8px;"> <b style="color:var(--pse-muted); font-size: 14px;"> 프리셋 조정 가이드</b> <div style="margin-top: 8px; font-size: 13px; line-height: 1.6; color: var(--pse-text);"> <div style="margin-bottom: 4px;">1. <b>삭제 항목:</b> 캐릭터 설명(Character Description), 로어북(Lorebook), 글로벌 노트(Global Note), Supa/HypaMemory.</div> <div style="margin-bottom: 4px;">2. <b>고급 설정:</b> 채팅 진입 > 「고급」 체크 후 「범위 시작」을 <b>-10</b>으로 설정.</div> <div>3. 아래의 시스템 프롬프트를 복사한 후, 봇 > 프롬프트 페이지로 이동하여 <b>최상단 시스템 프롬프트</b>를 열고 프롬프트를 <b>가장 마지막에</b> 삽입하십시오.</div> </div> <div style="margin-top:12px;"> <textarea class="pse-code-window" readonly>${AUTO_INJECT_PROMPT_1}</textarea> <button class="pse-btn pse-copy-sql-btn" type="button" style="width:100%;padding:6px;font-size:12px;background:var(--pse-accent-greyblue);"> 시스템 프롬프트 복사</button> </div> </div>`,
+      help_p2_html: `<div style=" background: rgba(255, 23, 68, 0.20); padding: 12px; border-radius: 8px;"> <b style="color:var(--pse-muted); font-size: 14px;"> 프리셋 조정 가이드</b> <div style="margin-top: 8px; font-size: 13px; line-height: 1.6; color: var(--pse-text);"> <div style="margin-bottom: 4px;">1. <b>삭제 항목:</b> 캐릭터 설명(Character Description), 로어북(Lorebook), 글로벌 노트(Global Note), Supa/HypaMemory.</div> <div style="margin-bottom: 4px;">2. <b>고급 설정:</b> 채팅 진입 > 「고급」 체크 후 「범위 시작」을 <b>-10</b>으로 설정.</div> <div>3. 아래의 시스템 프롬프트를 복사한 후, 봇 > 프롬프트 페이지로 이동하여 <b>최상단 시스템 프롬프트</b>를 열고 프롬프트를 삽입한 다음, <b style="color:var(--pse-muted); font-size: 13px;">시스템 프롬프트 안에서 AI의 신분을 배우(Actor)로 강등</b>시키세요.</div> <div>기존 프롬프트의 <b style="color:var(--pse-muted); font-size: 13px;">Director</b>, <b style="color:var(--pse-muted); font-size: 13px;">Planner</b>, <b style="color:var(--pse-muted); font-size: 13px;">Narrator</b>, <b style="color:var(--pse-muted); font-size: 13px;">Storyteller</b> 계층 관련 내용을 <b style="color:var(--pse-muted); font-size: 13px;">Actor</b>, <b style="color:var(--pse-muted); font-size: 13px;">Executor</b> 계층으로 강등시키십시오.</div> </div> <div style="margin-top:12px;"> <textarea class="pse-code-window" readonly>${AUTO_INJECT_PROMPT_2}</textarea> <button class="pse-btn pse-copy-sql-btn" type="button" style="width:100%;padding:6px;font-size:12px;background:var(--pse-accent-greyblue);"> 시스템 프롬프트 복사</button> </div> </div>`,
       help_p1_html_auto: `<div style=" background: rgba(255, 171, 0, 0.22); padding: 12px; border-radius: 8px;"> <b style="color:var(--pse-muted); font-size: 14px;"> 프리셋 조정 가이드</b> <div style="margin-top: 8px; font-size: 13px; line-height: 1.6; color: var(--pse-text);"> <div style="margin-bottom: 4px;">1. <b>삭제 항목:</b> 캐릭터 설명(Character Description), 로어북(Lorebook), 글로벌 노트(Global Note), Supa/HypaMemory.</div> <div style="margin-bottom: 4px;">2. <b>고급 설정:</b> 채팅 진입 > 「고급」 체크 후 「범위 시작」을 <b>-10</b>으로 설정.</div> </div> <div style="margin-top:12px; padding: 12px; border-radius: 8px; background: rgba(0, 150, 136, 0.20);"> <b style="color: var(--pse-accent-teal); font-size: 14px;"> 자동 주입 활성화됨</b> <div style="margin-top: 8px; font-size: 13px; line-height: 1.6; color: var(--pse-text);"> 기본 설정이 감지되었습니다. 발송 시 시스템이 지정된 System Prompts를 <b>자동으로</b> 주입합니다. 수동 설정은 필요하지 않습니다!
  </div> </div> </div>`,
       help_p2_html_auto: `<div style=" background: rgba(255, 23, 68, 0.20); padding: 12px; border-radius: 8px;"> <b style="color:var(--pse-muted); font-size: 14px;"> 프리셋 조정 가이드</b> <div style="margin-top: 8px; font-size: 13px; line-height: 1.6; color: var(--pse-text);"> <div style="margin-bottom: 4px;">1. <b>삭제 항목:</b> 캐릭터 설명(Character Description), 로어북(Lorebook), 글로벌 노트(Global Note), Supa/HypaMemory.</div> <div style="margin-bottom: 4px;">2. <b>고급 설정:</b> 채팅 진입 > 「고급」 체크 후 「범위 시작」을 <b>-10</b>으로 설정.</div> </div> <div style="margin-top:12px; padding: 12px; border-radius: 8px; background: rgba(0, 150, 136, 0.20);"> <b style="color: var(--pse-accent-teal); font-size: 14px;"> 자동 주입 활성화됨</b> <div style="margin-top: 8px; font-size: 13px; line-height: 1.6; color: var(--pse-text);"> 기본 설정이 감지되었습니다. 발송 시 시스템이 지정된 System Prompts를 <b>자동으로</b> 주입합니다. 수동 설정은 필요하지 않습니다!
@@ -1274,67 +1232,10 @@
       lbl_custom_preset_guide: " 給自訂設定的使用者",
       auto_inject_title: " 系統已啟動自動注入",
       auto_inject_desc: "偵測到您維持預設的資訊萃取設定。發送對話時系統將 <b>自動</b> 套用 System Prompts，無須手動設定！",
-      help_p1_html: `<div style=" background: rgba(255, 171, 0, 0.22); padding: 12px; border-radius: 8px;"> <b style="color:var(--pse-muted); font-size: 14px;"> 預設提示詞 調整指南</b> <div style="margin-top: 8px; font-size: 13px; line-height: 1.6; color: var(--pse-text);"> <div style="margin-bottom: 4px;">1. 刪除欄位：<b>角色敘述、Lorebook、全域備註、Supa/HypaMemory</b>。</div> <div style="margin-bottom: 12px;">2. <b>進階設定：</b>進入聊天 > 勾選「進階」，然後將「範圍開始」設定為 <b>-10</b>。</div> <b style="color:var(--pse-muted); font-size: 14px;"> 給自訂設定的使用者</b> <div style="margin-top: 8px;"> <div style="margin-bottom: 4px;">3. 參考以下系統提示詞，然後修改成屬於你的版本。</div> <div style="margin-bottom: 4px;">4. 進到聊天機器人 > 提示詞頁面，打開 <b>頂部的系統提示詞</b> 後，將提示詞插入。</div> <div>5. 如果要發揮本外掛 100% 的性能，則要進一步編輯系統提示詞，將 AI 的身分降格成演員。</div> </div> </div> <div style="margin-top:12px;"> <textarea class="pse-code-window" readonly># UPSTREAM MEMORY USAGE GUIDE
-
-## Boundary Constraints
-- You are an actor and scene narrator. Do not direct plot twists, environmental changes unless explicitly triggered by ra_director or ra_logic_state.entrance_signal.
-- Do not explain or summarize the JSON structures in narrative output.
-- Do not invent unlisted items, locations, or history.
-
-## Priorities (P1 > P5)
-### P1: Hard Constraints
-- ra_logic_state: Strictly execute strict_directive first.
-- ra_strategy_analysis: Apply analyst_strategy_overrides. Avoid cognition_violations.
-- ra_pattern_guard: banned_phrases are strictly forbidden. Follow variation_hint.
-### P2: Scene Ground Truth
-- ra_scene_state: Authoritative for location, atmosphere, and present characters.
-- ra_inventory: Enforce exact listed equipment and clothing.
-- ra_turn_trace: Continue strictly from this exact beat.
-- ra_director: Organically integrate environment_intervention if present.
-### P3: Active Plot & Strategy
-- ra_quest_log: Honor next_step. Do not summon characters marked requires_absent.
-- ra_knowledge_matrix: Enforce info-boundaries (knowers vs unknown_to). exploit_risk is for internal reasoning.
-- ra_strategy_layer: Base NPC behaviors on operations, leverage, and risk.
-### P4: Persistent Continuity
-- ra_persistent_memory: Enforce identity_nonnegotiables, signature_addressing, and actor_rule.
-- ra_reentry_guard: When returning is true, enforce restore_now. Avoid do_not_introduce.
-- ra_arc_memory / ra_turning_point_log: Must remain true. Contradictions are continuity errors.
-### P5: Reference Archives
-- ra_world_encyclopedia / ra_world_log / ra_knowledge_archive / ra_strategy_archive: Consult only when necessary.</textarea> <button class="pse-btn pse-copy-sql-btn" type="button" style="width:100%;padding:6px;font-size:12px;background:var(--pse-accent-greyblue);"> 複製系統提示詞</button> </div> </div>`,
+      help_p1_html: `<div style=" background: rgba(255, 171, 0, 0.22); padding: 12px; border-radius: 8px;"> <b style="color:var(--pse-muted); font-size: 14px;"> 預設提示詞 調整指南</b> <div style="margin-top: 8px; font-size: 13px; line-height: 1.6; color: var(--pse-text);"> <div style="margin-bottom: 4px;">1. 刪除欄位：<b>角色敘述、Lorebook、全域備註、Supa/HypaMemory</b>。</div> <div style="margin-bottom: 12px;">2. <b>進階設定：</b>進入聊天 > 勾選「進階」，然後將「範圍開始」設定為 <b>-10</b>。</div> <b style="color:var(--pse-muted); font-size: 14px;"> 給自訂設定的使用者</b> <div style="margin-top: 8px;"> <div style="margin-bottom: 4px;">3. 參考以下系統提示詞，然後修改成屬於你的版本。</div> <div style="margin-bottom: 4px;">4. 進到聊天機器人 > 提示詞頁面，打開 <b>頂部的系統提示詞</b> 後，將提示詞插入。</div> <div>5. 如果要發揮本外掛 100% 的性能，則要進一步編輯系統提示詞，將 AI 的身分降格成演員。</div> </div> </div> <div style="margin-top:12px;"> <textarea class="pse-code-window" readonly>${AUTO_INJECT_PROMPT_1}</textarea> <button class="pse-btn pse-copy-sql-btn" type="button" style="width:100%;padding:6px;font-size:12px;background:var(--pse-accent-greyblue);"> 複製系統提示詞</button> </div> </div>`,
       help_p1_html_auto: `<div style=" background: rgba(255, 171, 0, 0.22); padding: 12px; border-radius: 8px;"> <b style="color:var(--pse-muted); font-size: 14px;"> 預設提示詞 調整指南</b> <div style="margin-top: 8px; font-size: 13px; line-height: 1.6; color: var(--pse-text);"> <div style="margin-bottom: 4px;">1. 刪除欄位：<b>角色敘述、Lorebook、全域備註、Supa/HypaMemory</b>。</div> <div style="margin-bottom: 4px;">2. <b>進階設定：</b>進入聊天 > 勾選「進階」，然後將「範圍開始」設定為 <b>-10</b>。</div> </div> <div style="margin-top:12px; padding: 12px; border-radius: 8px; background: rgba(0, 150, 136, 0.20);"> <b style="color: var(--pse-accent-teal); font-size: 14px;"> 系統已啟動自動注入</b> <div style="margin-top: 8px; font-size: 13px; line-height: 1.6; color: var(--pse-text);"> 偵測到您維持預設的資訊萃取設定。發送對話時系統將 <b>自動</b> 套用 System Prompts，無須手動設定！
  </div> </div> </div>`,
-      help_p2_html: `<div style=" background: rgba(255, 23, 68, 0.20); padding: 12px; border-radius: 8px;"> <b style="color:var(--pse-muted); font-size: 14px;"> 預設提示詞 調整指南</b> <div style="margin-top: 8px; font-size: 13px; line-height: 1.6; color: var(--pse-text);"> <div style="margin-bottom: 4px;">1. 刪除欄位：<b>角色敘述、Lorebook、全域備註、Supa/HypaMemory</b>。</div> <div style="margin-bottom: 12px;">2. <b>進階設定：</b>進入聊天 > 勾選「進階」，然後將「範圍開始」設定為 <b>-10</b>。</div> <b style="color:var(--pse-muted); font-size: 14px;"> 給自訂設定的使用者</b> <div style="margin-top: 8px;"> <div style="margin-bottom: 4px;">3. 參考以下系統提示詞，然後修改成屬於你的版本。</div> <div style="margin-bottom: 4px;">4. 進到聊天機器人 > 提示詞頁面，打開 <b>頂部的系統提示詞</b> 後，將提示詞插入。</div> <div>5. 如果要發揮本外掛 100% 的性能，則要進一步編輯系統提示詞，將 AI 的身分降格成演員。</div> </div> </div> <div style="margin-top:12px;"> <textarea class="pse-code-window" readonly># UPSTREAM MEMORY USAGE GUIDE
-
-## Boundary Constraints
-- You are an actor and scene narrator, not a director. Do not invent plot twists, scene changes without authorization from ra_logic_state.entrance_signal.
-- Do not resolve threads ahead of ra_quest_log.next_step.
-- Do not summarize JSON in your output.
-
-## Execution Tiers
-### Tier 1: Hard Constraints
-- ra_response_guard (if present) > ra_logic_state.strict_directive > ra_turn_advice.response_guard.
-- Obey strict_directive and fix any logic_violation.
-### Tier 2: Current Portrayal
-- ra_turn_advice.character_routing: Core actor brief for current turn (primary_facet, reply_strategy, portrayal_goal, micro_repair, evolution_nudge, mask_note, reentry_restore).
-- ra_scene_state: scene_type, stakes_level, surface_expression, approach_tendency. Do not reveal hidden_drive in dialogue.
-- Cast Check: Use ra_scene_state.characters. Do not include absent characters.
-- ra_inventory: Adhere exactly to listed items and clothing.
-### Tier 3: Durable Continuity
-- ra_persistent_memory: Never contradict identity_nonnegotiables and signature_addressing. Apply reentry_anchors.
-- ra_reentry_guard: On returning is true, apply restore_now and avoid do_not_introduce.
-- ra_knowledge_matrix: Strict info-boundaries (knowers vs unknown_to). When absent, infer conservatively.
-- ra_quest_log: Track active_threads context. Progress only by next_step.
-- ra_pattern_guard: Apply variation_hint if staleness_level >= 6. Never use banned_phrases.
-- Reference: ra_turn_trace, ra_arc_memory, ra_turning_point_log, ra_world_log, ra_world_encyclopedia.
-
-## Execution Checklist
-1. Apply Tier 1 constraints.
-2. Read ra_turn_advice for active cast.
-3. Validate presence via ra_logic_state.entrance_signal or Cast Check.
-4. Verify ra_inventory for object/clothing continuity.
-5. Verify ra_knowledge_matrix facts and secrets.
-6. Check ra_pattern_guard for forbidden tokens.
-7. Write output. Express only one dominant facet per character.</textarea> <button class="pse-btn pse-copy-sql-btn" type="button" style="width:100%;padding:6px;font-size:12px;background:var(--pse-accent-greyblue);"> 複製系統提示詞</button> </div> </div>`,
+      help_p2_html: `<div style=" background: rgba(255, 23, 68, 0.20); padding: 12px; border-radius: 8px;"> <b style="color:var(--pse-muted); font-size: 14px;"> 預設提示詞 調整指南</b> <div style="margin-top: 8px; font-size: 13px; line-height: 1.6; color: var(--pse-text);"> <div style="margin-bottom: 4px;">1. 刪除欄位：<b>角色敘述、Lorebook、全域備註、Supa/HypaMemory</b>。</div> <div style="margin-bottom: 12px;">2. <b>進階設定：</b>進入聊天 > 勾選「進階」，然後將「範圍開始」設定為 <b>-10</b>。</div> <b style="color:var(--pse-muted); font-size: 14px;"> 給自訂設定的使用者</b> <div style="margin-top: 8px;"> <div style="margin-bottom: 4px;">3. 參考以下系統提示詞，然後修改成屬於你的版本。</div> <div style="margin-bottom: 4px;">4. 進到聊天機器人 > 提示詞頁面，打開 <b>頂部的系統提示詞</b> 後，將提示詞插入。</div> <div>5. 如果要發揮本外掛 100% 的性能，則要進一步編輯系統提示詞，將 AI 的身分降格成演員。</div> </div> </div> <div style="margin-top:12px;"> <textarea class="pse-code-window" readonly>${AUTO_INJECT_PROMPT_2}</textarea> <button class="pse-btn pse-copy-sql-btn" type="button" style="width:100%;padding:6px;font-size:12px;background:var(--pse-accent-greyblue);"> 複製系統提示詞</button> </div> </div>`,
       help_p2_html_auto: `<div style=" background: rgba(255, 23, 68, 0.20); padding: 12px; border-radius: 8px;"> <b style="color:var(--pse-muted); font-size: 14px;"> 預設提示詞 調整指南</b> <div style="margin-top: 8px; font-size: 13px; line-height: 1.6; color: var(--pse-text);"> <div style="margin-bottom: 4px;">1. 刪除欄位：<b>角色敘述、Lorebook、全域備註、Supa/HypaMemory</b>。</div> <div style="margin-bottom: 4px;">2. <b>進階設定：</b>進入聊天 > 勾選「進階」，然後將「範圍開始」設定為 <b>-10</b>。</div> </div> <div style="margin-top:12px; padding: 12px; border-radius: 8px; background: rgba(0, 150, 136, 0.20);"> <b style="color: var(--pse-accent-teal); font-size: 14px;"> 系統已啟動自動注入</b> <div style="margin-top: 8px; font-size: 13px; line-height: 1.6; color: var(--pse-text);"> 偵測到您維持預設的資訊萃取設定。發送對話時系統將 <b>自動</b> 套用 System Prompts，無須手動設定！
  </div> </div> </div>`,
     },
@@ -1342,7 +1243,7 @@
   let _T = _I18N.en;
   let _langInitialized = false;
   const PLUGIN_NAME = "👤 RisuAI Agent";
-  const PLUGIN_VER = "5.2.6";
+  const PLUGIN_VER = "5.3";
   const LOG = "[RisuAIAgent]";
   const SYSTEM_INJECT_TAG = "PLUGIN_PARALLEL_STATUS";
   const SYSTEM_REWRITE_TAG = "PLUGIN_PARALLEL_REWRITE";
@@ -1379,65 +1280,6 @@
   const FIXED_TIMEOUT_MS = 300000;
   const EMBEDDING_VECTOR_CACHE_VERSION = 5;
   const EMBEDDING_VECTOR_CACHE_MAX_PER_CARD = 300;
-  const AUTO_INJECT_PROMPT_1 = `# UPSTREAM MEMORY USAGE GUIDE
-
-## Boundary Constraints
-- You are an actor and scene narrator. Do not direct plot twists, environmental changes unless explicitly triggered by ra_director or ra_logic_state.entrance_signal.
-- Do not explain or summarize the JSON structures in narrative output.
-- Do not invent unlisted items, locations, or history.
-
-## Priorities (P1 > P5)
-### P1: Hard Constraints
-- ra_logic_state: Strictly execute strict_directive first.
-- ra_strategy_analysis: Apply analyst_strategy_overrides. Avoid cognition_violations.
-- ra_pattern_guard: banned_phrases are strictly forbidden. Follow variation_hint.
-### P2: Scene Ground Truth
-- ra_scene_state: Authoritative for location, atmosphere, and present characters.
-- ra_inventory: Enforce exact listed equipment and clothing.
-- ra_turn_trace: Continue strictly from this exact beat.
-- ra_director: Organically integrate environment_intervention if present.
-### P3: Active Plot & Strategy
-- ra_quest_log: Honor next_step. Do not summon characters marked requires_absent.
-- ra_knowledge_matrix: Enforce info-boundaries (knowers vs unknown_to). exploit_risk is for internal reasoning.
-- ra_strategy_layer: Base NPC behaviors on operations, leverage, and risk.
-### P4: Persistent Continuity
-- ra_persistent_memory: Enforce identity_nonnegotiables, signature_addressing, and actor_rule.
-- ra_reentry_guard: When returning is true, enforce restore_now. Avoid do_not_introduce.
-- ra_arc_memory / ra_turning_point_log: Must remain true. Contradictions are continuity errors.
-### P5: Reference Archives
-- ra_world_encyclopedia / ra_world_log / ra_knowledge_archive / ra_strategy_archive: Consult only when necessary.`;
-  const AUTO_INJECT_PROMPT_2 = `# UPSTREAM MEMORY USAGE GUIDE
-
-## Boundary Constraints
-- You are an actor and scene narrator, not a director. Do not invent plot twists, scene changes without authorization from ra_logic_state.entrance_signal.
-- Do not resolve threads ahead of ra_quest_log.next_step.
-- Do not summarize JSON in your output.
-
-## Execution Tiers
-### Tier 1: Hard Constraints
-- ra_response_guard (if present) > ra_logic_state.strict_directive > ra_turn_advice.response_guard.
-- Obey strict_directive and fix any logic_violation.
-### Tier 2: Current Portrayal
-- ra_turn_advice.character_routing: Core actor brief for current turn (primary_facet, reply_strategy, portrayal_goal, micro_repair, evolution_nudge, mask_note, reentry_restore).
-- ra_scene_state: scene_type, stakes_level, surface_expression, approach_tendency. Do not reveal hidden_drive in dialogue.
-- Cast Check: Use ra_scene_state.characters. Do not include absent characters.
-- ra_inventory: Adhere exactly to listed items and clothing.
-### Tier 3: Durable Continuity
-- ra_persistent_memory: Never contradict identity_nonnegotiables and signature_addressing. Apply reentry_anchors.
-- ra_reentry_guard: On returning is true, apply restore_now and avoid do_not_introduce.
-- ra_knowledge_matrix: Strict info-boundaries (knowers vs unknown_to). When absent, infer conservatively.
-- ra_quest_log: Track active_threads context. Progress only by next_step.
-- ra_pattern_guard: Apply variation_hint if staleness_level >= 6. Never use banned_phrases.
-- Reference: ra_turn_trace, ra_arc_memory, ra_turning_point_log, ra_world_log, ra_world_encyclopedia.
-
-## Execution Checklist
-1. Apply Tier 1 constraints.
-2. Read ra_turn_advice for active cast.
-3. Validate presence via ra_logic_state.entrance_signal or Cast Check.
-4. Verify ra_inventory for object/clothing continuity.
-5. Verify ra_knowledge_matrix facts and secrets.
-6. Check ra_pattern_guard for forbidden tokens.
-7. Write output. Express only one dominant facet per character.`;
   const DEFAULT_PERSONA_CALLS = [
     {
       "id": "call_persona_profile",
@@ -5608,24 +5450,24 @@ OUTPUT (STRICT):
   ]);
   async function refreshConfig() {
     const next = { ...DEFAULTS };
-    for (const key of Object.keys(DEFAULTS)) {
-      const argValue = await safeGetArgument(key);
-      const localValue = await Risuai.safeLocalStorage.getItem(
-        SETTING_KEYS[key],
-      );
-      let pluginSyncValue;
-      if (SYNC_TO_PLUGIN_STORAGE_KEYS.has(key)) {
-        try {
-          pluginSyncValue = await Risuai.pluginStorage.getItem(
-            "sync_" + SETTING_KEYS[key],
-          );
-        } catch { }
-      }
-      const normalizeVal = (v) => {
-        if (v === undefined || v === null) return undefined;
-        if (typeof v === "object") return JSON.stringify(v);
-        return String(v);
-      };
+    const allKeys = Object.keys(DEFAULTS);
+    const normalizeVal = (v) => {
+      if (v === undefined || v === null) return undefined;
+      if (typeof v === "object") return JSON.stringify(v);
+      return String(v);
+    };
+    // Parallelize all storage reads across all keys at once
+    const results = await Promise.all(allKeys.map(async (key) => {
+      const [argValue, localValue, pluginSyncValue] = await Promise.all([
+        safeGetArgument(key),
+        Risuai.safeLocalStorage.getItem(SETTING_KEYS[key]),
+        SYNC_TO_PLUGIN_STORAGE_KEYS.has(key)
+          ? Risuai.pluginStorage.getItem("sync_" + SETTING_KEYS[key]).catch(() => undefined)
+          : Promise.resolve(undefined),
+      ]);
+      return { key, argValue, localValue, pluginSyncValue };
+    }));
+    for (const { key, argValue, localValue, pluginSyncValue } of results) {
       const merged =
         normalizeVal(localValue) ?? normalizeVal(pluginSyncValue) ?? normalizeVal(argValue) ?? DEFAULTS[key];
       next[key] = merged;
@@ -5735,19 +5577,25 @@ OUTPUT (STRICT):
     if (!safeTrim(next.embedding_format)) {
       next.embedding_format = safeTrim(embeddingPreset.format || "openai");
     }
-    if (
-      !safeTrim(next.embedding_url) &&
-      next.embedding_provider !== "custom_api") {
+    // For managed providers, always override with preset URL so a stale custom_api URL
+    // from a previous provider never leaks into configCache.embedding_url.
+    if (next.embedding_provider !== "custom_api") {
       next.embedding_url = safeTrim(embeddingPreset.url || "");
+    } else if (!safeTrim(next.embedding_url)) {
+      next.embedding_url = "";
     }
-    if (
-      !safeTrim(next.embedding_request_model) &&
-      next.embedding_provider !== "custom_api") {
+    // For managed providers, always re-derive request_model from the resolved embedding_model.
+    // Never trust the stored value because it may be stale from a previous provider
+    // (e.g. "qwen3-embedding:8b" left over from custom_api persists even after switching
+    // to voyageai, making the guard `!safeTrim(stored)` always FALSE → model never updated).
+    if (next.embedding_provider !== "custom_api") {
       next.embedding_request_model = safeTrim(
         EMBEDDING_MODEL_TO_REQUEST[safeTrim(next.embedding_model)] ||
         embeddingPreset.requestModel ||
         "",
       );
+    } else if (!safeTrim(next.embedding_request_model)) {
+      next.embedding_request_model = safeTrim(next.embedding_model || "");
     }
     next.read_mod_lorebook =
       toInt(next.read_mod_lorebook, DEFAULTS.read_mod_lorebook) === 1 ? 1 : 0;
@@ -5937,9 +5785,18 @@ OUTPUT (STRICT):
     const aKey = _pickKey("a") || aRawKey;
     const bKey = _pickKey("b") || bRawKey;
     const embedKey = _pickKey("embed") || embedRawKey;
+    // Resolve extractor URL: for known managed providers, always use the
+    // canonical default URL so a stale custom_api URL never leaks over after
+    // a provider switch. For custom_api, use the stored URL as-is.
+    const resolveExtractorUrl = (provider, storedUrl, fallbackUrl) => {
+      const rawUrl = (provider !== "custom_api" && PROVIDER_DEFAULT_URL[provider])
+        ? PROVIDER_DEFAULT_URL[provider]
+        : safeTrim(storedUrl || fallbackUrl || "");
+      return rawUrl;
+    };
     const a = {
       url: normalizeUrlByFormat(
-        configCache.extractor_a_url || configCache.extractor_b_url,
+        resolveExtractorUrl(aProvider, configCache.extractor_a_url, configCache.extractor_b_url),
         aFormat,
       ),
       key: aKey,
@@ -5955,7 +5812,7 @@ OUTPUT (STRICT):
     };
     const b = {
       url: normalizeUrlByFormat(
-        configCache.extractor_b_url || configCache.extractor_a_url,
+        resolveExtractorUrl(bProvider, configCache.extractor_b_url, configCache.extractor_a_url),
         bFormat,
       ),
       key: bKey,
@@ -5983,37 +5840,42 @@ OUTPUT (STRICT):
     "init_bootstrap_model_anchor_prompt",
   ]);
   async function saveConfigFromUI(formData) {
-    for (const [key, storageKey] of Object.entries(SETTING_KEYS)) {
-      if (formData[key] !== undefined) {
-        try {
-          const value = formData[key];
-          const strVal =
-            value === undefined || value === null
-              ? "" : typeof value === "object" ? JSON.stringify(value)
-                : String(value);
-          // Protect critical prompt fields: never overwrite with empty if we already have content
-          if (NEVER_EMPTY_OVERWRITE_KEYS.has(key) && !strVal.trim()) {
-            const existingVal = safeTrim(configCache[key] || "");
-            const existingStoredVal = safeTrim(await Risuai.safeLocalStorage.getItem(storageKey) || "");
-            if (existingVal || existingStoredVal) {
-              continue; // Skip overwriting a non-empty value with empty
-            }
-          }
-          await Risuai.safeLocalStorage.setItem(storageKey, strVal);
-          await safeSetArgument(key, strVal);
-          /* Dual-write key-related fields to pluginStorage for cross-device sync */
-          if (SYNC_TO_PLUGIN_STORAGE_KEYS.has(key)) {
-            try {
-              await Risuai.pluginStorage.setItem("sync_" + storageKey, strVal);
-            } catch { }
-          }
-        } catch (err) {
-          throw new Error(
-            `saveConfigFromUI failed at "${key}": ${err?.message || String(err)}`,
-          );
-        }
+    // Build list of entries that have values to save
+    const entries = Object.entries(SETTING_KEYS).filter(([key]) => formData[key] !== undefined);
+    // Step 1: Parallel NEVER_EMPTY checks for keys that need guarding
+    const neverEmptyEntries = entries.filter(([key]) => {
+      const value = formData[key];
+      const strVal = value === undefined || value === null ? "" : typeof value === "object" ? JSON.stringify(value) : String(value);
+      return NEVER_EMPTY_OVERWRITE_KEYS.has(key) && !strVal.trim();
+    });
+    const storedVals = await Promise.all(
+      neverEmptyEntries.map(([, storageKey]) =>
+        Risuai.safeLocalStorage.getItem(storageKey).catch(() => "")
+      )
+    );
+    const skipKeys = new Set();
+    neverEmptyEntries.forEach(([key], i) => {
+      const existingVal = safeTrim(configCache[key] || "");
+      const existingStoredVal = safeTrim(storedVals[i] || "");
+      if (existingVal || existingStoredVal) skipKeys.add(key);
+    });
+    // Step 2: Parallel writes for all non-skipped entries
+    await Promise.all(entries.map(async ([key, storageKey]) => {
+      if (skipKeys.has(key)) return;
+      const value = formData[key];
+      const strVal = value === undefined || value === null ? "" : typeof value === "object" ? JSON.stringify(value) : String(value);
+      try {
+        await Promise.all([
+          Risuai.safeLocalStorage.setItem(storageKey, strVal),
+          safeSetArgument(key, strVal),
+          SYNC_TO_PLUGIN_STORAGE_KEYS.has(key)
+            ? Risuai.pluginStorage.setItem("sync_" + storageKey, strVal).catch(() => {})
+            : Promise.resolve(),
+        ]);
+      } catch (err) {
+        throw new Error(`saveConfigFromUI failed at "${key}": ${err?.message || String(err)}`);
       }
-    }
+    }));
     try {
       await refreshConfig();
     } catch (err) {
@@ -14643,7 +14505,7 @@ OUTPUT (STRICT):
     overlayRoot.id = "pse-overlay-root";
     overlayRoot.style.cssText =
       "position:fixed;inset:0;z-index:9999;overflow:auto;opacity:0;transition:opacity 0.15s ease;";
-    overlayRoot.innerHTML = ` <div class="pse-body"> <div class="pse-card"> <h1 class="pse-title">👤 RisuAI Agent v5.2.6</h1> <div id="pse-status" class="pse-status"></div> ${renderModelDatalists()}
+    overlayRoot.innerHTML = ` <div class="pse-body"> <div class="pse-card"> <h1 class="pse-title">👤 RisuAI Agent v5.3</h1> <div id="pse-status" class="pse-status"></div> ${renderModelDatalists()}
  <div class="pse-tabs"> ${`<button class="pse-tab active" data-page="7">${_T.tab_help}</button> <button class="pse-tab" data-page="8">${_T.tab_enable}</button> <button class="pse-tab" data-page="1">${_T.tab_model}</button>`}
  </div> <div class="pse-tabs pse-tabs-secondary"> ${`<button class="pse-tab" data-page="6">${_T.tab_cache_open || _T.sec_cache}</button> <button class="pse-tab" data-page="2">${_T.tab_entry}</button> <button class="pse-tab" data-page="5">${_T.tab_vector_open || _T.sec_vec}</button>`}
  </div> <div class="pse-page active" data-page="7"> <div style="margin-bottom:14px;padding:10px 14px;border-radius:8px;background:rgba(192,120,0,0.14);border:1.5px solid rgba(192,120,0,0.40);font-size:12px;font-weight:700;color:#3D2300;display:flex;align-items:center;gap:8px;"> ⚠️ ${escapeHtml(_T.lore_warn)}</div> <!-- Language (Standalone) --> <div style="margin-bottom:16px;"> <label class="pse-label" style="margin-bottom:6px; color:var(--pse-text);"> Language / 語言 / 언어</label> <div style="display:flex;gap:8px;"> ${["en", "tc", "ko"]
