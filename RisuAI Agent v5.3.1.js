@@ -1,9 +1,9 @@
 //@name 👤 RisuAI Agent
-//@display-name 👤 RisuAI Agent v5.3
+//@display-name 👤 RisuAI Agent v5.3.1
 //@author penguineugene@protonmail.com
 //@link https://github.com/EugenesDad/RisuAI-Agent-plugin
 //@api 3.0
-//@version 5.3
+//@version 5.3.1
 
 (async () => {
   function _mapLangCode(raw) {
@@ -1243,7 +1243,7 @@
   let _T = _I18N.en;
   let _langInitialized = false;
   const PLUGIN_NAME = "👤 RisuAI Agent";
-  const PLUGIN_VER = "5.3";
+  const PLUGIN_VER = "5.3.1";
   const LOG = "[RisuAIAgent]";
   const SYSTEM_INJECT_TAG = "PLUGIN_PARALLEL_STATUS";
   const SYSTEM_REWRITE_TAG = "PLUGIN_PARALLEL_REWRITE";
@@ -5787,9 +5787,14 @@ OUTPUT (STRICT):
     const embedKey = _pickKey("embed") || embedRawKey;
     // Resolve extractor URL: for known managed providers, always use the
     // canonical default URL so a stale custom_api URL never leaks over after
-    // a provider switch. For custom_api, use the stored URL as-is.
+    // a provider switch. For custom_api or vertex_ai (requires user-specific
+    // project URL that cannot be inferred from a generic default), use the
+    // stored URL as-is.
     const resolveExtractorUrl = (provider, storedUrl, fallbackUrl) => {
-      const rawUrl = (provider !== "custom_api" && PROVIDER_DEFAULT_URL[provider])
+      const useDefault = provider !== "custom_api" &&
+        provider !== "vertex_ai" &&
+        PROVIDER_DEFAULT_URL[provider];
+      const rawUrl = useDefault
         ? PROVIDER_DEFAULT_URL[provider]
         : safeTrim(storedUrl || fallbackUrl || "");
       return rawUrl;
@@ -14505,7 +14510,7 @@ OUTPUT (STRICT):
     overlayRoot.id = "pse-overlay-root";
     overlayRoot.style.cssText =
       "position:fixed;inset:0;z-index:9999;overflow:auto;opacity:0;transition:opacity 0.15s ease;";
-    overlayRoot.innerHTML = ` <div class="pse-body"> <div class="pse-card"> <h1 class="pse-title">👤 RisuAI Agent v5.3</h1> <div id="pse-status" class="pse-status"></div> ${renderModelDatalists()}
+    overlayRoot.innerHTML = ` <div class="pse-body"> <div class="pse-card"> <h1 class="pse-title">👤 RisuAI Agent v5.3.1</h1> <div id="pse-status" class="pse-status"></div> ${renderModelDatalists()}
  <div class="pse-tabs"> ${`<button class="pse-tab active" data-page="7">${_T.tab_help}</button> <button class="pse-tab" data-page="8">${_T.tab_enable}</button> <button class="pse-tab" data-page="1">${_T.tab_model}</button>`}
  </div> <div class="pse-tabs pse-tabs-secondary"> ${`<button class="pse-tab" data-page="6">${_T.tab_cache_open || _T.sec_cache}</button> <button class="pse-tab" data-page="2">${_T.tab_entry}</button> <button class="pse-tab" data-page="5">${_T.tab_vector_open || _T.sec_vec}</button>`}
  </div> <div class="pse-page active" data-page="7"> <div style="margin-bottom:14px;padding:10px 14px;border-radius:8px;background:rgba(192,120,0,0.14);border:1.5px solid rgba(192,120,0,0.40);font-size:12px;font-weight:700;color:#3D2300;display:flex;align-items:center;gap:8px;"> ⚠️ ${escapeHtml(_T.lore_warn)}</div> <!-- Language (Standalone) --> <div style="margin-bottom:16px;"> <label class="pse-label" style="margin-bottom:6px; color:var(--pse-text);"> Language / 語言 / 언어</label> <div style="display:flex;gap:8px;"> ${["en", "tc", "ko"]
